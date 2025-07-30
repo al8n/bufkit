@@ -15,13 +15,13 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.space()` or if `offset + size_of::<T>() > self.space()`.
+        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -44,7 +44,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -66,7 +66,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -86,13 +86,13 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.space()` or if `offset + size_of::<T>() > self.space()`.
+        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -115,7 +115,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -137,7 +137,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -160,13 +160,13 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.space()` or if `offset + size_of::<T>() > self.space()`.
+        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -190,7 +190,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -213,7 +213,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -239,7 +239,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -261,7 +261,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -286,7 +286,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -314,7 +314,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -336,7 +336,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -361,7 +361,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -392,7 +392,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -415,7 +415,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -441,7 +441,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use segio::WriteBuf;
+        /// use bufkit::WriteBuf;
         ///
         /// let mut buf = [0u8; 10];
         /// let mut slice = &mut buf[..];
@@ -568,7 +568,7 @@ macro_rules! write_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Buffer inspection**: `space()`, `has_space()`, `buffer()`, `buffer_mut()`
+/// - **Buffer inspection**: `available_mut()`, `exhausted()`, `buffer()`, `buffer_mut()`
 /// - **Buffer manipulation**: `resize()`, `truncate_mut()`, `fill()`
 /// - **Slice operations**: `prefix_mut()`, `suffix_mut()`, `split_at_mut()`
 /// - **Writing data**: `write_slice()`, `write_u8()`, `write_u16_le()`, etc.
@@ -576,20 +576,20 @@ macro_rules! write_fixed {
 pub trait WriteBuf {
   /// Returns `true` if the buffer has available space for writing.
   ///
-  /// This is equivalent to `self.space() > 0`.
+  /// This is equivalent to `self.available_mut() == 0`.
   ///
   /// # Examples
   ///
   /// ```rust
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
-  /// assert!(slice.has_space());
+  /// assert!(slice.exhausted());
   ///
   /// let mut empty = &mut [][..];
-  /// assert!(!empty.has_space());
+  /// assert!(empty.exhausted());
   /// ```
-  fn has_space(&self) -> bool {
-    self.space() > 0
+  fn exhausted(&self) -> bool {
+    self.available_mut() == 0
   }
 
   /// Returns the number of bytes available for writing in the buffer.
@@ -600,13 +600,13 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
-  /// assert_eq!(slice.space(), 10);
+  /// assert_eq!(slice.available_mut(), 10);
   /// ```
-  fn space(&self) -> usize;
+  fn available_mut(&self) -> usize;
 
   /// Shortens the buffer to the specified length, keeping the first `len` bytes.
   ///
@@ -616,7 +616,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = vec![1, 2, 3, 4, 5];
   /// buf.truncate_mut(3);
@@ -641,7 +641,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = vec![1, 2, 3];
   /// buf.resize(5, 0xFF);
@@ -660,7 +660,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = vec![1, 2, 3, 4];
   /// let slice = buf.buffer_mut();
@@ -668,21 +668,6 @@ pub trait WriteBuf {
   /// assert_eq!(buf[0], 0xFF);
   /// ```
   fn buffer_mut(&mut self) -> &mut [u8];
-
-  /// Returns the entire initialized buffer as an immutable slice.
-  ///
-  /// This provides read-only access to all buffer contents.
-  /// The returned slice covers all initialized bytes in the buffer.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use segio::WriteBuf;
-  ///
-  /// let buf = vec![1, 2, 3, 4];
-  /// assert_eq!(buf.buffer(), &[1, 2, 3, 4]);
-  /// ```
-  fn buffer(&self) -> &[u8];
 
   /// Tries to resize the buffer to the specified length, filling new bytes with the given value.
   ///
@@ -693,7 +678,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..3];
@@ -705,8 +690,8 @@ pub trait WriteBuf {
   /// assert!(slice.try_resize(10, 0xFF).is_err());
   /// ```
   fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-    if new_len > self.space() {
-      return Err(TryResizeError::new(new_len, self.space(), fill_value));
+    if new_len > self.available_mut() {
+      return Err(TryResizeError::new(new_len, self.available_mut(), fill_value));
     }
     self.resize(new_len, fill_value);
     Ok(())
@@ -719,7 +704,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4];
   /// let mut slice = &mut buf[..];
@@ -737,13 +722,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.space()`.
+  /// Panics if `len > self.available_mut()`.
   /// Use [`prefix_mut_checked`](WriteBuf::prefix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -758,12 +743,12 @@ pub trait WriteBuf {
   /// Returns a mutable slice containing the first `len` bytes of the buffer.
   ///
   /// This is the non-panicking version of [`prefix_mut`](WriteBuf::prefix_mut).
-  /// Returns `Some(slice)` if `len <= self.space()`, otherwise returns `None`.
+  /// Returns `Some(slice)` if `len <= self.available_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -772,7 +757,7 @@ pub trait WriteBuf {
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
   fn prefix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    if len <= self.space() {
+    if len <= self.available_mut() {
       Some(&mut self.buffer_mut()[..len])
     } else {
       None
@@ -786,13 +771,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.space()`.
+  /// Panics if `len > self.available_mut()`.
   /// Use [`suffix_mut_checked`](WriteBuf::suffix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -801,19 +786,19 @@ pub trait WriteBuf {
   /// assert_eq!(buf, [1, 2, 3, 0xFF, 0xFF]);
   /// ```
   fn suffix_mut(&mut self, len: usize) -> &mut [u8] {
-    let total_len = self.space();
+    let total_len = self.available_mut();
     &mut self.buffer_mut()[total_len - len..]
   }
 
   /// Returns a mutable slice containing the last `len` bytes of the buffer.
   ///
   /// This is the non-panicking version of [`suffix_mut`](WriteBuf::suffix_mut).
-  /// Returns `Some(slice)` if `len <= self.space()`, otherwise returns `None`.
+  /// Returns `Some(slice)` if `len <= self.available_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -822,7 +807,7 @@ pub trait WriteBuf {
   /// assert!(slice.suffix_mut_checked(10).is_none());
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    let total_len = self.space();
+    let total_len = self.available_mut();
     if len <= total_len {
       Some(&mut self.buffer_mut()[total_len - len..])
     } else {
@@ -837,13 +822,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `mid > self.space()`.
+  /// Panics if `mid > self.available_mut()`.
   /// Use [`split_at_mut_checked`](WriteBuf::split_at_mut_checked) for non-panicking splitting.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -858,12 +843,12 @@ pub trait WriteBuf {
   /// Divides the buffer into two mutable slices at the given index.
   ///
   /// This is the non-panicking version of [`split_at_mut`](WriteBuf::split_at_mut).
-  /// Returns `Some((left, right))` if `mid <= self.space()`, otherwise returns `None`.
+  /// Returns `Some((left, right))` if `mid <= self.available_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -882,14 +867,14 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `slice.len() > self.space()`.
+  /// Panics if `slice.len() > self.available_mut()`.
   /// Use [`write_slice_checked`](WriteBuf::write_slice_checked) or
   /// [`try_write_slice`](WriteBuf::try_write_slice) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -911,7 +896,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -921,7 +906,7 @@ pub trait WriteBuf {
   /// ```
   fn write_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
     let len = slice.len();
-    if len <= self.space() {
+    if len <= self.available_mut() {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -939,7 +924,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -951,7 +936,7 @@ pub trait WriteBuf {
   /// ```
   fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
     let len = slice.len();
-    let space = self.space();
+    let space = self.available_mut();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Ok(len)
@@ -967,14 +952,14 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset + slice.len() > self.space()` or if `offset >= self.space()`.
+  /// Panics if `offset + slice.len() > self.available_mut()` or if `offset >= self.available_mut()`.
   /// Use [`write_slice_at_checked`](WriteBuf::write_slice_at_checked) or
   /// [`try_write_slice_at`](WriteBuf::try_write_slice_at) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -997,7 +982,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1008,7 +993,7 @@ pub trait WriteBuf {
   /// ```
   fn write_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
     let len = slice.len();
-    if len + offset <= self.space() {
+    if len + offset <= self.available_mut() {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -1026,7 +1011,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1038,7 +1023,7 @@ pub trait WriteBuf {
   /// ```
   fn try_write_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryWriteAtError> {
     let len = slice.len();
-    let space = self.space();
+    let space = self.available_mut();
     if offset >= space {
       return Err(TryWriteAtError::out_of_bounds(offset, space));
     }
@@ -1047,7 +1032,7 @@ pub trait WriteBuf {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
-      Err(TryWriteAtError::insufficient(len, space - offset, offset))
+      Err(TryWriteAtError::insufficient_space(len, space - offset, offset))
     }
   }
 
@@ -1065,7 +1050,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1086,7 +1071,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 1];
   /// let mut slice = &mut buf[..];
@@ -1129,7 +1114,7 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.space()`.
+  /// Panics if `offset >= self.available_mut()`.
   /// Use [`write_u8_at_checked`](WriteBuf::write_u8_at_checked) for non-panicking writes.
   #[inline]
   fn write_u8_at(&mut self, value: u8, offset: usize) -> usize {
@@ -1151,7 +1136,7 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.space()`.
+  /// Panics if `offset >= self.available_mut()`.
   /// Use [`write_i8_at_checked`](WriteBuf::write_i8_at_checked) for non-panicking writes.
   #[inline]
   fn write_i8_at(&mut self, value: i8, offset: usize) -> usize {
@@ -1177,7 +1162,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1203,7 +1188,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1229,7 +1214,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1254,7 +1239,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1283,7 +1268,7 @@ pub trait WriteBufExt: WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1309,7 +1294,7 @@ pub trait WriteBufExt: WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use segio::WriteBuf;
+  /// use bufkit::WriteBuf;
   ///
   /// let mut buf = [0u8; 10];
   /// let mut slice = &mut buf[..];
@@ -1328,14 +1313,14 @@ pub trait WriteBufExt: WriteBuf {
           WriteVarintError::Underflow {
             required: requested,
             remaining: available,
-          } => Err(WriteVarintAtError::insufficient(
+          } => Err(WriteVarintAtError::insufficient_space(
             requested, available, offset,
           )),
           WriteVarintError::Custom(msg) => Err(WriteVarintAtError::custom(msg)),
           _ => Err(WriteVarintAtError::custom("unknown error")),
         },
       },
-      None => Err(WriteVarintAtError::out_of_bounds(offset, self.space())),
+      None => Err(WriteVarintAtError::out_of_bounds(offset, self.available_mut())),
     }
   }
 }
@@ -1345,13 +1330,13 @@ impl<T: WriteBuf> WriteBufExt for T {}
 macro_rules! deref_forward_write_buf {
   () => {
     #[inline]
-    fn has_space(&self) -> bool {
-      (**self).has_space()
+    fn exhausted(&self) -> bool {
+      (**self).exhausted()
     }
 
     #[inline]
-    fn space(&self) -> usize {
-      (**self).space()
+    fn available_mut(&self) -> usize {
+      (**self).available_mut()
     }
 
     #[inline]
@@ -1367,11 +1352,6 @@ macro_rules! deref_forward_write_buf {
     #[inline]
     fn buffer_mut(&mut self) -> &mut [u8] {
       (**self).buffer_mut()
-    }
-
-    #[inline]
-    fn buffer(&self) -> &[u8] {
-      (**self).buffer()
     }
 
     #[inline]
@@ -1544,17 +1524,12 @@ impl WriteBuf for &mut [u8] {
   }
 
   #[inline]
-  fn buffer(&self) -> &[u8] {
-    self
-  }
-
-  #[inline]
-  fn space(&self) -> usize {
+  fn available_mut(&self) -> usize {
     <[u8]>::len(self)
   }
 
   #[inline]
-  fn has_space(&self) -> bool {
+  fn exhausted(&self) -> bool {
     !self.is_empty()
   }
 
@@ -1581,12 +1556,12 @@ const _: () = {
 
   impl WriteBuf for BytesMut {
     #[inline]
-    fn has_space(&self) -> bool {
+    fn exhausted(&self) -> bool {
       !self.is_empty()
     }
 
     #[inline]
-    fn space(&self) -> usize {
+    fn available_mut(&self) -> usize {
       self.len()
     }
 
@@ -1604,11 +1579,6 @@ const _: () = {
     fn buffer_mut(&mut self) -> &mut [u8] {
       self.as_mut()
     }
-
-    #[inline]
-    fn buffer(&self) -> &[u8] {
-      self.as_ref()
-    }
   }
 };
 
@@ -1617,24 +1587,29 @@ const _: () = {
   use std::vec::Vec;
 
   impl WriteBuf for Vec<u8> {
+    #[inline]
     fn resize(&mut self, new_len: usize, fill_value: u8) {
       self.resize(new_len, fill_value);
     }
 
+    #[inline]
     fn truncate_mut(&mut self, new_len: usize) {
       self.truncate(new_len);
     }
 
+    #[inline]
     fn buffer_mut(&mut self) -> &mut [u8] {
       self.as_mut_slice()
     }
 
-    fn buffer(&self) -> &[u8] {
-      self.as_slice()
+    #[inline]
+    fn available_mut(&self) -> usize {
+      self.len()
     }
 
-    fn space(&self) -> usize {
-      self.len()
+    #[inline]
+    fn exhausted(&self) -> bool {
+      !self.is_empty()
     }
   }
 };

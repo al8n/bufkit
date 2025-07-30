@@ -46,7 +46,7 @@ macro_rules! try_op_error {
 try_op_error!(
   #[doc = "An error that occurs when trying to advance the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to advance (requested {requested} but only {available} available)"
+    "Not enough bytes available to advance (requested {requested} but only {available} available)"
   )]
   advance
 );
@@ -54,7 +54,7 @@ try_op_error!(
 try_op_error!(
   #[doc = "An error that occurs when trying to read a value from the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to read value (requested {requested} but only {available} available)"
+    "Not enough bytes available to read value (requested {requested} but only {available} available)"
   )]
   read
 );
@@ -62,7 +62,7 @@ try_op_error!(
 try_op_error!(
   #[doc = "An error that occurs when trying to peek a value from the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to peek value (requested {requested} but only {available} available)"
+    "Not enough bytes available to peek value (requested {requested} but only {available} available)"
   )]
   peek
 );
@@ -70,7 +70,7 @@ try_op_error!(
 try_op_error!(
   #[doc = "An error that occurs when trying to split off the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to split off (requested {requested} but only {available} available)"
+    "Not enough bytes available to split off (requested {requested} but only {available} available)"
   )]
   split_off
 );
@@ -78,7 +78,7 @@ try_op_error!(
 try_op_error!(
   #[doc = "An error that occurs when trying to split the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to split (requested {requested} but only {available} available)"
+    "Not enough bytes available to split (requested {requested} but only {available} available)"
   )]
   split_to
 );
@@ -86,7 +86,7 @@ try_op_error!(
 try_op_error!(
   #[doc = "An error that occurs when trying to write to the buffer."]
   #[error(
-    "Not enough bytes remaining in buffer to write value (requested {requested} but only {available} available)"
+    "Not enough bytes available to write value (requested {requested} but only {available} available)"
   )]
   write
 );
@@ -203,8 +203,8 @@ pub enum TryWriteAtError {
     length: usize,
   },
   /// An error that occurs when there is not enough space in the buffer to write the requested data.
-  #[error("Not enough bytes remaining in buffer to write value (requested {requested} but only {available} available at offset {offset})")]
-  Insufficient {
+  #[error("Not enough bytes available to write value (requested {requested} but only {available} available at offset {offset})")]
+  InsufficientSpace {
     /// The number of bytes requested to write.
     requested: usize,
     /// The number of bytes available in the buffer.
@@ -223,8 +223,8 @@ impl TryWriteAtError {
 
   /// Creates a new `TryWriteAtError::Insufficient` error.
   #[inline]
-  pub const fn insufficient(requested: usize, available: usize, offset: usize) -> Self {
-    Self::Insufficient {
+  pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
+    Self::InsufficientSpace {
       requested,
       available,
       offset,
@@ -232,9 +232,11 @@ impl TryWriteAtError {
   }
 }
 
-/// An error that occurs when trying to write a variable-length integer at a specific offset in the buffer.
+/// An error that occurs when trying to write type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
+#[cfg(feature = "varing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
 pub enum WriteVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error("Offset {offset} is out of bounds for buffer length {length}")]
@@ -245,8 +247,8 @@ pub enum WriteVarintAtError {
     length: usize,
   },
   /// The buffer does not have enough capacity to encode the value.
-  #[error("Not enough bytes remaining in buffer to write value (requested {requested} but only {available} available at offset {offset})")]
-  Insufficient {
+  #[error("Not enough bytes available to write value (requested {requested} but only {available} available at offset {offset})")]
+  InsufficientSpace {
     /// The number of bytes requested to write.
     requested: usize,
     /// The number of bytes available in the buffer.
@@ -259,6 +261,7 @@ pub enum WriteVarintAtError {
   Custom(&'static str),
 }
 
+#[cfg(feature = "varing")]
 impl WriteVarintAtError {
   /// Creates a new `WriteVarintAtError::OutOfBounds` error.
   #[inline]
@@ -268,8 +271,8 @@ impl WriteVarintAtError {
 
   /// Creates a new `WriteVarintAtError::Insufficient` error.
   #[inline]
-  pub const fn insufficient(requested: usize, available: usize, offset: usize) -> Self {
-    Self::Insufficient {
+  pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
+    Self::InsufficientSpace {
       requested,
       available,
       offset,
