@@ -1,6 +1,4 @@
-use super::error::{
-  TryAdvanceError, TryPeekError, TryReadError, TrySegmentError, TrySplitOffError, TrySplitToError,
-};
+use super::error::{OutOfBounds, TryAdvanceError, TryPeekError, TryReadError, TrySegmentError};
 
 use core::ops::{Bound, RangeBounds};
 
@@ -32,7 +30,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _le>](&self) -> $ty {
-          <$ty>::from_le_bytes(self.peek_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_le_bytes(peek_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in little-endian byte order without advancing the cursor."]
@@ -54,7 +52,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _le_checked>](&self) -> Option<$ty> {
-          self.peek_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_le_bytes)
+          peek_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_le_bytes)
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in little-endian byte order without advancing the cursor."]
@@ -78,7 +76,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<try_peek_ $ty _le>](&self) -> Result<$ty, TryPeekError> {
-          self.try_peek_array::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_le_bytes)
+          try_peek_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_le_bytes)
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in big-endian byte order without advancing the cursor."]
@@ -102,7 +100,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _be>](&self) -> $ty {
-          <$ty>::from_be_bytes(self.peek_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_be_bytes(peek_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in big-endian byte order without advancing the cursor."]
@@ -124,7 +122,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _be_checked>](&self) -> Option<$ty> {
-          self.peek_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_be_bytes)
+          peek_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_be_bytes)
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in big-endian byte order without advancing the cursor."]
@@ -148,7 +146,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<try_peek_ $ty _be>](&self) -> Result<$ty, TryPeekError> {
-          self.try_peek_array::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_be_bytes)
+          try_peek_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_be_bytes)
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in native-endian byte order without advancing the cursor."]
@@ -175,7 +173,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _ne>](&self) -> $ty {
-          <$ty>::from_ne_bytes(self.peek_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_ne_bytes(peek_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in native-endian byte order without advancing the cursor."]
@@ -198,7 +196,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<peek_ $ty _ne_checked>](&self) -> Option<$ty> {
-          self.peek_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_ne_bytes)
+          peek_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_ne_bytes)
         }
 
         #[doc = "Peeks a `" $ty "` value from the buffer in native-endian byte order without advancing the cursor."]
@@ -223,7 +221,7 @@ macro_rules! peek_fixed {
         /// ```
         #[inline]
         fn [<try_peek_ $ty _ne>](&self) -> Result<$ty, TryPeekError> {
-          self.try_peek_array::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_ne_bytes)
+          try_peek_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_ne_bytes)
         }
       )*
     }
@@ -255,7 +253,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _le>](&mut self) -> $ty {
-          <$ty>::from_le_bytes(self.read_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_le_bytes(read_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in little-endian byte order and advances the cursor."]
@@ -278,13 +276,13 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _le_checked>](&mut self) -> Option<$ty> {
-          self.read_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_le_bytes)
+          read_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_le_bytes)
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in little-endian byte order and advances the cursor."]
         ///
         #[doc = "This is the non-panicking version of [`read_" $ty "_le`](ReadBuf::read_" $ty "_le)."]
-        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)` 
+        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
@@ -305,7 +303,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<try_read_ $ty _le>](&mut self) -> Result<$ty, TryReadError> {
-          self.try_read_array::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_le_bytes)
+          try_read_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_le_bytes)
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in big-endian byte order and advances the cursor."]
@@ -329,7 +327,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _be>](&mut self) -> $ty {
-          <$ty>::from_be_bytes(self.read_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_be_bytes(read_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in big-endian byte order and advances the cursor."]
@@ -352,13 +350,13 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _be_checked>](&mut self) -> Option<$ty> {
-          self.read_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_be_bytes)
+          read_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_be_bytes)
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in big-endian byte order and advances the cursor."]
         ///
         #[doc = "This is the non-panicking version of [`read_" $ty "_be`](ReadBuf::read_" $ty "_be)."]
-        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)` 
+        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
@@ -379,7 +377,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<try_read_ $ty _be>](&mut self) -> Result<$ty, TryReadError> {
-          self.try_read_array::<{ core::mem::size_of::<$ty>() }>().map(|val| { <$ty>::from_be_bytes(val) })
+          try_read_array::<_, { core::mem::size_of::<$ty>() }>(self).map(|val| { <$ty>::from_be_bytes(val) })
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in native-endian byte order and advances the cursor."]
@@ -406,7 +404,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _ne>](&mut self) -> $ty {
-          <$ty>::from_ne_bytes(self.read_array::<{ core::mem::size_of::<$ty>() }>())
+          <$ty>::from_ne_bytes(read_array::<_, { core::mem::size_of::<$ty>() }>(self))
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in native-endian byte order and advances the cursor."]
@@ -430,14 +428,14 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<read_ $ty _ne_checked>](&mut self) -> Option<$ty> {
-          self.read_array_checked::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_ne_bytes)
+          read_array_checked::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_ne_bytes)
         }
 
         #[doc = "Reads a `" $ty "` value from the buffer in native-endian byte order and advances the cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
         #[doc = "This is the non-panicking version of [`read_" $ty "_ne`](ReadBuf::read_" $ty "_ne)."]
-        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)` 
+        /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
@@ -458,7 +456,7 @@ macro_rules! read_fixed {
         /// ```
         #[inline]
         fn [<try_read_ $ty _ne>](&mut self) -> Result<$ty, TryReadError> {
-          self.try_read_array::<{ core::mem::size_of::<$ty>() }>().map(<$ty>::from_ne_bytes)
+          try_read_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_ne_bytes)
         }
       )*
     }
@@ -481,23 +479,6 @@ macro_rules! read_fixed {
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
 pub trait ReadBuf {
-  /// Returns an empty read buffer.
-  ///
-  /// Creates a new buffer instance with no data available for reading.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let buf = <&[u8]>::empty();
-  /// assert_eq!(buf.available(), 0);
-  /// assert!(!buf.has_available());
-  /// ```
-  fn empty() -> Self
-  where
-    Self: Sized;
-
   /// Returns the number of bytes available for reading in the buffer.
   ///
   /// This represents how many bytes can be read from the current cursor position
@@ -553,12 +534,113 @@ pub trait ReadBuf {
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
-  /// 
+  ///
   /// buf.advance(2);
   /// assert_eq!(buf.available(), 3);
   /// assert_eq!(buf.buffer(), &[3, 4, 5]);
   /// ```
   fn advance(&mut self, cnt: usize);
+
+  /// Returns a slice containing the first `len` bytes of the buffer.
+  ///
+  /// This provides access to a prefix of the buffer for efficient manipulation
+  /// of a specific portion without affecting the rest of the buffer.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `len > self.available()`.
+  /// Use [`prefix_checked`](ReadBuf::prefix_checked) for non-panicking access.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let mut buf = [1, 2, 3, 4, 5];
+  /// let mut slice = &mut buf[..];
+  /// let prefix = slice.prefix(3);
+  /// prefix.fill(0xFF);
+  /// assert_eq!(buf, [0xFF, 0xFF, 0xFF, 4, 5]);
+  /// ```
+  #[inline]
+  fn prefix(&self, len: usize) -> &[u8] {
+    &self.buffer()[..len]
+  }
+
+  /// Returns a slice containing the first `len` bytes of the buffer.
+  ///
+  /// This is the non-panicking version of [`prefix`](ReadBuf::prefix).
+  /// Returns `Some(slice)` if `len <= self.available()`, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let mut buf = [1, 2, 3, 4, 5];
+  /// let mut slice = &mut buf[..];
+  ///
+  /// assert!(slice.prefix_checked(3).is_some());
+  /// assert!(slice.prefix_checked(10).is_none());
+  /// ```
+  #[inline]
+  fn prefix_checked(&self, len: usize) -> Option<&[u8]> {
+    match self.available().checked_sub(len)? {
+      0 => Some(&[]),
+      end => Some(&self.buffer()[..end]),
+    }
+  }
+
+  /// Returns a slice containing the last `len` bytes of the buffer.
+  ///
+  /// This provides access to a suffix of the buffer for efficient manipulation
+  /// of the trailing portion without affecting the rest of the buffer.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `len > self.available()`.
+  /// Use [`suffix_checked`](ReadBuf::suffix_checked) for non-panicking access.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let mut buf = [1, 2, 3, 4, 5];
+  /// let mut slice = &mut buf[..];
+  /// let suffix = slice.suffix(2);
+  /// suffix.fill(0xFF);
+  /// assert_eq!(buf, [1, 2, 3, 0xFF, 0xFF]);
+  /// ```
+  #[inline]
+  fn suffix(&self, len: usize) -> &[u8] {
+    let total_len = self.available();
+    &self.buffer()[total_len - len..]
+  }
+
+  /// Returns a slice containing the last `len` bytes of the buffer.
+  ///
+  /// This is the non-panicking version of [`suffix`](ReadBuf::suffix).
+  /// Returns `Some(slice)` if `len <= self.available()`, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let mut buf = [1, 2, 3, 4, 5];
+  /// let mut slice = &mut buf[..];
+  ///
+  /// assert!(slice.suffix_checked(2).is_some());
+  /// assert!(slice.suffix_checked(10).is_none());
+  /// ```
+  #[inline]
+  fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
+    match self.available().checked_sub(len)? {
+      0 => return Some(&[]),
+      start => Some(&self.buffer()[start..]),
+    }
+  }
 
   /// Creates an independent buffer containing a segment of the current buffer's data.
   ///
@@ -624,7 +706,7 @@ pub trait ReadBuf {
   /// # Panics
   ///
   /// Panics if `at > self.available()`.
-  /// Use [`split_off_checked`](ReadBuf::split_off_checked) or 
+  /// Use [`split_off_checked`](ReadBuf::split_off_checked) or
   /// [`try_split_off`](ReadBuf::try_split_off) for non-panicking splits.
   ///
   /// # Examples
@@ -658,7 +740,7 @@ pub trait ReadBuf {
   /// let mut buf = &data[..];
   ///
   /// assert!(buf.split_off_checked(2).is_some());
-  /// 
+  ///
   /// let mut small_buf = &[1u8][..];
   /// assert!(small_buf.split_off_checked(5).is_none());
   /// ```
@@ -678,7 +760,7 @@ pub trait ReadBuf {
   ///
   /// This is the non-panicking version of [`split_off`](ReadBuf::split_off) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(right_half)` on success, or `Err(TrySplitOffError)` with details about
+  /// Returns `Ok(right_half)` on success, or `Err(OutOfBounds)` with details about
   /// the attempted split position and available bytes.
   ///
   /// # Examples
@@ -696,12 +778,12 @@ pub trait ReadBuf {
   /// // err contains details about requested vs available
   /// ```
   #[must_use = "consider ReadBuf::try_split_off if you don't need the other half"]
-  fn try_split_off(&mut self, at: usize) -> Result<Self, TrySplitOffError>
+  fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
     Self: Sized,
   {
     if at > self.available() {
-      Err(TrySplitOffError::new(at + 1, self.available()))
+      Err(OutOfBounds::new(at, self.available()))
     } else {
       Ok(self.split_off(at))
     }
@@ -769,7 +851,7 @@ pub trait ReadBuf {
   ///
   /// This is the non-panicking version of [`split_to`](ReadBuf::split_to) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(left_half)` on success, or `Err(TrySplitToError)` with details about
+  /// Returns `Ok(left_half)` on success, or `Err(OutOfBounds)` with details about
   /// the attempted split position and available bytes.
   ///
   /// # Examples
@@ -786,12 +868,12 @@ pub trait ReadBuf {
   /// // err contains detailed information about the failure
   /// ```
   #[must_use = "consider ReadBuf::try_split_to if you don't need the other half"]
-  fn try_split_to(&mut self, at: usize) -> Result<Self, TrySplitToError>
+  fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
     Self: Sized,
   {
     if at > self.available() {
-      Err(TrySplitToError::new(at + 1, self.available()))
+      Err(OutOfBounds::new(at, self.available()))
     } else {
       Ok(self.split_to(at))
     }
@@ -820,7 +902,7 @@ pub trait ReadBuf {
   /// Attempts to advance the internal cursor by the specified number of bytes.
   ///
   /// This is the non-panicking version of [`advance`](ReadBuf::advance).
-  /// Returns `Ok(())` if the advancement was successful, or `Err(TryAdvanceError)` 
+  /// Returns `Ok(())` if the advancement was successful, or `Err(TryAdvanceError)`
   /// with details about requested vs available bytes.
   ///
   /// # Examples
@@ -850,7 +932,7 @@ pub trait ReadBuf {
   /// Attempts to create a new buffer containing a segment of the current buffer's data.
   ///
   /// The returned buffer is independent with its own cursor starting at the beginning of the segment.
-  /// The original buffer remains unchanged. This is the non-panicking version of 
+  /// The original buffer remains unchanged. This is the non-panicking version of
   /// [`segment`](ReadBuf::segment).
   ///
   /// Returns `Ok(segment)` if the range is valid, or `Err(TrySegmentError)` if the range
@@ -875,181 +957,8 @@ pub trait ReadBuf {
     check_segment(range, self.available()).map(|(start, end)| self.segment(start..end))
   }
 
-  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
-  ///
-  /// This method creates a copy of the first `N` bytes from the buffer without
-  /// consuming them. The buffer position remains unchanged after this operation.
-  ///
-  /// # Panics
-  ///
-  /// Panics if the buffer contains fewer than `N` bytes.
-  /// Use [`peek_array_checked`](ReadBuf::peek_array_checked) or
-  /// [`try_peek_array`](ReadBuf::try_peek_array) for non-panicking peeks.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3, 4, 5];
-  /// let buf = &data[..];
-  ///
-  /// let first_three: [u8; 3] = buf.peek_array();
-  /// assert_eq!(first_three, [1, 2, 3]);
-  /// // Buffer unchanged
-  /// assert_eq!(buf.available(), 5);
-  /// ```
-  #[inline]
-  fn peek_array<const N: usize>(&self) -> [u8; N] {
-    self.buffer().try_into().expect("buffer too short")
-  }
-
-  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
-  ///
-  /// This is the non-panicking version of [`peek_array`](ReadBuf::peek_array).
-  /// Returns `Some(array)` if sufficient data is available, otherwise returns `None`.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3];
-  /// let buf = &data[..];
-  ///
-  /// assert!(buf.peek_array_checked::<2>().is_some());
-  /// assert!(buf.peek_array_checked::<5>().is_none());
-  /// ```
-  #[inline]
-  fn peek_array_checked<const N: usize>(&self) -> Option<[u8; N]> {
-    match self.buffer().try_into() {
-      Ok(data) => Some(data),
-      Err(_) => None,
-    }
-  }
-
-  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
-  ///
-  /// This is the non-panicking version of [`peek_array`](ReadBuf::peek_array) that
-  /// returns detailed error information on failure.
-  /// Returns `Ok(array)` on success, or `Err(TryPeekError)` with details about
-  /// requested vs available bytes.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3];
-  /// let buf = &data[..];
-  ///
-  /// assert!(buf.try_peek_array::<2>().is_ok());
-  ///
-  /// let err = buf.try_peek_array::<5>().unwrap_err();
-  /// // err contains details about requested vs available
-  /// ```
-  #[inline]
-  fn try_peek_array<const N: usize>(&self) -> Result<[u8; N], TryPeekError> {
-    match self.buffer().try_into() {
-      Ok(data) => Ok(data),
-      Err(_) => Err(TryPeekError::new(N, self.available())),
-    }
-  }
-
   // Macro generates peek methods for primitive types
   peek_fixed!(u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
-
-  /// Reads a fixed-size array from the buffer and advances the internal cursor.
-  ///
-  /// This method creates a copy of the first `N` bytes from the buffer and
-  /// advances the cursor by `N` bytes, consuming the data.
-  ///
-  /// # Panics
-  ///
-  /// Panics if the buffer contains fewer than `N` bytes.
-  /// Use [`read_array_checked`](ReadBuf::read_array_checked) or
-  /// [`try_read_array`](ReadBuf::try_read_array) for non-panicking reads.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3, 4, 5];
-  /// let mut buf = &data[..];
-  ///
-  /// let first_three: [u8; 3] = buf.read_array();
-  /// assert_eq!(first_three, [1, 2, 3]);
-  /// assert_eq!(buf.available(), 2); // Cursor advanced
-  /// ```
-  #[inline]
-  fn read_array<const N: usize>(&mut self) -> [u8; N] {
-    let output = self.buffer().try_into().expect("buffer too short");
-    self.advance(N);
-    output
-  }
-
-  /// Reads a fixed-size array from the buffer and advances the internal cursor.
-  ///
-  /// This is the non-panicking version of [`read_array`](ReadBuf::read_array).
-  /// Returns `Some(array)` and advances the cursor on success, or `None` if insufficient data.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3];
-  /// let mut buf = &data[..];
-  ///
-  /// assert!(buf.read_array_checked::<2>().is_some());
-  /// assert_eq!(buf.available(), 1);
-  ///
-  /// assert!(buf.read_array_checked::<2>().is_none());
-  /// assert_eq!(buf.available(), 1); // Cursor not advanced on failure
-  /// ```
-  #[inline]
-  fn read_array_checked<const N: usize>(&mut self) -> Option<[u8; N]> {
-    match self.buffer().try_into() {
-      Ok(data) => {
-        self.advance(N);
-        Some(data)
-      }
-      Err(_) => None,
-    }
-  }
-
-  /// Reads a fixed-size array from the buffer and advances the internal cursor.
-  ///
-  /// This is the non-panicking version of [`read_array`](ReadBuf::read_array) that
-  /// returns detailed error information on failure.
-  /// Returns `Ok(array)` and advances the cursor on success, or `Err(TryReadError)` 
-  /// with details about requested vs available bytes.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::ReadBuf;
-  ///
-  /// let data = [1, 2, 3];
-  /// let mut buf = &data[..];
-  ///
-  /// assert!(buf.try_read_array::<2>().is_ok());
-  /// assert_eq!(buf.available(), 1);
-  ///
-  /// let err = buf.try_read_array::<2>().unwrap_err();
-  /// // err contains details about requested vs available
-  /// ```
-  #[inline]
-  fn try_read_array<const N: usize>(&mut self) -> Result<[u8; N], TryReadError> {
-    match self.buffer().try_into() {
-      Ok(data) => {
-        self.advance(N);
-        Ok(data)
-      }
-      Err(_) => Err(TryReadError::new(N, self.available())),
-    }
-  }
 
   // Macro generates read methods for primitive types
   read_fixed!(u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
@@ -1224,9 +1133,7 @@ pub trait ReadBuf {
   /// ```
   #[inline]
   fn read_i8(&mut self) -> i8 {
-    let val = self.peek_i8();
-    self.advance(1);
-    val
+    self.read_u8() as i8
   }
 
   /// Reads an `i8` value from the buffer and advances the internal cursor.
@@ -1249,9 +1156,7 @@ pub trait ReadBuf {
   /// ```
   #[inline]
   fn read_i8_checked(&mut self) -> Option<i8> {
-    self.peek_i8_checked().inspect(|_| {
-      self.advance(1);
-    })
+    self.read_u8_checked().map(|v| v as i8)
   }
 
   /// Converts the read buffer to a `Vec<u8>` instance.
@@ -1305,6 +1210,168 @@ pub trait ReadBuf {
 
 /// Extension trait for `ReadBuf` that provides additional methods
 pub trait ReadBufExt: ReadBuf {
+  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
+  ///
+  /// This method creates a copy of the first `N` bytes from the buffer without
+  /// consuming them. The buffer position remains unchanged after this operation.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the buffer contains fewer than `N` bytes.
+  /// Use [`peek_array_checked`](ReadBuf::peek_array_checked) or
+  /// [`try_peek_array`](ReadBuf::try_peek_array) for non-panicking peeks.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  ///
+  /// let first_three: [u8; 3] = buf.peek_array();
+  /// assert_eq!(first_three, [1, 2, 3]);
+  /// // Buffer unchanged
+  /// assert_eq!(buf.available(), 5);
+  /// ```
+  #[inline]
+  fn peek_array<const N: usize>(&self) -> [u8; N] {
+    peek_array::<_, N>(self)
+  }
+
+  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_array`](ReadBuf::peek_array).
+  /// Returns `Some(array)` if sufficient data is available, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3];
+  /// let buf = &data[..];
+  ///
+  /// assert!(buf.peek_array_checked::<2>().is_some());
+  /// assert!(buf.peek_array_checked::<5>().is_none());
+  /// ```
+  #[inline]
+  fn peek_array_checked<const N: usize>(&self) -> Option<[u8; N]> {
+    peek_array_checked::<_, N>(self)
+  }
+
+  /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_array`](ReadBuf::peek_array) that
+  /// returns detailed error information on failure.
+  /// Returns `Ok(array)` on success, or `Err(TryPeekError)` with details about
+  /// requested vs available bytes.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3];
+  /// let buf = &data[..];
+  ///
+  /// assert!(buf.try_peek_array::<2>().is_ok());
+  ///
+  /// let err = buf.try_peek_array::<5>().unwrap_err();
+  /// // err contains details about requested vs available
+  /// ```
+  #[inline]
+  fn try_peek_array<const N: usize>(&self) -> Result<[u8; N], TryPeekError> {
+    try_peek_array::<_, N>(self)
+  }
+
+  /// Reads a fixed-size array from the buffer and advances the internal cursor.
+  ///
+  /// This method creates a copy of the first `N` bytes from the buffer and
+  /// advances the cursor by `N` bytes, consuming the data.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the buffer contains fewer than `N` bytes.
+  /// Use [`read_array_checked`](ReadBuf::read_array_checked) or
+  /// [`try_read_array`](ReadBuf::try_read_array) for non-panicking reads.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3, 4, 5];
+  /// let mut buf = &data[..];
+  ///
+  /// let first_three: [u8; 3] = buf.read_array();
+  /// assert_eq!(first_three, [1, 2, 3]);
+  /// assert_eq!(buf.available(), 2); // Cursor advanced
+  /// ```
+  #[inline]
+  fn read_array<const N: usize>(&mut self) -> [u8; N] {
+    let output = self.peek_array::<N>();
+    self.advance(N);
+    output
+  }
+
+  /// Reads a fixed-size array from the buffer and advances the internal cursor.
+  ///
+  /// This is the non-panicking version of [`read_array`](ReadBuf::read_array).
+  /// Returns `Some(array)` and advances the cursor on success, or `None` if insufficient data.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3];
+  /// let mut buf = &data[..];
+  ///
+  /// assert!(buf.read_array_checked::<2>().is_some());
+  /// assert_eq!(buf.available(), 1);
+  ///
+  /// assert!(buf.read_array_checked::<2>().is_none());
+  /// assert_eq!(buf.available(), 1); // Cursor not advanced on failure
+  /// ```
+  #[inline]
+  fn read_array_checked<const N: usize>(&mut self) -> Option<[u8; N]> {
+    self.peek_array_checked::<N>().inspect(|_| {
+      self.advance(N);
+    })
+  }
+
+  /// Reads a fixed-size array from the buffer and advances the internal cursor.
+  ///
+  /// This is the non-panicking version of [`read_array`](ReadBuf::read_array) that
+  /// returns detailed error information on failure.
+  /// Returns `Ok(array)` and advances the cursor on success, or `Err(TryReadError)`
+  /// with details about requested vs available bytes.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::ReadBuf;
+  ///
+  /// let data = [1, 2, 3];
+  /// let mut buf = &data[..];
+  ///
+  /// assert!(buf.try_read_array::<2>().is_ok());
+  /// assert_eq!(buf.available(), 1);
+  ///
+  /// let err = buf.try_read_array::<2>().unwrap_err();
+  /// // err contains details about requested vs available
+  /// ```
+  #[inline]
+  fn try_read_array<const N: usize>(&mut self) -> Result<[u8; N], TryReadError> {
+    self
+      .try_peek_array::<N>()
+      .inspect(|_| {
+        self.advance(N);
+      })
+      .map_err(Into::into)
+  }
+
   /// Peeks a variable-length encoded type from the buffer without advancing the internal cursor.
   ///
   /// Returns the length of the value and the value itself.
@@ -1332,11 +1399,6 @@ pub trait ReadBufExt: ReadBuf {
 impl<T: ReadBuf> ReadBufExt for T {}
 
 impl ReadBuf for &[u8] {
-  #[inline]
-  fn empty() -> Self {
-    &[]
-  }
-
   #[inline]
   fn available(&self) -> usize {
     <[u8]>::len(self)
@@ -1428,10 +1490,10 @@ impl ReadBuf for &[u8] {
   }
 
   #[inline]
-  fn try_split_off(&mut self, at: usize) -> Result<Self, TrySplitOffError> {
+  fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds> {
     self
       .split_at_checked(at)
-      .ok_or_else(|| TrySplitOffError::new(at + 1, self.len()))
+      .ok_or_else(|| OutOfBounds::new(at, self.len()))
       .map(|(left, right)| {
         *self = left;
         right
@@ -1439,10 +1501,10 @@ impl ReadBuf for &[u8] {
   }
 
   #[inline]
-  fn try_split_to(&mut self, at: usize) -> Result<Self, TrySplitToError> {
+  fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds> {
     self
       .split_at_checked(at)
-      .ok_or_else(|| TrySplitToError::new(at + 1, self.len()))
+      .ok_or_else(|| OutOfBounds::new(at, self.len()))
       .map(|(left, right)| {
         *self = right;
         left
@@ -1453,16 +1515,6 @@ impl ReadBuf for &[u8] {
   fn buffer(&self) -> &[u8] {
     self
   }
-}
-
-/// Panic with a nice error message.
-#[cold]
-fn panic_advance(error_info: &TryAdvanceError) -> ! {
-  panic!(
-    "advance out of bounds: the len is {} but advancing by {}",
-    error_info.available(),
-    error_info.requested()
-  );
 }
 
 #[cfg(feature = "bytes_1")]
@@ -1514,11 +1566,6 @@ const _: () = {
   }
 
   impl ReadBuf for Bytes {
-    #[inline]
-    fn empty() -> Self {
-      Bytes::new()
-    }
-
     #[inline]
     fn available(&self) -> usize {
       self.len()
@@ -1616,4 +1663,62 @@ fn check_segment<R: RangeBounds<usize>>(
   }
 
   Ok((begin, end))
+}
+
+/// Panic with a nice error message.
+#[cold]
+fn panic_advance(error_info: &TryAdvanceError) -> ! {
+  panic!(
+    "advance out of bounds: the len is {} but advancing by {}",
+    error_info.available(),
+    error_info.requested()
+  );
+}
+
+#[inline(always)]
+fn read_array<B: ReadBuf + ?Sized, const N: usize>(buf: &mut B) -> [u8; N] {
+  let output = peek_array::<B, N>(buf);
+  buf.advance(N);
+  output
+}
+
+#[inline(always)]
+fn read_array_checked<B: ReadBuf + ?Sized, const N: usize>(buf: &mut B) -> Option<[u8; N]> {
+  peek_array_checked::<B, N>(buf).inspect(|_| {
+    buf.advance(N);
+  })
+}
+
+#[inline(always)]
+fn try_read_array<B: ReadBuf + ?Sized, const N: usize>(
+  buf: &mut B,
+) -> Result<[u8; N], TryReadError> {
+  try_peek_array::<B, N>(buf)
+    .inspect(|_| {
+      buf.advance(N);
+    })
+    .map_err(Into::into)
+}
+
+#[inline(always)]
+fn peek_array<B: ReadBuf + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
+  <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
+}
+
+#[inline(always)]
+fn peek_array_checked<B: ReadBuf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
+  if buf.available() < N {
+    None
+  } else {
+    Some(<[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes"))
+  }
+}
+
+#[inline(always)]
+fn try_peek_array<B: ReadBuf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
+  if buf.available() < N {
+    Err(TryPeekError::new(N, buf.available()))
+  } else {
+    Ok(<[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes"))
+  }
 }

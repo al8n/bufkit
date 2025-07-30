@@ -1,6 +1,4 @@
-use super::error::{
-  TryResizeError, TryWriteAtError, TryWriteError, WriteVarintAtError,
-};
+use super::error::{TryResizeError, TryWriteAtError, TryWriteError, WriteVarintAtError};
 
 #[cfg(feature = "varing")]
 use varing::{EncodeError as WriteVarintError, Varint};
@@ -691,7 +689,11 @@ pub trait WriteBuf {
   /// ```
   fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
     if new_len > self.available_mut() {
-      return Err(TryResizeError::new(new_len, self.available_mut(), fill_value));
+      return Err(TryResizeError::new(
+        new_len,
+        self.available_mut(),
+        fill_value,
+      ));
     }
     self.resize(new_len, fill_value);
     Ok(())
@@ -757,10 +759,9 @@ pub trait WriteBuf {
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
   fn prefix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    if len <= self.available_mut() {
-      Some(&mut self.buffer_mut()[..len])
-    } else {
-      None
+    match self.available_mut().checked_sub(len)? {
+      0 => Some(&mut []),
+      end => Some(&mut self.buffer_mut()[..end]),
     }
   }
 
@@ -807,11 +808,9 @@ pub trait WriteBuf {
   /// assert!(slice.suffix_mut_checked(10).is_none());
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    let total_len = self.available_mut();
-    if len <= total_len {
-      Some(&mut self.buffer_mut()[total_len - len..])
-    } else {
-      None
+    match self.available_mut().checked_sub(len)? {
+      0 => return Some(&mut []),
+      start => Some(&mut self.buffer_mut()[start..]),
     }
   }
 
@@ -1032,7 +1031,11 @@ pub trait WriteBuf {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
-      Err(TryWriteAtError::insufficient_space(len, space - offset, offset))
+      Err(TryWriteAtError::insufficient_space(
+        len,
+        space - offset,
+        offset,
+      ))
     }
   }
 
@@ -1310,9 +1313,9 @@ pub trait WriteBufExt: WriteBuf {
       Some((_, suffix)) => match value.encode(suffix) {
         Ok(read) => Ok(read),
         Err(e) => match e {
-          WriteVarintError::Underflow {
-            required: requested,
-            remaining: available,
+          WriteVarintError::InsufficientSpace {
+            requested,
+            available,
           } => Err(WriteVarintAtError::insufficient_space(
             requested, available, offset,
           )),
@@ -1320,7 +1323,10 @@ pub trait WriteBufExt: WriteBuf {
           _ => Err(WriteVarintAtError::custom("unknown error")),
         },
       },
-      None => Err(WriteVarintAtError::out_of_bounds(offset, self.available_mut())),
+      None => Err(WriteVarintAtError::out_of_bounds(
+        offset,
+        self.available_mut(),
+      )),
     }
   }
 }

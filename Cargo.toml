@@ -1,18 +1,13 @@
 [package]
 name = "bufkit"
 version = "0.0.0"
-edition = "2024"
+edition = "2021"
 repository = "https://github.com/al8n/bufkit"
 homepage = "https://github.com/al8n/bufkit"
 documentation = "https://docs.rs/bufkit"
-description = "A template for creating Rust open-source repo on GitHub"
+description = "Prioritizes explicit control and detailed error reporting, making it suitable for applications where memory behavior must be predictable and errors need comprehensive handling."
 license = "MIT OR Apache-2.0"
-rust-version = "1.85.0"
-
-[[bench]]
-path = "benches/foo.rs"
-name = "foo"
-harness = false
+rust-version = "1.56.0"
 
 [features]
 default = ["std"]
@@ -24,11 +19,10 @@ thiserror = { version = "2", default-features = false }
 paste = "1"
 
 bytes_1 = { package = "bytes", version = "1", default-features = false, optional = true }
-varing = { version = "0.5", default-features = false, optional = true }
+varing = { version = "0.6", default-features = false, optional = true }
 
 [dev-dependencies]
 criterion = "0.7"
-tempfile = "3"
 
 [profile.bench]
 opt-level = 3

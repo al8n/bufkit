@@ -39,6 +39,16 @@ macro_rules! try_op_error {
           self.available
         }
       }
+
+      #[cfg(feature = "std")]
+      impl From<[< Try $op:camel Error >]> for std::io::Error {
+        fn from(e: [< Try $op:camel Error >]) -> Self {
+          std::io::Error::new(
+            std::io::ErrorKind::UnexpectedEof,
+            e,
+          )
+        }
+      }
     }
   };
 }
@@ -67,21 +77,12 @@ try_op_error!(
   peek
 );
 
-try_op_error!(
-  #[doc = "An error that occurs when trying to split off the buffer."]
-  #[error(
-    "Not enough bytes available to split off (requested {requested} but only {available} available)"
-  )]
-  split_off
-);
-
-try_op_error!(
-  #[doc = "An error that occurs when trying to split the buffer."]
-  #[error(
-    "Not enough bytes available to split (requested {requested} but only {available} available)"
-  )]
-  split_to
-);
+impl From<TryPeekError> for TryReadError {
+  #[inline]
+  fn from(e: TryPeekError) -> Self {
+    TryReadError::new(e.requested, e.available)
+  }
+}
 
 try_op_error!(
   #[doc = "An error that occurs when trying to write to the buffer."]
@@ -130,6 +131,13 @@ impl TrySegmentError {
   }
 }
 
+#[cfg(feature = "std")]
+impl From<TrySegmentError> for std::io::Error {
+  fn from(e: TrySegmentError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+  }
+}
+
 /// The error type returned when resizing a write buffer fails.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TryResizeError {
@@ -157,6 +165,13 @@ impl core::fmt::Display for TryResizeError {
 }
 
 impl core::error::Error for TryResizeError {}
+
+#[cfg(feature = "std")]
+impl From<TryResizeError> for std::io::Error {
+  fn from(e: TryResizeError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+  }
+}
 
 impl TryResizeError {
   /// Creates a new `ResizeError` instance.
@@ -188,6 +203,41 @@ impl TryResizeError {
   }
 }
 
+/// An error that occurs when trying to read or write a value at an offset that is out of bounds for the buffer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[error("Offset {offset} is out of bounds for buffer length {length}")]
+pub struct OutOfBounds {
+  offset: usize,
+  length: usize,
+}
+
+impl OutOfBounds {
+  /// Creates a new `OutOfBounds` error.
+  #[inline]
+  pub const fn new(offset: usize, length: usize) -> Self {
+    Self { offset, length }
+  }
+
+  /// Returns the offset that caused the error.
+  #[inline]
+  pub const fn offset(&self) -> usize {
+    self.offset
+  }
+
+  /// Returns the length of the buffer.
+  #[inline]
+  pub const fn length(&self) -> usize {
+    self.length
+  }
+}
+
+#[cfg(feature = "std")]
+impl From<OutOfBounds> for std::io::Error {
+  fn from(e: OutOfBounds) -> Self {
+    std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+  }
+}
+
 /// An error that occurs when trying to write at a specific offset in the buffer.
 ///
 /// This error is returned when the offset is out of bounds or when there is insufficient space to write the requested data.
@@ -195,13 +245,8 @@ impl TryResizeError {
 #[non_exhaustive]
 pub enum TryWriteAtError {
   /// An error that occurs when trying to write at an offset that is out of bounds for the buffer.
-  #[error("Offset {offset} is out of bounds for buffer length {length}")]
-  OutOfBounds {
-    /// The offset at which the write was attempted.
-    offset: usize,
-    /// The length of the buffer.
-    length: usize,
-  },
+  #[error(transparent)]
+  OutOfBounds(#[from] OutOfBounds),
   /// An error that occurs when there is not enough space in the buffer to write the requested data.
   #[error("Not enough bytes available to write value (requested {requested} but only {available} available at offset {offset})")]
   InsufficientSpace {
@@ -218,7 +263,7 @@ impl TryWriteAtError {
   /// Creates a new `TryWriteAtError::OutOfBounds` error.
   #[inline]
   pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
-    Self::OutOfBounds { offset, length }
+    Self::OutOfBounds(OutOfBounds::new(offset, length))
   }
 
   /// Creates a new `TryWriteAtError::Insufficient` error.
@@ -232,6 +277,18 @@ impl TryWriteAtError {
   }
 }
 
+#[cfg(feature = "std")]
+impl From<TryWriteAtError> for std::io::Error {
+  fn from(e: TryWriteAtError) -> Self {
+    match e {
+      TryWriteAtError::OutOfBounds(e) => std::io::Error::new(std::io::ErrorKind::InvalidInput, e),
+      TryWriteAtError::InsufficientSpace { .. } => {
+        std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+      }
+    }
+  }
+}
+
 /// An error that occurs when trying to write type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
@@ -239,13 +296,8 @@ impl TryWriteAtError {
 #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
 pub enum WriteVarintAtError {
   /// The offset is out of bounds for the buffer length.
-  #[error("Offset {offset} is out of bounds for buffer length {length}")]
-  OutOfBounds {
-    /// The offset at which the write was attempted.
-    offset: usize,
-    /// The length of the buffer.
-    length: usize,
-  },
+  #[error(transparent)]
+  OutOfBounds(#[from] OutOfBounds),
   /// The buffer does not have enough capacity to encode the value.
   #[error("Not enough bytes available to write value (requested {requested} but only {available} available at offset {offset})")]
   InsufficientSpace {
@@ -266,7 +318,7 @@ impl WriteVarintAtError {
   /// Creates a new `WriteVarintAtError::OutOfBounds` error.
   #[inline]
   pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
-    Self::OutOfBounds { offset, length }
+    Self::OutOfBounds(OutOfBounds::new(offset, length))
   }
 
   /// Creates a new `WriteVarintAtError::Insufficient` error.
@@ -283,6 +335,29 @@ impl WriteVarintAtError {
   #[inline]
   pub const fn custom(msg: &'static str) -> Self {
     Self::Custom(msg)
+  }
+}
+
+#[cfg(all(feature = "varing", feature = "std"))]
+impl From<WriteVarintAtError> for std::io::Error {
+  fn from(e: WriteVarintAtError) -> Self {
+    match e {
+      WriteVarintAtError::OutOfBounds(e) => {
+        std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+      }
+      WriteVarintAtError::InsufficientSpace {
+        available,
+        offset,
+        ..
+      } => {
+        if (offset >= available) {
+          std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+        } else {
+          std::io::Error::new(std::io::ErrorKind::WriteZero, e)
+        }
+      }
+      WriteVarintAtError::Custom(msg) => std::io::Error::other(msg),
+    }
   }
 }
 

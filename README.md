@@ -24,6 +24,7 @@ Providing `ReadBuf` and `WriteBuf` traits for working with byte buffers. `bufkit
 - **Multiple error handling strategies** - Choose between panicking, `Option`, or detailed `Result` types
 - **Buffer segmentation** - Create independent views of buffer data
 - **Offset operations** - Built-in methods for writing/reading at specific positions
+- **Embedded friendly** - Support both `no-alloc` and `no-std`.
 - **Sans-I/O friendly** - Works purely on memory buffers without hidden allocations or I/O operations, providing predictable behavior and detailed error information that helps with protocol state management and partial data handling
   - **No hidden allocations** - Write operations work directly on provided memory
   - **Retry-friendly** - `try_*` methods provide detailed error information (requested vs available bytes) enabling robust retry logic and graceful error recovery
@@ -42,6 +43,11 @@ bufkit = "0.1"
   bufkit = { version = "0.1", features = ["varing"] }
   ```
 
+## Alternatives
+
+- [`bytes::{Buf, BufMut}`]: Buffer traits for the bytes may or may not be stored in contiguous memory.
+- [`buffer-trait`](https://crates.io/crates/buffer-trait): A `Buffer` trait for reading into uninitialized buffers.
+
 #### License
 
 `bufkit` is under the terms of both the MIT license and the
@@ -56,3 +62,4 @@ Copyright (c) 2025 Al Liu.
 [doc-url]: https://docs.rs/bufkit
 [crates-url]: https://crates.io/crates/bufkit
 [codecov-url]: https://app.codecov.io/gh/al8n/bufkit/
+[`bytes::{Buf, BufMut}`]: https://docs.rs/bytes/latest/bytes/buf/#traits
