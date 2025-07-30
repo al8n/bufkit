@@ -39,16 +39,6 @@ macro_rules! try_op_error {
           self.available
         }
       }
-
-      #[cfg(feature = "std")]
-      impl From<[< Try $op:camel Error >]> for std::io::Error {
-        fn from(e: [< Try $op:camel Error >]) -> Self {
-          std::io::Error::new(
-            std::io::ErrorKind::UnexpectedEof,
-            e,
-          )
-        }
-      }
     }
   };
 }
@@ -61,6 +51,13 @@ try_op_error!(
   advance
 );
 
+#[cfg(feature = "std")]
+impl From<TryAdvanceError> for std::io::Error {
+  fn from(e: TryAdvanceError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+  }
+}
+
 try_op_error!(
   #[doc = "An error that occurs when trying to read a value from the buffer."]
   #[error(
@@ -69,6 +66,13 @@ try_op_error!(
   read
 );
 
+#[cfg(feature = "std")]
+impl From<TryReadError> for std::io::Error {
+  fn from(e: TryReadError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+  }
+}
+
 try_op_error!(
   #[doc = "An error that occurs when trying to peek a value from the buffer."]
   #[error(
@@ -76,6 +80,13 @@ try_op_error!(
   )]
   peek
 );
+
+#[cfg(feature = "std")]
+impl From<TryPeekError> for std::io::Error {
+  fn from(e: TryPeekError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+  }
+}
 
 impl From<TryPeekError> for TryReadError {
   #[inline]
@@ -87,28 +98,35 @@ impl From<TryPeekError> for TryReadError {
 try_op_error!(
   #[doc = "An error that occurs when trying to write to the buffer."]
   #[error(
-    "Not enough bytes available to write value (requested {requested} but only {available} available)"
+    "Not enough space available to write value (requested {requested} but only {available} available)"
   )]
   write
 );
 
+#[cfg(feature = "std")]
+impl From<TryWriteError> for std::io::Error {
+  fn from(e: TryWriteError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
+  }
+}
+
 /// An error that occurs when trying to create a segment from the read buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-#[error("Segment range out of bounds (range {start}..{end} but only {buffer_len} is available)")]
+#[error("Segment range out of bounds (range {start}..{end} but only {available} is available)")]
 pub struct TrySegmentError {
   start: usize,
   end: usize,
-  buffer_len: usize,
+  available: usize,
 }
 
 impl TrySegmentError {
   /// Creates a new `TrySegmentError`.
   #[inline]
-  pub const fn new(start: usize, end: usize, buffer_len: usize) -> Self {
+  pub const fn new(start: usize, end: usize, available: usize) -> Self {
     Self {
       start,
       end,
-      buffer_len,
+      available,
     }
   }
 
@@ -127,7 +145,7 @@ impl TrySegmentError {
   /// Returns the length of the buffer.
   #[inline]
   pub const fn available(&self) -> usize {
-    self.buffer_len
+    self.available
   }
 }
 
@@ -282,8 +300,14 @@ impl From<TryWriteAtError> for std::io::Error {
   fn from(e: TryWriteAtError) -> Self {
     match e {
       TryWriteAtError::OutOfBounds(e) => std::io::Error::new(std::io::ErrorKind::InvalidInput, e),
-      TryWriteAtError::InsufficientSpace { .. } => {
-        std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+      TryWriteAtError::InsufficientSpace {
+        available, offset, ..
+      } => {
+        if offset >= available {
+          std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
+        } else {
+          std::io::Error::new(std::io::ErrorKind::WriteZero, e)
+        }
       }
     }
   }
@@ -346,11 +370,9 @@ impl From<WriteVarintAtError> for std::io::Error {
         std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
       }
       WriteVarintAtError::InsufficientSpace {
-        available,
-        offset,
-        ..
+        available, offset, ..
       } => {
-        if (offset >= available) {
+        if offset >= available {
           std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
         } else {
           std::io::Error::new(std::io::ErrorKind::WriteZero, e)
