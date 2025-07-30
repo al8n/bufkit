@@ -1,4 +1,4 @@
-//! A template for creating Rust open-source repo on GitHub
+//! A
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, allow(unused_attributes))]
@@ -7,20 +7,21 @@
 #[cfg(all(not(feature = "std"), feature = "alloc"))]
 extern crate alloc as std;
 
-#[cfg(all(feature = "std", not(feature = "alloc")))]
+#[cfg(feature = "std")]
 extern crate std;
 
-/// template
-pub fn it_works() -> usize {
-  4
-}
+#[cfg(feature = "varing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+pub use varing::Varint;
 
-#[cfg(test)]
-mod tests {
-  use super::*;
+pub use read_buf::*;
+pub use write_buf::*;
 
-  #[test]
-  fn test_works() {
-    assert_eq!(it_works(), 4);
-  }
-}
+/// Errors buffer I/O
+pub mod error;
+
+mod read_buf;
+mod write_buf;
+
+#[test]
+fn t() {}
