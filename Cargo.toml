@@ -1,29 +1,30 @@
 [package]
-name = "template-rs"
-version = "0.0.0"
+name = "bufkit"
+version = "0.1.0"
 edition = "2021"
-repository = "https://github.com/al8n/template-rs"
-homepage = "https://github.com/al8n/template-rs"
-documentation = "https://docs.rs/template-rs"
-description = "A template for creating Rust open-source repo on GitHub"
+repository = "https://github.com/al8n/bufkit"
+homepage = "https://github.com/al8n/bufkit"
+documentation = "https://docs.rs/bufkit"
+description = "Prioritizes explicit control and detailed error reporting, making it suitable for applications where memory behavior must be predictable and errors need comprehensive handling."
 license = "MIT OR Apache-2.0"
-rust-version = "1.73"
-
-[[bench]]
-path = "benches/foo.rs"
-name = "foo"
-harness = false
+rust-version = "1.81.0"
+keywords = ["buf", "bufmut", "bufio"]
+categories = ["no-std", "no-std::no-alloc", "network-programming"]
 
 [features]
 default = ["std"]
 alloc = []
-std = []
+std = ["thiserror/default", "varing?/default", "bytes_1?/default"]
 
 [dependencies]
+thiserror = { version = "2", default-features = false }
+paste = "1"
+
+bytes_1 = { package = "bytes", version = "1", default-features = false, optional = true }
+varing = { version = "0.6", default-features = false, optional = true }
 
 [dev-dependencies]
-criterion = "0.5"
-tempfile = "3"
+criterion = "0.7"
 
 [profile.bench]
 opt-level = 3
