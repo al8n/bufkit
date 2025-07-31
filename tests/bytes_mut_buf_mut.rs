@@ -29,36 +29,6 @@ mod bytes_mut_buf_mut_tests {
   }
 
   #[test]
-  fn test_resize() {
-    let mut buf = BytesMut::from(&[1, 2, 3][..]);
-
-    // Grow
-    buf.resize(5, 0xFF);
-    assert_eq!(&buf[..], &[1, 2, 3, 0xFF, 0xFF]);
-
-    // Shrink
-    buf.resize(2, 0x00);
-    assert_eq!(&buf[..], &[1, 2]);
-
-    // Same size
-    buf.resize(2, 0x11);
-    assert_eq!(&buf[..], &[1, 2]);
-  }
-
-  #[test]
-  fn test_try_resize() {
-    let mut buf = BytesMut::from(&[1, 2, 3][..]);
-
-    // Try grow - should succeed for BytesMut
-    assert!(buf.try_resize(5, 0xFF).is_ok());
-    assert_eq!(&buf[..], &[1, 2, 3, 0xFF, 0xFF]);
-
-    // Try shrink
-    assert!(buf.try_resize(2, 0x00).is_ok());
-    assert_eq!(&buf[..], &[1, 2]);
-  }
-
-  #[test]
   fn test_truncate_mut() {
     let mut buf = BytesMut::from(&[1, 2, 3, 4, 5][..]);
 
@@ -210,21 +180,6 @@ mod bytes_mut_buf_mut_tests {
   }
 
   #[test]
-  fn test_bytes_mut_growth() {
-    let mut buf = BytesMut::with_capacity(3);
-    buf.extend_from_slice(&[1, 2, 3]);
-
-    // BytesMut can grow beyond initial capacity
-    buf.resize(10, 0xFF);
-    assert_eq!(buf.len(), 10);
-    assert_eq!(&buf[3..], &[0xFF; 7]);
-
-    // Can put data in grown area
-    assert_eq!(buf.put_slice_at(&[0xAA, 0xBB], 8), 2);
-    assert_eq!(&buf[8..10], &[0xAA, 0xBB]);
-  }
-
-  #[test]
   fn test_bytes_mut_specific_features() {
     // Test capacity management
     let mut buf = BytesMut::with_capacity(100);
@@ -369,14 +324,5 @@ mod bytes_mut_buf_mut_tests {
 
     assert!(buf.split_at_mut_checked(3).is_some());
     assert!(buf.split_at_mut_checked(10).is_none());
-  }
-
-  #[test]
-  #[should_panic]
-  fn test_resize_panic() {
-    let mut buf = [0u8; 5];
-    let mut slice = &mut buf[..3];
-    // This should panic because we cannot grow a fixed slice beyond its bounds
-    slice.resize(10, 0xFF);
   }
 }

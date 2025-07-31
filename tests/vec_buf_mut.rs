@@ -28,36 +28,6 @@ mod vec_buf_mut_tests {
   }
 
   #[test]
-  fn test_resize() {
-    let mut buf = vec![1, 2, 3];
-
-    // Grow
-    buf.resize(5, 0xFF);
-    assert_eq!(buf, vec![1, 2, 3, 0xFF, 0xFF]);
-
-    // Shrink
-    buf.resize(2, 0x00);
-    assert_eq!(buf, vec![1, 2]);
-
-    // Same size
-    buf.resize(2, 0x11);
-    assert_eq!(buf, vec![1, 2]);
-  }
-
-  #[test]
-  fn test_try_resize() {
-    let mut buf = vec![1, 2, 3];
-
-    // Try grow - should succeed for Vec
-    assert!(buf.try_resize(5, 0xFF).is_ok());
-    assert_eq!(buf, vec![1, 2, 3, 0xFF, 0xFF]);
-
-    // Try shrink
-    assert!(buf.try_resize(2, 0x00).is_ok());
-    assert_eq!(buf, vec![1, 2]);
-  }
-
-  #[test]
   fn test_truncate_mut() {
     let mut buf = vec![1, 2, 3, 4, 5];
 
@@ -206,20 +176,6 @@ mod vec_buf_mut_tests {
     let err = small_buf.try_put_u32_le(0x12345678).unwrap_err();
     assert_eq!(err.requested(), 4);
     assert_eq!(err.available(), 1);
-  }
-
-  #[test]
-  fn test_vec_growth() {
-    let mut buf = vec![1, 2, 3];
-
-    // Vec can grow beyond initial capacity
-    buf.resize(10, 0xFF);
-    assert_eq!(buf.len(), 10);
-    assert_eq!(&buf[3..], &[0xFF; 7]);
-
-    // Can put data in grown area
-    assert_eq!(buf.put_slice_at(&[0xAA, 0xBB], 8), 2);
-    assert_eq!(&buf[8..10], &[0xAA, 0xBB]);
   }
 
   #[cfg(feature = "varing")]

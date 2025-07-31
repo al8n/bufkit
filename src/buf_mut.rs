@@ -1,4 +1,4 @@
-use super::error::{TryResizeError, TryWriteAtError, TryWriteError};
+use super::error::{TryWriteAtError, TryWriteError};
 
 #[cfg(feature = "varing")]
 use super::error::WriteVarintAtError;
@@ -632,30 +632,6 @@ pub trait BufMut {
   /// ```
   fn truncate_mut(&mut self, new_len: usize);
 
-  /// Resizes the buffer to the specified length, filling new bytes with the given value.
-  ///
-  /// If `new_len` is less than the current length, the buffer is truncated.
-  /// If `new_len` is greater than the current length, the buffer is extended with `fill_value`.
-  ///
-  /// # Panics
-  ///
-  /// May panic if the buffer cannot be resized (e.g., fixed-size buffers when growing).
-  /// Use [`try_resize`](BufMut::try_resize) for non-panicking resize operations.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::BufMut;
-  ///
-  /// let mut buf = vec![1, 2, 3];
-  /// buf.resize(5, 0xFF);
-  /// assert_eq!(buf, [1, 2, 3, 0xFF, 0xFF]);
-  ///
-  /// buf.resize(2, 0x00);
-  /// assert_eq!(buf, [1, 2]);
-  /// ```
-  fn resize(&mut self, new_len: usize, fill_value: u8);
-
   /// Returns the entire initialized buffer as a mutable slice.
   ///
   /// This provides direct access to all buffer contents for efficient manipulation.
@@ -672,28 +648,6 @@ pub trait BufMut {
   /// assert_eq!(buf[0], 0xFF);
   /// ```
   fn buffer_mut(&mut self) -> &mut [u8];
-
-  /// Tries to resize the buffer to the specified length, filling new bytes with the given value.
-  ///
-  /// This is the non-panicking version of [`resize`](BufMut::resize).
-  /// Returns `Ok(())` on success, or `Err(TryResizeError)` if the resize operation fails
-  /// (e.g., insufficient capacity in fixed-size buffers).
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::BufMut;
-  ///
-  /// let mut buf = [0u8; 5];
-  /// let mut slice = &mut buf[..3];
-  ///
-  /// // This will succeed - shrinking
-  /// assert!(BufMut::try_resize(&mut slice, 2, 0xFF).is_ok());
-  ///
-  /// // This will fail - cannot grow a fixed slice beyond its bounds
-  /// assert!(BufMut::try_resize(&mut slice, 10, 0xFF).is_err());
-  /// ```
-  fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError>;
 
   /// Fills the entire buffer with the specified byte value.
   ///
@@ -1417,18 +1371,8 @@ macro_rules! deref_forward_put_buf {
     }
 
     #[inline]
-    fn resize(&mut self, new_len: usize, fill_value: u8) {
-      (**self).resize(new_len, fill_value)
-    }
-
-    #[inline]
     fn buffer_mut(&mut self) -> &mut [u8] {
       (**self).buffer_mut()
-    }
-
-    #[inline]
-    fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-      (**self).try_resize(new_len, fill_value)
     }
 
     #[inline]
@@ -1600,30 +1544,6 @@ impl BufMut for &mut [u8] {
   fn has_mutable(&self) -> bool {
     !self.is_empty()
   }
-
-  #[inline]
-  fn resize(&mut self, new_len: usize, fill_value: u8) {
-    let len = self.len();
-    if new_len > len {
-      panic_resize(&TryResizeError::new(new_len, self.len(), fill_value));
-    }
-
-    if new_len == len {
-      return;
-    }
-
-    // Lifetime dance taken from `impl Write for &mut [u8]`.
-    let (a, _) = core::mem::take(self).split_at_mut(new_len);
-    *self = a;
-  }
-
-  fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-    if new_len > self.mutable() {
-      return Err(TryResizeError::new(new_len, self.mutable(), fill_value));
-    }
-    self.resize(new_len, fill_value);
-    Ok(())
-  }
 }
 
 #[cfg(feature = "bytes_1")]
@@ -1647,17 +1567,6 @@ const _: () = {
     }
 
     #[inline]
-    fn resize(&mut self, new_len: usize, fill_value: u8) {
-      self.resize(new_len, fill_value);
-    }
-
-    #[inline]
-    fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-      self.resize(new_len, fill_value);
-      Ok(())
-    }
-
-    #[inline]
     fn buffer_mut(&mut self) -> &mut [u8] {
       self.as_mut()
     }
@@ -1669,11 +1578,6 @@ const _: () = {
   use std::vec::Vec;
 
   impl BufMut for Vec<u8> {
-    #[inline]
-    fn resize(&mut self, new_len: usize, fill_value: u8) {
-      self.resize(new_len, fill_value);
-    }
-
     #[inline]
     fn truncate_mut(&mut self, new_len: usize) {
       self.truncate(new_len);
@@ -1693,20 +1597,8 @@ const _: () = {
     fn has_mutable(&self) -> bool {
       !self.is_empty()
     }
-
-    #[inline]
-    fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-      self.resize(new_len, fill_value);
-      Ok(())
-    }
   }
 };
-
-/// Panic with a nice error message.
-#[cold]
-fn panic_resize(e: &TryResizeError) -> ! {
-  panic!("resize failure: {e}",);
-}
 
 // The existence of this function makes the compiler catch if the BufMut
 // trait is "object-safe" or not.
