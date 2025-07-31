@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 #[cfg(test)]
 mod deref_impl_tests {
   use bufkit::{BufMut, BufMutExt};

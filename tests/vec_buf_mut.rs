@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 #[cfg(test)]
 #[cfg(any(feature = "std", feature = "alloc"))]
 mod vec_buf_mut_tests {

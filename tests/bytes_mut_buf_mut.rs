@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 #[cfg(test)]
 #[cfg(all(feature = "bytes_1", feature = "std"))]
 mod bytes_mut_buf_mut_tests {
