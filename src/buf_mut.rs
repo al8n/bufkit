@@ -686,10 +686,10 @@ pub trait BufMut {
   /// let mut slice = &mut buf[..3];
   ///
   /// // This will succeed - shrinking
-  /// assert!(slice.try_resize(2, 0xFF).is_ok());
+  /// assert!(BufMut::try_resize(&mut slice, 2, 0xFF).is_ok());
   ///
   /// // This will fail - cannot grow a fixed slice beyond its bounds
-  /// assert!(slice.try_resize(10, 0xFF).is_err());
+  /// assert!(BufMut::try_resize(&mut slice, 10, 0xFF).is_err());
   /// ```
   fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError>;
 
@@ -1091,12 +1091,12 @@ pub trait BufMut {
   ///
   /// Panics if the buffer has no space available.
   /// Use [`put_i8_checked`](BufMut::put_i8_checked) for non-panicking writes.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
   /// let written = slice.put_i8(-42);
@@ -1112,14 +1112,14 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_i8`](BufMut::put_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 1];
-  /// 
+  ///
   /// let mut slice = &mut buf[..];
   /// assert_eq!(slice.put_i8_checked(-42), Some(1));
   /// let mut empty = &mut [][..];
@@ -1138,12 +1138,12 @@ pub trait BufMut {
   ///
   /// Panics if `offset >= self.mutable()`.
   /// Use [`put_u8_at_checked`](BufMut::put_u8_at_checked) for non-panicking writes.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   /// let written = slice.put_u8_at(0xFF, 5);
@@ -1159,12 +1159,12 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   /// assert_eq!(slice.put_u8_at_checked(0xFF, 5), Some(1));
@@ -1184,12 +1184,12 @@ pub trait BufMut {
   ///
   /// Panics if `offset >= self.mutable()`.
   /// Use [`put_i8_at_checked`](BufMut::put_i8_at_checked) for non-panicking writes.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   /// let written = slice.put_i8_at(-42, 5);
@@ -1205,12 +1205,12 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
-  /// 
+  ///
   /// # Examples
-  /// 
+  ///
   /// ```rust
   /// use bufkit::BufMut;
-  /// 
+  ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   /// assert_eq!(slice.put_i8_at_checked(-42, 5), Some(1));
@@ -1372,7 +1372,7 @@ pub trait BufMutExt: BufMut {
   /// let mut slice = &mut buf[..];
   /// let written = slice.put_varint_at(&42u32, 3).unwrap();
   /// // The varint is written starting at offset 3
-  /// 
+  ///
   /// // If the offset is out of bounds or there's insufficient space,
   /// // it will return an error.
   /// let err = slice.put_varint_at(&42u32, 30).unwrap_err();
@@ -1388,16 +1388,7 @@ pub trait BufMutExt: BufMut {
     match self.split_at_mut_checked(offset) {
       Some((_, suffix)) => match value.encode(suffix) {
         Ok(read) => Ok(read),
-        Err(e) => match e {
-          WriteVarintError::InsufficientSpace {
-            requested,
-            available,
-          } => Err(WriteVarintAtError::insufficient_space(
-            requested, available, offset,
-          )),
-          WriteVarintError::Custom(msg) => Err(WriteVarintAtError::custom(msg)),
-          _ => Err(WriteVarintAtError::custom("unknown error")),
-        },
+        Err(e) => Err(WriteVarintAtError::from_write_varint_error(e, offset)),
       },
       None => Err(WriteVarintAtError::out_of_bounds(offset, self.mutable())),
     }

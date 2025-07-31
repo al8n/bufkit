@@ -370,4 +370,13 @@ mod bytes_mut_buf_mut_tests {
     assert!(buf.split_at_mut_checked(3).is_some());
     assert!(buf.split_at_mut_checked(10).is_none());
   }
+
+  #[test]
+  #[should_panic]
+  fn test_resize_panic() {
+    let mut buf = [0u8; 5];
+    let mut slice = &mut buf[..3];
+    // This should panic because we cannot grow a fixed slice beyond its bounds
+    slice.resize(10, 0xFF);
+  }
 }

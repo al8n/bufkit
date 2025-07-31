@@ -355,6 +355,19 @@ impl WriteVarintAtError {
     }
   }
 
+  /// Creates a new `WriteVarintAtError` error from `WriteVarintError`.
+  #[inline]
+  pub const fn from_write_varint_error(err: WriteVarintError, offset: usize) -> Self {
+    match err {
+      WriteVarintError::InsufficientSpace {
+        requested,
+        available,
+      } => Self::insufficient_space(requested, available, offset),
+      WriteVarintError::Custom(msg) => Self::custom(msg),
+      _ => Self::Custom("Unknown error"),
+    }
+  }
+
   /// Creates a new `WriteVarintAtError::Custom` error.
   #[inline]
   pub const fn custom(msg: &'static str) -> Self {
