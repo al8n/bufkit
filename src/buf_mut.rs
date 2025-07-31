@@ -621,12 +621,14 @@ pub trait BufMut {
   /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
-  /// buf.truncate_mut(3);
-  /// assert_eq!(buf, [1, 2, 3]);
+  ///
+  /// let mut slice = &mut buf[..];
+  /// BufMut::truncate_mut(&mut slice, 3);
+  /// assert_eq!(slice, [1, 2, 3].as_slice());
   ///
   /// // Truncating to a length >= current length has no effect
-  /// buf.truncate_mut(10);
-  /// assert_eq!(buf, [1, 2, 3]);
+  /// BufMut::truncate_mut(&mut slice, 10);
+  /// assert_eq!(slice, [1, 2, 3].as_slice());
   /// ```
   fn truncate_mut(&mut self, new_len: usize);
 
