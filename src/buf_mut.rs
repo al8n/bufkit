@@ -558,7 +558,7 @@ macro_rules! put_fixed {
 
 /// A trait for implementing custom buffers that can store and manipulate byte sequences.
 ///
-/// **Implementers Notes:** Implementations for write methods should not have any hidden allocation logic.
+/// **Implementers Notes:** Implementations should not have any hidden allocation logic.
 ///
 /// This trait provides a comprehensive set of methods for writing data to buffers with different
 /// error handling strategies:
@@ -585,10 +585,10 @@ pub trait BufMut {
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// assert!(slice.has_mutable());
+  /// assert!(BufMut::has_mutable(&slice));
   ///
   /// let mut empty: &mut [u8] = &mut [];
-  /// assert!(!empty.has_mutable());
+  /// assert!(!BufMut::has_mutable(&empty));
   /// ```
   fn has_mutable(&self) -> bool {
     self.mutable() > 0
@@ -620,7 +620,7 @@ pub trait BufMut {
   /// ```rust
   /// use bufkit::BufMut;
   ///
-  /// let mut buf = vec![1, 2, 3, 4, 5];
+  /// let mut buf = [1, 2, 3, 4, 5];
   /// buf.truncate_mut(3);
   /// assert_eq!(buf, [1, 2, 3]);
   ///
@@ -1091,6 +1091,18 @@ pub trait BufMut {
   ///
   /// Panics if the buffer has no space available.
   /// Use [`put_i8_checked`](BufMut::put_i8_checked) for non-panicking writes.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 5];
+  /// let mut slice = &mut buf[..];
+  /// let written = slice.put_i8(-42);
+  /// assert_eq!(written, 1);
+  /// assert_eq!(buf[0], 214); // -42 as u8 is
+  /// ```
   #[inline]
   fn put_i8(&mut self, value: i8) -> usize {
     self.put_slice(&[value as u8])
@@ -1100,6 +1112,19 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_i8`](BufMut::put_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 1];
+  /// 
+  /// let mut slice = &mut buf[..];
+  /// assert_eq!(slice.put_i8_checked(-42), Some(1));
+  /// let mut empty = &mut [][..];
+  /// assert_eq!(empty.put_i8_checked(-42), None);
+  /// ```
   #[inline]
   fn put_i8_checked(&mut self, value: i8) -> Option<usize> {
     self.put_slice_checked(&[value as u8])
@@ -1113,6 +1138,18 @@ pub trait BufMut {
   ///
   /// Panics if `offset >= self.mutable()`.
   /// Use [`put_u8_at_checked`](BufMut::put_u8_at_checked) for non-panicking writes.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 24];
+  /// let mut slice = &mut buf[..];
+  /// let written = slice.put_u8_at(0xFF, 5);
+  /// assert_eq!(written, 1);
+  /// assert_eq!(buf[5], 0xFF);
+  /// ```
   #[inline]
   fn put_u8_at(&mut self, value: u8, offset: usize) -> usize {
     self.put_slice_at(&[value], offset)
@@ -1122,6 +1159,18 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 24];
+  /// let mut slice = &mut buf[..];
+  /// assert_eq!(slice.put_u8_at_checked(0xFF, 5), Some(1));
+  /// let err = slice.put_u8_at_checked(0xFF, 30);
+  /// assert_eq!(err, None); // Offset out of bounds
+  /// ```
   #[inline]
   fn put_u8_at_checked(&mut self, value: u8, offset: usize) -> Option<usize> {
     self.put_slice_at_checked(&[value], offset)
@@ -1135,6 +1184,18 @@ pub trait BufMut {
   ///
   /// Panics if `offset >= self.mutable()`.
   /// Use [`put_i8_at_checked`](BufMut::put_i8_at_checked) for non-panicking writes.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 24];
+  /// let mut slice = &mut buf[..];
+  /// let written = slice.put_i8_at(-42, 5);
+  /// assert_eq!(written, 1);
+  /// assert_eq!(buf[5], 214); // -42 as u8 is 214
+  /// ```
   #[inline]
   fn put_i8_at(&mut self, value: i8, offset: usize) -> usize {
     self.put_slice_at(&[value as u8], offset)
@@ -1144,6 +1205,18 @@ pub trait BufMut {
   ///
   /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
+  /// 
+  /// # Examples
+  /// 
+  /// ```rust
+  /// use bufkit::BufMut;
+  /// 
+  /// let mut buf = [0u8; 24];
+  /// let mut slice = &mut buf[..];
+  /// assert_eq!(slice.put_i8_at_checked(-42, 5), Some(1));
+  /// let err = slice.put_i8_at_checked(-42, 30);
+  /// assert_eq!(err, None); // Offset out of bounds
+  /// ```
   #[inline]
   fn put_i8_at_checked(&mut self, value: i8, offset: usize) -> Option<usize> {
     self.put_slice_at_checked(&[value as u8], offset)
@@ -1299,6 +1372,11 @@ pub trait BufMutExt: BufMut {
   /// let mut slice = &mut buf[..];
   /// let written = slice.put_varint_at(&42u32, 3).unwrap();
   /// // The varint is written starting at offset 3
+  /// 
+  /// // If the offset is out of bounds or there's insufficient space,
+  /// // it will return an error.
+  /// let err = slice.put_varint_at(&42u32, 30).unwrap_err();
+  /// let err = slice.put_varint_at(&8442u32, 23).unwrap_err();
   /// ```
   #[inline]
   #[cfg(feature = "varing")]

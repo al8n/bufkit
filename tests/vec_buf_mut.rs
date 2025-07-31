@@ -233,4 +233,13 @@ mod vec_buf_mut_tests {
     let written = buf.put_varint_at(&100u64, 5).unwrap();
     assert!(written > 0);
   }
+
+  #[cfg(feature = "bytes_1")]
+  #[test]
+  fn test_to_bytes() {
+    let buf = vec![0u8; 10];
+
+    let bytes = bufkit::Buf::to_bytes(&buf.as_slice());
+    assert_eq!(bytes.as_ref(), &[0; 10]);
+  }
 }

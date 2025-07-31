@@ -579,6 +579,7 @@ pub trait Buf {
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
   /// assert!(Buf::prefix_checked(&&buf[..], 3).is_some());
+  /// assert!(Buf::prefix_checked(&&buf[..], 5).is_some());
   /// assert!(Buf::prefix_checked(&&buf[..], 10).is_none());
   /// ```
   #[inline]
@@ -629,6 +630,7 @@ pub trait Buf {
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
   /// assert!(Buf::suffix_checked(&slice, 2).is_some());
+  /// assert!(Buf::suffix_checked(&slice, 5).is_some());
   /// assert!(Buf::suffix_checked(&slice, 10).is_none());
   /// ```
   #[inline]
@@ -736,10 +738,10 @@ pub trait Buf {
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(buf.split_off_checked(2).is_some());
+  /// assert!(Buf::split_off_checked(&mut buf, 2).is_some());
   ///
   /// let mut small_buf = &[1u8][..];
-  /// assert!(small_buf.split_off_checked(5).is_none());
+  /// assert!(Buf::split_off_checked(&mut small_buf, 5).is_none());
   /// ```
   #[must_use = "consider Buf::truncate if you don't need the other half"]
   fn split_off_checked(&mut self, at: usize) -> Option<Self>
@@ -768,10 +770,10 @@ pub trait Buf {
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(buf.try_split_off(2).is_ok());
+  /// assert!(Buf::try_split_off(&mut buf, 2).is_ok());
   ///
   /// let mut small_buf = &[1u8][..];
-  /// let err = small_buf.try_split_off(5).unwrap_err();
+  /// let err = Buf::try_split_off(&mut small_buf, 5).unwrap_err();
   /// // err contains details about requested vs available
   /// ```
   #[must_use = "consider Buf::try_split_off if you don't need the other half"]
@@ -829,8 +831,8 @@ pub trait Buf {
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(buf.split_to_checked(3).is_some());
-  /// assert!(buf.split_to_checked(10).is_none());
+  /// assert!(Buf::split_to_checked(&mut buf, 3).is_some());
+  /// assert!(Buf::split_to_checked(&mut buf, 10).is_none());
   /// ```
   #[must_use = "consider Buf::advance if you don't need the other half"]
   fn split_to_checked(&mut self, at: usize) -> Option<Self>
@@ -859,9 +861,9 @@ pub trait Buf {
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(buf.try_split_to(3).is_ok());
+  /// assert!(Buf::try_split_to(&mut buf, 3).is_ok());
   ///
-  /// let err = buf.try_split_to(10).unwrap_err();
+  /// let err = Buf::try_split_to(&mut buf, 10).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
   #[must_use = "consider Buf::try_split_to if you don't need the other half"]
@@ -887,10 +889,10 @@ pub trait Buf {
   ///
   /// let data = [1, 2, 3];
   /// let mut buf = &data[..];
-  /// assert!(buf.has_remaining());
+  /// assert!(Buf::has_remaining(&buf));
   ///
   /// buf.advance(3);
-  /// assert!(!buf.has_remaining());
+  /// assert!(!Buf::has_remaining(&buf));
   /// ```
   fn has_remaining(&self) -> bool {
     self.remaining() > 0
