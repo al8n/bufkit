@@ -1,13 +1,13 @@
 [package]
 name = "bufkit"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/al8n/bufkit"
 homepage = "https://github.com/al8n/bufkit"
 documentation = "https://docs.rs/bufkit"
 description = "Prioritizes explicit control and detailed error reporting, making it suitable for applications where memory behavior must be predictable and errors need comprehensive handling."
 license = "MIT OR Apache-2.0"
-rust-version = "1.56.0"
+rust-version = "1.81.0"
 
 [features]
 default = ["std"]

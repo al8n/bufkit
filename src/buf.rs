@@ -634,7 +634,7 @@ pub trait Buf {
   #[inline]
   fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
     match self.remaining().checked_sub(len)? {
-      0 => return Some(&[]),
+      0 => Some(&[]),
       start => Some(&self.buffer()[start..]),
     }
   }
@@ -1005,7 +1005,7 @@ pub trait Buf {
   /// ```
   #[inline]
   fn peek_u8_checked(&self) -> Option<u8> {
-    self.buffer().get(0).copied()
+    self.buffer().first().copied()
   }
 
   /// Peeks a `u8` value from the buffer without advancing the internal cursor.
@@ -1029,7 +1029,7 @@ pub trait Buf {
   fn try_peek_u8(&self) -> Result<u8, TryPeekError> {
     self
       .buffer()
-      .get(0)
+      .first()
       .copied()
       .ok_or(TryPeekError::new(1, self.remaining()))
   }
@@ -1294,6 +1294,7 @@ pub trait Buf {
     docsrs,
     doc(cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc"))))
   )]
+  #[allow(clippy::wrong_self_convention)]
   fn to_bytes_mut(&self) -> ::bytes_1::BytesMut {
     ::bytes_1::BytesMut::from(self.to_bytes())
   }

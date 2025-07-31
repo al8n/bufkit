@@ -801,7 +801,7 @@ pub trait BufMut {
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
     match self.mutable().checked_sub(len)? {
-      0 => return Some(&mut []),
+      0 => Some(&mut []),
       start => Some(&mut self.buffer_mut()[start..]),
     }
   }
