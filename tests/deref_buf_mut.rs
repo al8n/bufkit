@@ -63,12 +63,12 @@ mod deref_impl_tests {
 
   #[test]
   fn test_buf_mut_ext_through_deref() {
-    let mut data = vec![0u8; 10];
-    let buf_ref = &mut data;
-
     // BufMutExt methods should also work through deref
     #[cfg(feature = "varing")]
     {
+      let mut data = vec![0u8; 10];
+      let buf_ref = &mut data;
+
       let result = buf_ref.put_varint(&42u32);
       assert!(result.is_ok());
     }
