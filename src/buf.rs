@@ -1268,7 +1268,7 @@ pub trait Buf {
   /// ```
   #[cfg(any(feature = "std", feature = "alloc"))]
   #[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
-  fn to_vec(&self) -> Vec<u8> {
+  fn to_vec(&self) -> ::std::vec::Vec<u8> {
     self.buffer().to_vec()
   }
 

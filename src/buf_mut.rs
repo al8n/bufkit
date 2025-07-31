@@ -1,7 +1,9 @@
-use super::error::{TryResizeError, TryWriteAtError, TryWriteError, WriteVarintAtError};
+use super::error::{TryResizeError, TryWriteAtError, TryWriteError,};
 
 #[cfg(feature = "varing")]
 use varing::{EncodeError as WriteVarintError, Varint};
+#[cfg(feature = "varing")]
+use super::error::TryWriteAtError;
 
 macro_rules! put_fixed {
   ($($ty:ty),+$(,)?) => {
@@ -1270,6 +1272,8 @@ pub trait BufMutExt: BufMut {
   /// let written = slice.put_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   /// ```
+  #[cfg(feature = "varing")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
   fn put_varint<V>(&mut self, value: &V) -> Result<usize, WriteVarintError>
   where
@@ -1297,6 +1301,8 @@ pub trait BufMutExt: BufMut {
   /// // The varint is written starting at offset 3
   /// ```
   #[inline]
+  #[cfg(feature = "varing")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, WriteVarintAtError>
   where
     V: Varint,
