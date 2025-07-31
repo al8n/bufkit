@@ -1,9 +1,9 @@
-use super::error::{TryResizeError, TryWriteAtError, TryWriteError,};
+use super::error::{TryResizeError, TryWriteAtError, TryWriteError};
 
 #[cfg(feature = "varing")]
-use varing::{EncodeError as WriteVarintError, Varint};
+use super::error::WriteVarintAtError;
 #[cfg(feature = "varing")]
-use super::error::TryWriteAtError;
+use varing::{EncodeError as WriteVarintError, Varint};
 
 macro_rules! put_fixed {
   ($($ty:ty),+$(,)?) => {
