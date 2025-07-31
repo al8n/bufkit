@@ -3,7 +3,7 @@ use super::error::{TryResizeError, TryWriteAtError, TryWriteError, WriteVarintAt
 #[cfg(feature = "varing")]
 use varing::{EncodeError as WriteVarintError, Varint};
 
-macro_rules! write_fixed {
+macro_rules! put_fixed {
   ($($ty:ty),+$(,)?) => {
     paste::paste! {
       $(
@@ -13,28 +13,28 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
+        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_le_at(0x1234, 2);"]
+        #[doc = "let written = slice.put_" $ty "_le_at(0x1234 as " $ty ", 2);"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in little-endian format starting at offset 2
         /// ```
         #[inline]
-        fn [< write_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> usize {
-          self.write_slice_at(&value.to_le_bytes(), offset)
+        fn [< put_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> usize {
+          self.put_slice_at(&value.to_le_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in little-endian byte order to the buffer at the specified offset."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le_at`](WriteBuf::write_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](BufMut::put_" $ty "_le_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -42,21 +42,21 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_le_at_checked(0x1234, 2).is_some());"]
-        #[doc = "assert!(slice.write_" $ty "_le_at_checked(0x1234, 20).is_none()); // Out of bounds"]
+        #[doc = "assert!(slice.put_" $ty "_le_at_checked(0x1234 as " $ty ", 2).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_le_at_checked(0x1234 as " $ty ", 30).is_none()); // Out of bounds"]
         /// ```
         #[inline]
-        fn [< write_ $ty _le_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          self.write_slice_at_checked(&value.to_le_bytes(), offset)
+        fn [< put_ $ty _le_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          self.put_slice_at_checked(&value.to_le_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in little-endian byte order to the buffer at the specified offset."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le_at`](WriteBuf::write_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](BufMut::put_" $ty "_le_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -64,18 +64,18 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_le_at(0x1234, 2).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_le_at(0x1234 as " $ty ", 2).is_ok());"]
         ///
-        #[doc = "let err = slice.try_write_" $ty "_le_at(0x1234, 20).unwrap_err();"]
+        #[doc = "let err = slice.try_put_" $ty "_le_at(0x1234 as " $ty ", 30).unwrap_err();"]
         /// // err contains detailed information about what went wrong
         /// ```
         #[inline]
-        fn [< try_write_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          self.try_write_slice_at(&value.to_le_bytes(), offset)
+        fn [< try_put_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          self.try_put_slice_at(&value.to_le_bytes(), offset)
         }
 
         #[doc = "Writes a `" $ty "` value in big-endian byte order to the buffer at the specified offset."]
@@ -84,28 +84,28 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
+        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_be_at(0x1234, 2);"]
+        #[doc = "let written = slice.put_" $ty "_be_at(0x1234 as " $ty ", 2);"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in big-endian format starting at offset 2
         /// ```
         #[inline]
-        fn [< write_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> usize {
-          self.write_slice_at(&value.to_be_bytes(), offset)
+        fn [< put_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> usize {
+          self.put_slice_at(&value.to_be_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in big-endian byte order to the buffer at the specified offset."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be_at`](WriteBuf::write_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](BufMut::put_" $ty "_be_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -113,21 +113,21 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_be_at_checked(0x1234, 2).is_some());"]
-        #[doc = "assert!(slice.write_" $ty "_be_at_checked(0x1234, 20).is_none()); // Out of bounds"]
+        #[doc = "assert!(slice.put_" $ty "_be_at_checked(0x1234 as " $ty ", 2).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_be_at_checked(0x1234 as " $ty ", 30).is_none()); // Out of bounds"]
         /// ```
         #[inline]
-        fn [< write_ $ty _be_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          self.write_slice_at_checked(&value.to_be_bytes(), offset)
+        fn [< put_ $ty _be_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          self.put_slice_at_checked(&value.to_be_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in big-endian byte order to the buffer at the specified offset."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be_at`](WriteBuf::write_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](BufMut::put_" $ty "_be_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -135,18 +135,18 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_be_at(0x1234, 2).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_be_at(0x1234 as " $ty ", 2).is_ok());"]
         ///
-        #[doc = "let err = slice.try_write_" $ty "_be_at(0x1234, 20).unwrap_err();"]
+        #[doc = "let err = slice.try_put_" $ty "_be_at(0x1234 as " $ty ", 30).unwrap_err();"]
         /// // err contains detailed information about what went wrong
         /// ```
         #[inline]
-        fn [< try_write_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          self.try_write_slice_at(&value.to_be_bytes(), offset)
+        fn [< try_put_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          self.try_put_slice_at(&value.to_be_bytes(), offset)
         }
 
         #[doc = "Writes a `" $ty "` value in native-endian byte order to the buffer at the specified offset."]
@@ -158,29 +158,29 @@ macro_rules! write_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.available_mut()` or if `offset + size_of::<T>() > self.available_mut()`.
+        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_ne_at(0x1234, 2);"]
+        #[doc = "let written = slice.put_" $ty "_ne_at(0x1234 as " $ty ", 2);"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in native-endian format starting at offset 2
         /// ```
         #[inline]
-        fn [< write_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> usize {
-          self.write_slice_at(&value.to_ne_bytes(), offset)
+        fn [< put_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> usize {
+          self.put_slice_at(&value.to_ne_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in native-endian byte order to the buffer at the specified offset."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne_at`](WriteBuf::write_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](BufMut::put_" $ty "_ne_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -188,22 +188,22 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_ne_at_checked(0x1234, 2).is_some());"]
-        #[doc = "assert!(slice.write_" $ty "_ne_at_checked(0x1234, 20).is_none()); // Out of bounds"]
+        #[doc = "assert!(slice.put_" $ty "_ne_at_checked(0x1234 as " $ty ", 2).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_ne_at_checked(0x1234 as " $ty ", 30).is_none()); // Out of bounds"]
         /// ```
         #[inline]
-        fn [< write_ $ty _ne_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          self.write_slice_at_checked(&value.to_ne_bytes(), offset)
+        fn [< put_ $ty _ne_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          self.put_slice_at_checked(&value.to_ne_bytes(), offset)
         }
 
         #[doc = "Tries to write a `" $ty "` value in native-endian byte order to the buffer at the specified offset."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne_at`](WriteBuf::write_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](BufMut::put_" $ty "_ne_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -211,18 +211,18 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_ne_at(0x1234, 2).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_ne_at(0x1234 as " $ty ", 2).is_ok());"]
         ///
-        #[doc = "let err = slice.try_write_" $ty "_ne_at(0x1234, 20).unwrap_err();"]
+        #[doc = "let err = slice.try_put_" $ty "_ne_at(0x1234 as " $ty ", 30).unwrap_err();"]
         /// // err contains detailed information about what went wrong
         /// ```
         #[inline]
-        fn [< try_write_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          self.try_write_slice_at(&value.to_ne_bytes(), offset)
+        fn [< try_put_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          self.try_put_slice_at(&value.to_ne_bytes(), offset)
         }
 
         #[doc = "Writes a `" $ty "` value in little-endian byte order to the beginning of the buffer."]
@@ -237,46 +237,46 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_le(0x1234);"]
+        #[doc = "let written = slice.put_" $ty "_le(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in little-endian format at the beginning
         /// ```
         #[inline]
-        fn [< write_ $ty _le>](&mut self, value: $ty) -> usize {
-          self.write_slice(&value.to_le_bytes())
+        fn [< put_ $ty _le>](&mut self, value: $ty) -> usize {
+          self.put_slice(&value.to_le_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in little-endian byte order to the beginning of the buffer."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](WriteBuf::write_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](BufMut::put_" $ty "_le)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_le_checked(0x1234).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_le_checked(0x1234 as " $ty ").is_some());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "assert!(small_slice.write_" $ty "_le_checked(0x1234).is_none()); // Not enough space"]
+        #[doc = "assert!(small_slice.put_" $ty "_le_checked(0x1234 as " $ty ").is_none()); // Not enough space"]
         /// ```
         #[inline]
-        fn [< write_ $ty _le_checked>](&mut self, value: $ty) -> Option<usize> {
-          self.write_slice_checked(&value.to_le_bytes())
+        fn [< put_ $ty _le_checked>](&mut self, value: $ty) -> Option<usize> {
+          self.put_slice_checked(&value.to_le_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in little-endian byte order to the beginning of the buffer."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](WriteBuf::write_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](BufMut::put_" $ty "_le)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -284,20 +284,20 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_le(0x1234).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_le(0x1234 as " $ty ").is_ok());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "let err = small_slice.try_write_" $ty "_le(0x1234).unwrap_err();"]
+        #[doc = "let err = small_slice.try_put_" $ty "_le(0x1234 as " $ty ").unwrap_err();"]
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          self.try_write_slice(&value.to_le_bytes())
+        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          self.try_put_slice(&value.to_le_bytes())
         }
 
         #[doc = "Writes a `" $ty "` value in big-endian byte order to the beginning of the buffer."]
@@ -312,46 +312,46 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_be(0x1234);"]
+        #[doc = "let written = slice.put_" $ty "_be(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in big-endian format at the beginning
         /// ```
         #[inline]
-        fn [< write_ $ty _be>](&mut self, value: $ty) -> usize {
-          self.write_slice(&value.to_be_bytes())
+        fn [< put_ $ty _be>](&mut self, value: $ty) -> usize {
+          self.put_slice(&value.to_be_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in big-endian byte order to the beginning of the buffer."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](WriteBuf::write_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](BufMut::put_" $ty "_be)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_be_checked(0x1234).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_be_checked(0x1234 as " $ty ").is_some());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "assert!(small_slice.write_" $ty "_be_checked(0x1234).is_none()); // Not enough space"]
+        #[doc = "assert!(small_slice.put_" $ty "_be_checked(0x1234 as " $ty ").is_none()); // Not enough space"]
         /// ```
         #[inline]
-        fn [< write_ $ty _be_checked>](&mut self, value: $ty) -> Option<usize> {
-          self.write_slice_checked(&value.to_be_bytes())
+        fn [< put_ $ty _be_checked>](&mut self, value: $ty) -> Option<usize> {
+          self.put_slice_checked(&value.to_be_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in big-endian byte order to the beginning of the buffer."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](WriteBuf::write_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](BufMut::put_" $ty "_be)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -359,20 +359,20 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_be(0x1234).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_be(0x1234 as " $ty ").is_ok());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "let err = small_slice.try_write_" $ty "_be(0x1234).unwrap_err();"]
+        #[doc = "let err = small_slice.try_put_" $ty "_be(0x1234 as " $ty ").unwrap_err();"]
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          self.try_write_slice(&value.to_be_bytes())
+        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          self.try_put_slice(&value.to_be_bytes())
         }
 
         #[doc = "Writes a `" $ty "` value in native-endian byte order to the beginning of the buffer."]
@@ -390,48 +390,48 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "let written = slice.write_" $ty "_ne(0x1234);"]
+        #[doc = "let written = slice.put_" $ty "_ne(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in native-endian format at the beginning
         /// ```
         #[inline]
-        fn [< write_ $ty _ne>](&mut self, value: $ty) -> usize {
-          self.write_slice(&value.to_ne_bytes())
+        fn [< put_ $ty _ne>](&mut self, value: $ty) -> usize {
+          self.put_slice(&value.to_ne_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in native-endian byte order to the beginning of the buffer."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](WriteBuf::write_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](BufMut::put_" $ty "_ne)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.write_" $ty "_ne_checked(0x1234).is_some());"]
+        #[doc = "assert!(slice.put_" $ty "_ne_checked(0x1234 as " $ty ").is_some());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "assert!(small_slice.write_" $ty "_ne_checked(0x1234).is_none()); // Not enough space"]
+        #[doc = "assert!(small_slice.put_" $ty "_ne_checked(0x1234 as " $ty ").is_none()); // Not enough space"]
         /// ```
         #[inline]
-        fn [< write_ $ty _ne_checked>](&mut self, value: $ty) -> Option<usize> {
-          self.write_slice_checked(&value.to_ne_bytes())
+        fn [< put_ $ty _ne_checked>](&mut self, value: $ty) -> Option<usize> {
+          self.put_slice_checked(&value.to_ne_bytes())
         }
 
         #[doc = "Tries to write a `" $ty "` value in native-endian byte order to the beginning of the buffer."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](WriteBuf::write_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](BufMut::put_" $ty "_ne)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -439,20 +439,20 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::WriteBuf;
+        /// use bufkit::BufMut;
         ///
-        /// let mut buf = [0u8; 10];
+        /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
-        #[doc = "assert!(slice.try_write_" $ty "_ne(0x1234).is_ok());"]
+        #[doc = "assert!(slice.try_put_" $ty "_ne(0x1234 as " $ty ").is_ok());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
-        #[doc = "let err = small_slice.try_write_" $ty "_ne(0x1234).unwrap_err();"]
+        #[doc = "let err = small_slice.try_put_" $ty "_ne(0x1234 as " $ty ").unwrap_err();"]
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          self.try_write_slice(&value.to_ne_bytes())
+        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          self.try_put_slice(&value.to_ne_bytes())
         }
       )*
     }
@@ -461,93 +461,93 @@ macro_rules! write_fixed {
     paste::paste! {
       $(
         #[inline]
-        fn [< write_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> usize {
-          (**self).[< write_ $ty _le_at>](value, offset)
+        fn [< put_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> usize {
+          (**self).[< put_ $ty _le_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _le_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          (**self).[< write_ $ty _le_at_checked>](value, offset)
+        fn [< put_ $ty _le_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          (**self).[< put_ $ty _le_at_checked>](value, offset)
         }
 
         #[inline]
-        fn [< try_write_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          (**self).[< try_write_ $ty _le_at>](value, offset)
+        fn [< try_put_ $ty _le_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          (**self).[< try_put_ $ty _le_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> usize {
-          (**self).[< write_ $ty _be_at>](value, offset)
+        fn [< put_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> usize {
+          (**self).[< put_ $ty _be_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _be_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          (**self).[< write_ $ty _be_at_checked>](value, offset)
+        fn [< put_ $ty _be_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          (**self).[< put_ $ty _be_at_checked>](value, offset)
         }
 
         #[inline]
-        fn [< try_write_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          (**self).[< try_write_ $ty _be_at>](value, offset)
+        fn [< try_put_ $ty _be_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          (**self).[< try_put_ $ty _be_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> usize {
-          (**self).[< write_ $ty _ne_at>](value, offset)
+        fn [< put_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> usize {
+          (**self).[< put_ $ty _ne_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _ne_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
-          (**self).[< write_ $ty _ne_at_checked>](value, offset)
+        fn [< put_ $ty _ne_at_checked>](&mut self, value: $ty, offset: usize) -> Option<usize> {
+          (**self).[< put_ $ty _ne_at_checked>](value, offset)
         }
 
         #[inline]
-        fn [< try_write_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
-          (**self).[< try_write_ $ty _ne_at>](value, offset)
+        fn [< try_put_ $ty _ne_at>](&mut self, value: $ty, offset: usize) -> Result<usize, TryWriteAtError> {
+          (**self).[< try_put_ $ty _ne_at>](value, offset)
         }
 
         #[inline]
-        fn [< write_ $ty _le>](&mut self, value: $ty) -> usize {
-          (**self).[< write_ $ty _le>](value)
+        fn [< put_ $ty _le>](&mut self, value: $ty) -> usize {
+          (**self).[< put_ $ty _le>](value)
         }
 
         #[inline]
-        fn [< write_ $ty _le_checked>](&mut self, value: $ty) -> Option<usize> {
-          (**self).[< write_ $ty _le_checked>](value)
+        fn [< put_ $ty _le_checked>](&mut self, value: $ty) -> Option<usize> {
+          (**self).[< put_ $ty _le_checked>](value)
         }
 
         #[inline]
-        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          (**self).[< try_write_ $ty _le>](value)
+        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          (**self).[< try_put_ $ty _le>](value)
         }
 
         #[inline]
-        fn [< write_ $ty _be>](&mut self, value: $ty) -> usize {
-          (**self).[< write_ $ty _be>](value)
+        fn [< put_ $ty _be>](&mut self, value: $ty) -> usize {
+          (**self).[< put_ $ty _be>](value)
         }
 
         #[inline]
-        fn [< write_ $ty _be_checked>](&mut self, value: $ty) -> Option<usize> {
-          (**self).[< write_ $ty _be_checked>](value)
+        fn [< put_ $ty _be_checked>](&mut self, value: $ty) -> Option<usize> {
+          (**self).[< put_ $ty _be_checked>](value)
         }
 
         #[inline]
-        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          (**self).[< try_write_ $ty _be>](value)
+        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          (**self).[< try_put_ $ty _be>](value)
         }
 
         #[inline]
-        fn [< write_ $ty _ne>](&mut self, value: $ty) -> usize {
-          (**self).[< write_ $ty _ne>](value)
+        fn [< put_ $ty _ne>](&mut self, value: $ty) -> usize {
+          (**self).[< put_ $ty _ne>](value)
         }
 
         #[inline]
-        fn [< write_ $ty _ne_checked>](&mut self, value: $ty) -> Option<usize> {
-          (**self).[< write_ $ty _ne_checked>](value)
+        fn [< put_ $ty _ne_checked>](&mut self, value: $ty) -> Option<usize> {
+          (**self).[< put_ $ty _ne_checked>](value)
         }
 
         #[inline]
-        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
-          (**self).[< try_write_ $ty _ne>](value)
+        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+          (**self).[< try_put_ $ty _ne>](value)
         }
       )*
     }
@@ -560,34 +560,36 @@ macro_rules! write_fixed {
 ///
 /// This trait provides a comprehensive set of methods for writing data to buffers with different
 /// error handling strategies:
-/// - **Panicking methods** (e.g., `write_*`): Fast operations that panic on insufficient space
+/// - **Panicking methods** (e.g., `put_*`): Fast operations that panic on insufficient space
 /// - **Checked methods** (e.g., `*_checked`): Return `Option` - `None` on failure, `Some(bytes_written)` on success
 /// - **Fallible methods** (e.g., `try_*`): Return `Result` with detailed error information
 ///
 /// # Method Categories
 ///
-/// - **Buffer inspection**: `available_mut()`, `exhausted()`, `buffer()`, `buffer_mut()`
+/// - **Buffer inspection**: `mutable()`, `has_mutable()`, `buffer()`, `buffer_mut()`
 /// - **Buffer manipulation**: `resize()`, `truncate_mut()`, `fill()`
 /// - **Slice operations**: `prefix_mut()`, `suffix_mut()`, `split_at_mut()`
-/// - **Writing data**: `write_slice()`, `write_u8()`, `write_u16_le()`, etc.
-/// - **Writing at offset**: `write_slice_at()`, `write_u8_at()`, `write_u16_le_at()`, etc.
-pub trait WriteBuf {
+/// - **Writing data**: `put_slice()`, `put_u8()`, `put_u16_le()`, etc.
+/// - **Writing at offset**: `put_slice_at()`, `put_u8_at()`, `put_u16_le_at()`, etc.
+pub trait BufMut {
   /// Returns `true` if the buffer has available space for writing.
   ///
-  /// This is equivalent to `self.available_mut() == 0`.
+  /// This is equivalent to `self.mutable() == 0`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// let mut buf = [0u8; 10];
-  /// let mut slice = &mut buf[..];
-  /// assert!(slice.exhausted());
+  /// use bufkit::BufMut;
   ///
-  /// let mut empty = &mut [][..];
-  /// assert!(empty.exhausted());
+  /// let mut buf = [0u8; 24];
+  /// let mut slice = &mut buf[..];
+  /// assert!(slice.has_mutable());
+  ///
+  /// let mut empty: &mut [u8] = &mut [];
+  /// assert!(!empty.has_mutable());
   /// ```
-  fn exhausted(&self) -> bool {
-    self.available_mut() == 0
+  fn has_mutable(&self) -> bool {
+    self.mutable() > 0
   }
 
   /// Returns the number of bytes available for writing in the buffer.
@@ -598,13 +600,13 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// assert_eq!(slice.available_mut(), 10);
+  /// assert_eq!(slice.mutable(), 24);
   /// ```
-  fn available_mut(&self) -> usize;
+  fn mutable(&self) -> usize;
 
   /// Shortens the buffer to the specified length, keeping the first `len` bytes.
   ///
@@ -614,7 +616,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = vec![1, 2, 3, 4, 5];
   /// buf.truncate_mut(3);
@@ -634,12 +636,12 @@ pub trait WriteBuf {
   /// # Panics
   ///
   /// May panic if the buffer cannot be resized (e.g., fixed-size buffers when growing).
-  /// Use [`try_resize`](WriteBuf::try_resize) for non-panicking resize operations.
+  /// Use [`try_resize`](BufMut::try_resize) for non-panicking resize operations.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = vec![1, 2, 3];
   /// buf.resize(5, 0xFF);
@@ -658,7 +660,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = vec![1, 2, 3, 4];
   /// let slice = buf.buffer_mut();
@@ -669,14 +671,14 @@ pub trait WriteBuf {
 
   /// Tries to resize the buffer to the specified length, filling new bytes with the given value.
   ///
-  /// This is the non-panicking version of [`resize`](WriteBuf::resize).
+  /// This is the non-panicking version of [`resize`](BufMut::resize).
   /// Returns `Ok(())` on success, or `Err(TryResizeError)` if the resize operation fails
   /// (e.g., insufficient capacity in fixed-size buffers).
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..3];
@@ -688,12 +690,8 @@ pub trait WriteBuf {
   /// assert!(slice.try_resize(10, 0xFF).is_err());
   /// ```
   fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-    if new_len > self.available_mut() {
-      return Err(TryResizeError::new(
-        new_len,
-        self.available_mut(),
-        fill_value,
-      ));
+    if new_len > self.mutable() {
+      return Err(TryResizeError::new(new_len, self.mutable(), fill_value));
     }
     self.resize(new_len, fill_value);
     Ok(())
@@ -706,7 +704,7 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4];
   /// let mut slice = &mut buf[..];
@@ -724,13 +722,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.available_mut()`.
-  /// Use [`prefix_mut_checked`](WriteBuf::prefix_mut_checked) for non-panicking access.
+  /// Panics if `len > self.mutable()`.
+  /// Use [`prefix_mut_checked`](BufMut::prefix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -744,13 +742,13 @@ pub trait WriteBuf {
 
   /// Returns a mutable slice containing the first `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`prefix_mut`](WriteBuf::prefix_mut).
-  /// Returns `Some(slice)` if `len <= self.available_mut()`, otherwise returns `None`.
+  /// This is the non-panicking version of [`prefix_mut`](BufMut::prefix_mut).
+  /// Returns `Some(slice)` if `len <= self.mutable()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -759,7 +757,7 @@ pub trait WriteBuf {
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
   fn prefix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    match self.available_mut().checked_sub(len)? {
+    match self.mutable().checked_sub(len)? {
       0 => Some(&mut []),
       end => Some(&mut self.buffer_mut()[..end]),
     }
@@ -772,13 +770,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.available_mut()`.
-  /// Use [`suffix_mut_checked`](WriteBuf::suffix_mut_checked) for non-panicking access.
+  /// Panics if `len > self.mutable()`.
+  /// Use [`suffix_mut_checked`](BufMut::suffix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -787,19 +785,19 @@ pub trait WriteBuf {
   /// assert_eq!(buf, [1, 2, 3, 0xFF, 0xFF]);
   /// ```
   fn suffix_mut(&mut self, len: usize) -> &mut [u8] {
-    let total_len = self.available_mut();
+    let total_len = self.mutable();
     &mut self.buffer_mut()[total_len - len..]
   }
 
   /// Returns a mutable slice containing the last `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`suffix_mut`](WriteBuf::suffix_mut).
-  /// Returns `Some(slice)` if `len <= self.available_mut()`, otherwise returns `None`.
+  /// This is the non-panicking version of [`suffix_mut`](BufMut::suffix_mut).
+  /// Returns `Some(slice)` if `len <= self.mutable()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -808,7 +806,7 @@ pub trait WriteBuf {
   /// assert!(slice.suffix_mut_checked(10).is_none());
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    match self.available_mut().checked_sub(len)? {
+    match self.mutable().checked_sub(len)? {
       0 => return Some(&mut []),
       start => Some(&mut self.buffer_mut()[start..]),
     }
@@ -821,13 +819,13 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `mid > self.available_mut()`.
-  /// Use [`split_at_mut_checked`](WriteBuf::split_at_mut_checked) for non-panicking splitting.
+  /// Panics if `mid > self.mutable()`.
+  /// Use [`split_at_mut_checked`](BufMut::split_at_mut_checked) for non-panicking splitting.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -841,13 +839,13 @@ pub trait WriteBuf {
 
   /// Divides the buffer into two mutable slices at the given index.
   ///
-  /// This is the non-panicking version of [`split_at_mut`](WriteBuf::split_at_mut).
-  /// Returns `Some((left, right))` if `mid <= self.available_mut()`, otherwise returns `None`.
+  /// This is the non-panicking version of [`split_at_mut`](BufMut::split_at_mut).
+  /// Returns `Some((left, right))` if `mid <= self.mutable()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -866,22 +864,22 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `slice.len() > self.available_mut()`.
-  /// Use [`write_slice_checked`](WriteBuf::write_slice_checked) or
-  /// [`try_write_slice`](WriteBuf::try_write_slice) for non-panicking writes.
+  /// Panics if `slice.len() > self.mutable()`.
+  /// Use [`put_slice_checked`](BufMut::put_slice_checked) or
+  /// [`try_put_slice`](BufMut::try_put_slice) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.write_slice(&[1, 2, 3]);
+  /// let written = slice.put_slice(&[1, 2, 3]);
   /// assert_eq!(written, 3);
   /// assert_eq!(&buf[..3], &[1, 2, 3]);
   /// ```
-  fn write_slice(&mut self, slice: &[u8]) -> usize {
+  fn put_slice(&mut self, slice: &[u8]) -> usize {
     let len = slice.len();
     self.buffer_mut()[..len].copy_from_slice(slice);
     len
@@ -889,23 +887,23 @@ pub trait WriteBuf {
 
   /// Tries to write a slice of bytes to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_slice`](WriteBuf::write_slice).
+  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice).
   /// Returns `Some(bytes_written)` on success, or `None` if the buffer is too small.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert_eq!(slice.write_slice_checked(&[1, 2, 3]), Some(3));
-  /// assert_eq!(slice.write_slice_checked(&[1, 2, 3, 4, 5, 6]), None);
+  /// assert_eq!(slice.put_slice_checked(&[1, 2, 3]), Some(3));
+  /// assert_eq!(slice.put_slice_checked(&[1, 2, 3, 4, 5, 6]), None);
   /// ```
-  fn write_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
+  fn put_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
     let len = slice.len();
-    if len <= self.available_mut() {
+    if len <= self.mutable() {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -915,7 +913,7 @@ pub trait WriteBuf {
 
   /// Tries to write a slice of bytes to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_slice`](WriteBuf::write_slice) that
+  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice) that
   /// returns detailed error information on failure.
   /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with details about
   /// the attempted write size and available space.
@@ -923,19 +921,19 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_slice(&[1, 2, 3]).is_ok());
+  /// assert!(slice.try_put_slice(&[1, 2, 3]).is_ok());
   ///
-  /// let err = slice.try_write_slice(&[1, 2, 3, 4, 5, 6]).unwrap_err();
+  /// let err = slice.try_put_slice(&[1, 2, 3, 4, 5, 6]).unwrap_err();
   /// // err contains details about requested vs available space
   /// ```
-  fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
+  fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
     let len = slice.len();
-    let space = self.available_mut();
+    let space = self.mutable();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Ok(len)
@@ -951,22 +949,22 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset + slice.len() > self.available_mut()` or if `offset >= self.available_mut()`.
-  /// Use [`write_slice_at_checked`](WriteBuf::write_slice_at_checked) or
-  /// [`try_write_slice_at`](WriteBuf::try_write_slice_at) for non-panicking writes.
+  /// Panics if `offset + slice.len() > self.mutable()` or if `offset >= self.mutable()`.
+  /// Use [`put_slice_at_checked`](BufMut::put_slice_at_checked) or
+  /// [`try_put_slice_at`](BufMut::try_put_slice_at) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.write_slice_at(&[1, 2, 3], 2);
+  /// let written = slice.put_slice_at(&[1, 2, 3], 2);
   /// assert_eq!(written, 3);
   /// assert_eq!(&buf[2..5], &[1, 2, 3]);
   /// ```
-  fn write_slice_at(&mut self, slice: &[u8], offset: usize) -> usize {
+  fn put_slice_at(&mut self, slice: &[u8], offset: usize) -> usize {
     let len = slice.len();
     self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
     len
@@ -974,25 +972,25 @@ pub trait WriteBuf {
 
   /// Tries to write a slice of bytes to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_slice_at`](WriteBuf::write_slice_at).
+  /// This is the non-panicking version of [`put_slice_at`](BufMut::put_slice_at).
   /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space
   /// or the offset is out of bounds.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert_eq!(slice.write_slice_at_checked(&[1, 2], 3), Some(2));
-  /// assert_eq!(slice.write_slice_at_checked(&[1, 2, 3, 4, 5], 8), None); // Not enough space
-  /// assert_eq!(slice.write_slice_at_checked(&[1], 15), None); // Offset out of bounds
+  /// assert_eq!(slice.put_slice_at_checked(&[1, 2], 3), Some(2));
+  /// assert_eq!(slice.put_slice_at_checked(&[1, 2, 3, 4, 5], 30), None); // Not enough space
+  /// assert_eq!(slice.put_slice_at_checked(&[1], 30), None); // Offset out of bounds
   /// ```
-  fn write_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
+  fn put_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
     let len = slice.len();
-    if len + offset <= self.available_mut() {
+    if len + offset <= self.mutable() {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -1002,7 +1000,7 @@ pub trait WriteBuf {
 
   /// Tries to write a slice of bytes to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_slice_at`](WriteBuf::write_slice_at) that
+  /// This is the non-panicking version of [`put_slice_at`](BufMut::put_slice_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteAtError)` with details about
   /// what went wrong (out of bounds offset, insufficient space, etc.).
@@ -1010,19 +1008,19 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_slice_at(&[1, 2], 3).is_ok());
+  /// assert!(slice.try_put_slice_at(&[1, 2], 3).is_ok());
   ///
-  /// let err = slice.try_write_slice_at(&[1, 2, 3, 4, 5], 8).unwrap_err();
+  /// let err = slice.try_put_slice_at(&[1, 2, 3, 4, 5], 30).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
-  fn try_write_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryWriteAtError> {
+  fn try_put_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryWriteAtError> {
     let len = slice.len();
-    let space = self.available_mut();
+    let space = self.mutable();
     if offset >= space {
       return Err(TryWriteAtError::out_of_bounds(offset, space));
     }
@@ -1039,7 +1037,7 @@ pub trait WriteBuf {
     }
   }
 
-  write_fixed!(u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
+  put_fixed!(u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
 
   /// Writes a `u8` value to the beginning of the buffer.
   ///
@@ -1048,45 +1046,45 @@ pub trait WriteBuf {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`write_u8_checked`](WriteBuf::write_u8_checked) for non-panicking writes.
+  /// Use [`put_u8_checked`](BufMut::put_u8_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.write_u8(0xFF);
+  /// let written = slice.put_u8(0xFF);
   /// assert_eq!(written, 1);
   /// assert_eq!(buf[0], 0xFF);
   /// ```
   #[inline]
-  fn write_u8(&mut self, value: u8) -> usize {
-    self.write_slice(&[value])
+  fn put_u8(&mut self, value: u8) -> usize {
+    self.put_slice(&[value])
   }
 
   /// Tries to write a `u8` value to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_u8`](WriteBuf::write_u8).
+  /// This is the non-panicking version of [`put_u8`](BufMut::put_u8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 1];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert_eq!(slice.write_u8_checked(0xFF), Some(1));
+  /// assert_eq!(slice.put_u8_checked(0xFF), Some(1));
   ///
   /// let mut empty = &mut [][..];
-  /// assert_eq!(empty.write_u8_checked(0xFF), None);
+  /// assert_eq!(empty.put_u8_checked(0xFF), None);
   /// ```
   #[inline]
-  fn write_u8_checked(&mut self, value: u8) -> Option<usize> {
-    self.write_slice_checked(&[value])
+  fn put_u8_checked(&mut self, value: u8) -> Option<usize> {
+    self.put_slice_checked(&[value])
   }
 
   /// Writes an `i8` value to the beginning of the buffer.
@@ -1096,19 +1094,19 @@ pub trait WriteBuf {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`write_i8_checked`](WriteBuf::write_i8_checked) for non-panicking writes.
+  /// Use [`put_i8_checked`](BufMut::put_i8_checked) for non-panicking writes.
   #[inline]
-  fn write_i8(&mut self, value: i8) -> usize {
-    self.write_slice(&[value as u8])
+  fn put_i8(&mut self, value: i8) -> usize {
+    self.put_slice(&[value as u8])
   }
 
   /// Tries to write an `i8` value to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_i8`](WriteBuf::write_i8).
+  /// This is the non-panicking version of [`put_i8`](BufMut::put_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   #[inline]
-  fn write_i8_checked(&mut self, value: i8) -> Option<usize> {
-    self.write_slice_checked(&[value as u8])
+  fn put_i8_checked(&mut self, value: i8) -> Option<usize> {
+    self.put_slice_checked(&[value as u8])
   }
 
   /// Writes a `u8` value to the buffer at the specified offset.
@@ -1117,20 +1115,20 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.available_mut()`.
-  /// Use [`write_u8_at_checked`](WriteBuf::write_u8_at_checked) for non-panicking writes.
+  /// Panics if `offset >= self.mutable()`.
+  /// Use [`put_u8_at_checked`](BufMut::put_u8_at_checked) for non-panicking writes.
   #[inline]
-  fn write_u8_at(&mut self, value: u8, offset: usize) -> usize {
-    self.write_slice_at(&[value], offset)
+  fn put_u8_at(&mut self, value: u8, offset: usize) -> usize {
+    self.put_slice_at(&[value], offset)
   }
 
   /// Tries to write a `u8` value to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_u8_at`](WriteBuf::write_u8_at).
+  /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
   #[inline]
-  fn write_u8_at_checked(&mut self, value: u8, offset: usize) -> Option<usize> {
-    self.write_slice_at_checked(&[value], offset)
+  fn put_u8_at_checked(&mut self, value: u8, offset: usize) -> Option<usize> {
+    self.put_slice_at_checked(&[value], offset)
   }
 
   /// Writes an `i8` value to the buffer at the specified offset.
@@ -1139,25 +1137,25 @@ pub trait WriteBuf {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.available_mut()`.
-  /// Use [`write_i8_at_checked`](WriteBuf::write_i8_at_checked) for non-panicking writes.
+  /// Panics if `offset >= self.mutable()`.
+  /// Use [`put_i8_at_checked`](BufMut::put_i8_at_checked) for non-panicking writes.
   #[inline]
-  fn write_i8_at(&mut self, value: i8, offset: usize) -> usize {
-    self.write_slice_at(&[value as u8], offset)
+  fn put_i8_at(&mut self, value: i8, offset: usize) -> usize {
+    self.put_slice_at(&[value as u8], offset)
   }
 
   /// Tries to write an `i8` value to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_i8_at`](WriteBuf::write_i8_at).
+  /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
   #[inline]
-  fn write_i8_at_checked(&mut self, value: i8, offset: usize) -> Option<usize> {
-    self.write_slice_at_checked(&[value as u8], offset)
+  fn put_i8_at_checked(&mut self, value: i8, offset: usize) -> Option<usize> {
+    self.put_slice_at_checked(&[value as u8], offset)
   }
 
   /// Tries to write a `u8` value to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_u8`](WriteBuf::write_u8) that
+  /// This is the non-panicking version of [`put_u8`](BufMut::put_u8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1165,25 +1163,25 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_u8(0xFF).is_ok());
+  /// assert!(slice.try_put_u8(0xFF).is_ok());
   ///
   /// let mut empty = &mut [][..];
-  /// let err = empty.try_write_u8(0xFF).unwrap_err();
+  /// let err = empty.try_put_u8(0xFF).unwrap_err();
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_write_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
-    self.try_write_slice(&[value])
+  fn try_put_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
+    self.try_put_slice(&[value])
   }
 
   /// Tries to write an `i8` value to the beginning of the buffer.
   ///
-  /// This is the non-panicking version of [`write_i8`](WriteBuf::write_i8) that
+  /// This is the non-panicking version of [`put_i8`](BufMut::put_i8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1191,25 +1189,25 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_i8(-42).is_ok());
+  /// assert!(slice.try_put_i8(-42).is_ok());
   ///
   /// let mut empty = &mut [][..];
-  /// let err = empty.try_write_i8(-42).unwrap_err();
+  /// let err = empty.try_put_i8(-42).unwrap_err();
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_write_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
-    self.try_write_slice(&[value as u8])
+  fn try_put_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
+    self.try_put_slice(&[value as u8])
   }
 
   /// Tries to write a `u8` value to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_u8_at`](WriteBuf::write_u8_at) that
+  /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteAtError)` with details about
   /// what went wrong (out of bounds offset, etc.).
@@ -1217,24 +1215,24 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_u8_at(0xFF, 5).is_ok());
+  /// assert!(slice.try_put_u8_at(0xFF, 5).is_ok());
   ///
-  /// let err = slice.try_write_u8_at(0xFF, 15).unwrap_err();
+  /// let err = slice.try_put_u8_at(0xFF, 30).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
   #[inline]
-  fn try_write_u8_at(&mut self, value: u8, offset: usize) -> Result<usize, TryWriteAtError> {
-    self.try_write_slice_at(&[value], offset)
+  fn try_put_u8_at(&mut self, value: u8, offset: usize) -> Result<usize, TryWriteAtError> {
+    self.try_put_slice_at(&[value], offset)
   }
 
   /// Tries to write an `i8` value to the buffer at the specified offset.
   ///
-  /// This is the non-panicking version of [`write_i8_at`](WriteBuf::write_i8_at) that
+  /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteAtError)` with details about
   /// what went wrong (out of bounds offset, etc.).
@@ -1242,24 +1240,24 @@ pub trait WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::BufMut;
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.try_write_i8_at(-42, 5).is_ok());
+  /// assert!(slice.try_put_i8_at(-42, 5).is_ok());
   ///
-  /// let err = slice.try_write_i8_at(-42, 15).unwrap_err();
+  /// let err = slice.try_put_i8_at(-42, 30).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
   #[inline]
-  fn try_write_i8_at(&mut self, value: i8, offset: usize) -> Result<usize, TryWriteAtError> {
-    self.try_write_slice_at(&[value as u8], offset)
+  fn try_put_i8_at(&mut self, value: i8, offset: usize) -> Result<usize, TryWriteAtError> {
+    self.try_put_slice_at(&[value as u8], offset)
   }
 }
 
-/// A trait that extends `WriteBuf` with additional methods.
-pub trait WriteBufExt: WriteBuf {
+/// A trait that extends `BufMut` with additional methods.
+pub trait BufMutExt: BufMut {
   /// Writes a type in LEB128 format to the buffer.
   ///
   /// Uses the LEB128 encoding format. The number of bytes written depends
@@ -1271,15 +1269,15 @@ pub trait WriteBufExt: WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::{BufMut, BufMutExt};
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.write_varint(&42u32).unwrap();
+  /// let written = slice.put_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   /// ```
   #[inline]
-  fn write_varint<V>(&mut self, value: &V) -> Result<usize, WriteVarintError>
+  fn put_varint<V>(&mut self, value: &V) -> Result<usize, WriteVarintError>
   where
     V: Varint,
   {
@@ -1297,15 +1295,15 @@ pub trait WriteBufExt: WriteBuf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::WriteBuf;
+  /// use bufkit::{BufMut, BufMutExt};
   ///
-  /// let mut buf = [0u8; 10];
+  /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.write_varint_at(&42u32, 3).unwrap();
+  /// let written = slice.put_varint_at(&42u32, 3).unwrap();
   /// // The varint is written starting at offset 3
   /// ```
   #[inline]
-  fn write_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, WriteVarintAtError>
+  fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, WriteVarintAtError>
   where
     V: Varint,
   {
@@ -1323,26 +1321,23 @@ pub trait WriteBufExt: WriteBuf {
           _ => Err(WriteVarintAtError::custom("unknown error")),
         },
       },
-      None => Err(WriteVarintAtError::out_of_bounds(
-        offset,
-        self.available_mut(),
-      )),
+      None => Err(WriteVarintAtError::out_of_bounds(offset, self.mutable())),
     }
   }
 }
 
-impl<T: WriteBuf> WriteBufExt for T {}
+impl<T: BufMut> BufMutExt for T {}
 
-macro_rules! deref_forward_write_buf {
+macro_rules! deref_forward_put_buf {
   () => {
     #[inline]
-    fn exhausted(&self) -> bool {
-      (**self).exhausted()
+    fn has_mutable(&self) -> bool {
+      (**self).has_mutable()
     }
 
     #[inline]
-    fn available_mut(&self) -> usize {
-      (**self).available_mut()
+    fn mutable(&self) -> usize {
+      (**self).mutable()
     }
 
     #[inline]
@@ -1401,100 +1396,96 @@ macro_rules! deref_forward_write_buf {
     }
 
     #[inline]
-    fn write_slice(&mut self, slice: &[u8]) -> usize {
-      (**self).write_slice(slice)
+    fn put_slice(&mut self, slice: &[u8]) -> usize {
+      (**self).put_slice(slice)
     }
 
     #[inline]
-    fn write_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
-      (**self).write_slice_checked(slice)
+    fn put_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
+      (**self).put_slice_checked(slice)
     }
 
     #[inline]
-    fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
-      (**self).try_write_slice(slice)
+    fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
+      (**self).try_put_slice(slice)
     }
 
     #[inline]
-    fn write_slice_at(&mut self, slice: &[u8], offset: usize) -> usize {
-      (**self).write_slice_at(slice, offset)
+    fn put_slice_at(&mut self, slice: &[u8], offset: usize) -> usize {
+      (**self).put_slice_at(slice, offset)
     }
 
     #[inline]
-    fn write_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
-      (**self).write_slice_at_checked(slice, offset)
+    fn put_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
+      (**self).put_slice_at_checked(slice, offset)
     }
 
     #[inline]
-    fn try_write_slice_at(
-      &mut self,
-      slice: &[u8],
-      offset: usize,
-    ) -> Result<usize, TryWriteAtError> {
-      (**self).try_write_slice_at(slice, offset)
+    fn try_put_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryWriteAtError> {
+      (**self).try_put_slice_at(slice, offset)
     }
 
     #[inline]
-    fn write_u8(&mut self, value: u8) -> usize {
-      (**self).write_u8(value)
+    fn put_u8(&mut self, value: u8) -> usize {
+      (**self).put_u8(value)
     }
 
     #[inline]
-    fn write_u8_checked(&mut self, value: u8) -> Option<usize> {
-      (**self).write_u8_checked(value)
+    fn put_u8_checked(&mut self, value: u8) -> Option<usize> {
+      (**self).put_u8_checked(value)
     }
 
     #[inline]
-    fn try_write_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
-      (**self).try_write_u8(value)
+    fn try_put_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
+      (**self).try_put_u8(value)
     }
 
     #[inline]
-    fn write_i8(&mut self, value: i8) -> usize {
-      (**self).write_i8(value)
+    fn put_i8(&mut self, value: i8) -> usize {
+      (**self).put_i8(value)
     }
 
     #[inline]
-    fn write_i8_checked(&mut self, value: i8) -> Option<usize> {
-      (**self).write_i8_checked(value)
+    fn put_i8_checked(&mut self, value: i8) -> Option<usize> {
+      (**self).put_i8_checked(value)
     }
 
     #[inline]
-    fn try_write_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
-      (**self).try_write_i8(value)
+    fn try_put_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
+      (**self).try_put_i8(value)
     }
 
     #[inline]
-    fn write_u8_at(&mut self, value: u8, offset: usize) -> usize {
-      (**self).write_u8_at(value, offset)
+    fn put_u8_at(&mut self, value: u8, offset: usize) -> usize {
+      (**self).put_u8_at(value, offset)
     }
 
     #[inline]
-    fn write_u8_at_checked(&mut self, value: u8, offset: usize) -> Option<usize> {
-      (**self).write_u8_at_checked(value, offset)
+    fn put_u8_at_checked(&mut self, value: u8, offset: usize) -> Option<usize> {
+      (**self).put_u8_at_checked(value, offset)
     }
 
     #[inline]
-    fn try_write_u8_at(&mut self, value: u8, offset: usize) -> Result<usize, TryWriteAtError> {
-      (**self).try_write_u8_at(value, offset)
+    fn try_put_u8_at(&mut self, value: u8, offset: usize) -> Result<usize, TryWriteAtError> {
+      (**self).try_put_u8_at(value, offset)
     }
 
     #[inline]
-    fn write_i8_at(&mut self, value: i8, offset: usize) -> usize {
-      (**self).write_i8_at(value, offset)
+    fn put_i8_at(&mut self, value: i8, offset: usize) -> usize {
+      (**self).put_i8_at(value, offset)
     }
 
     #[inline]
-    fn write_i8_at_checked(&mut self, value: i8, offset: usize) -> Option<usize> {
-      (**self).write_i8_at_checked(value, offset)
+    fn put_i8_at_checked(&mut self, value: i8, offset: usize) -> Option<usize> {
+      (**self).put_i8_at_checked(value, offset)
     }
 
     #[inline]
-    fn try_write_i8_at(&mut self, value: i8, offset: usize) -> Result<usize, TryWriteAtError> {
-      (**self).try_write_i8_at(value, offset)
+    fn try_put_i8_at(&mut self, value: i8, offset: usize) -> Result<usize, TryWriteAtError> {
+      (**self).try_put_i8_at(value, offset)
     }
 
-    write_fixed! {
+    put_fixed! {
       @forward
       u16, u32, u64, u128,
       i16, i32, i64, i128,
@@ -1503,16 +1494,16 @@ macro_rules! deref_forward_write_buf {
   };
 }
 
-impl<T: WriteBuf + ?Sized> WriteBuf for &mut T {
-  deref_forward_write_buf!();
+impl<T: BufMut + ?Sized> BufMut for &mut T {
+  deref_forward_put_buf!();
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-impl<T: WriteBuf + ?Sized> WriteBuf for std::boxed::Box<T> {
-  deref_forward_write_buf!();
+impl<T: BufMut + ?Sized> BufMut for std::boxed::Box<T> {
+  deref_forward_put_buf!();
 }
 
-impl WriteBuf for &mut [u8] {
+impl BufMut for &mut [u8] {
   #[inline]
   fn truncate_mut(&mut self, len: usize) {
     if len >= self.len() {
@@ -1530,12 +1521,12 @@ impl WriteBuf for &mut [u8] {
   }
 
   #[inline]
-  fn available_mut(&self) -> usize {
+  fn mutable(&self) -> usize {
     <[u8]>::len(self)
   }
 
   #[inline]
-  fn exhausted(&self) -> bool {
+  fn has_mutable(&self) -> bool {
     !self.is_empty()
   }
 
@@ -1560,14 +1551,14 @@ impl WriteBuf for &mut [u8] {
 const _: () = {
   use bytes_1::BytesMut;
 
-  impl WriteBuf for BytesMut {
+  impl BufMut for BytesMut {
     #[inline]
-    fn exhausted(&self) -> bool {
+    fn has_mutable(&self) -> bool {
       !self.is_empty()
     }
 
     #[inline]
-    fn available_mut(&self) -> usize {
+    fn mutable(&self) -> usize {
       self.len()
     }
 
@@ -1592,7 +1583,7 @@ const _: () = {
 const _: () = {
   use std::vec::Vec;
 
-  impl WriteBuf for Vec<u8> {
+  impl BufMut for Vec<u8> {
     #[inline]
     fn resize(&mut self, new_len: usize, fill_value: u8) {
       self.resize(new_len, fill_value);
@@ -1609,12 +1600,12 @@ const _: () = {
     }
 
     #[inline]
-    fn available_mut(&self) -> usize {
+    fn mutable(&self) -> usize {
       self.len()
     }
 
     #[inline]
-    fn exhausted(&self) -> bool {
+    fn has_mutable(&self) -> bool {
       !self.is_empty()
     }
   }
@@ -1626,6 +1617,6 @@ fn panic_resize(e: &TryResizeError) -> ! {
   panic!("resize failure: {e}",);
 }
 
-// The existence of this function makes the compiler catch if the WriteBuf
+// The existence of this function makes the compiler catch if the BufMut
 // trait is "object-safe" or not.
-fn _assert_trait_object(_b: &dyn WriteBuf) {}
+fn _assert_trait_object(_b: &dyn BufMut) {}
