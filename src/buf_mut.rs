@@ -689,13 +689,7 @@ pub trait BufMut {
   /// // This will fail - cannot grow a fixed slice beyond its bounds
   /// assert!(slice.try_resize(10, 0xFF).is_err());
   /// ```
-  fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
-    if new_len > self.mutable() {
-      return Err(TryResizeError::new(new_len, self.mutable(), fill_value));
-    }
-    self.resize(new_len, fill_value);
-    Ok(())
-  }
+  fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError>;
 
   /// Fills the entire buffer with the specified byte value.
   ///
@@ -1545,6 +1539,14 @@ impl BufMut for &mut [u8] {
     let (a, _) = core::mem::take(self).split_at_mut(new_len);
     *self = a;
   }
+
+  fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
+    if new_len > self.mutable() {
+      return Err(TryResizeError::new(new_len, self.mutable(), fill_value));
+    }
+    self.resize(new_len, fill_value);
+    Ok(())
+  }
 }
 
 #[cfg(feature = "bytes_1")]
@@ -1570,6 +1572,12 @@ const _: () = {
     #[inline]
     fn resize(&mut self, new_len: usize, fill_value: u8) {
       self.resize(new_len, fill_value);
+    }
+
+    #[inline]
+    fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
+      self.resize(new_len, fill_value);
+      Ok(())
     }
 
     #[inline]
@@ -1607,6 +1615,12 @@ const _: () = {
     #[inline]
     fn has_mutable(&self) -> bool {
       !self.is_empty()
+    }
+
+    #[inline]
+    fn try_resize(&mut self, new_len: usize, fill_value: u8) -> Result<(), TryResizeError> {
+      self.resize(new_len, fill_value);
+      Ok(())
     }
   }
 };

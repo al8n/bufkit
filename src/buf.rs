@@ -1008,6 +1008,32 @@ pub trait Buf {
     self.buffer().get(0).copied()
   }
 
+  /// Peeks a `u8` value from the buffer without advancing the internal cursor.
+  ///
+  /// This is the non-panicking version of [`peek_u8`](Buf::peek_u8).
+  /// Returns `Ok(byte)` if data is available, otherwise returns `Err`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [42];
+  /// let buf = &data[..];
+  /// assert_eq!(buf.peek_u8_checked(), Some(42));
+  ///
+  /// let empty_buf = &[][..];
+  /// assert!(empty_buf.try_peek_u8().is_err());
+  /// ```
+  #[inline]
+  fn try_peek_u8(&self) -> Result<u8, TryPeekError> {
+    self
+      .buffer()
+      .get(0)
+      .copied()
+      .ok_or(TryPeekError::new(1, self.remaining()))
+  }
+
   /// Reads a `u8` value from the buffer and advances the internal cursor.
   ///
   /// Returns the first byte from the buffer and advances the cursor by 1 byte.
@@ -1060,6 +1086,31 @@ pub trait Buf {
     })
   }
 
+  /// Reads a `u8` value from the buffer and advances the internal cursor.
+  ///
+  /// This is the non-panicking version of [`read_u8`](Buf::read_u8).
+  /// Returns `Ok(byte)` and advances the cursor on success, or `Err` if the buffer is empty.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [42];
+  /// let mut buf = &data[..];
+  ///
+  /// assert_eq!(buf.read_u8_checked(), Some(42));
+  /// assert_eq!(buf.remaining(), 0);
+  ///
+  /// assert!(buf.try_read_u8().is_err()); // Empty now
+  /// ```
+  #[inline]
+  fn try_read_u8(&mut self) -> Result<u8, TryReadError> {
+    self
+      .read_u8_checked()
+      .ok_or(TryReadError::new(1, self.remaining()))
+  }
+
   /// Peeks an `i8` value from the buffer without advancing the internal cursor.
   ///
   /// Returns the first byte from the buffer as a signed integer without consuming it.
@@ -1108,6 +1159,28 @@ pub trait Buf {
     self.peek_u8_checked().map(|v| v as i8)
   }
 
+  /// Peeks an `i8` value from the buffer without advancing the internal cursor.
+  ///
+  /// This is the non-panicking version of [`peek_i8`](Buf::peek_i8).
+  /// Returns `Ok(byte)` if data is available, otherwise returns `Err`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [255u8]; // -1 as i8
+  /// let buf = &data[..];
+  /// assert_eq!(buf.try_peek_i8(), Ok(-1));
+  ///
+  /// let empty_buf = &[][..];
+  /// assert!(empty_buf.try_peek_i8().is_err());
+  /// ```
+  #[inline]
+  fn try_peek_i8(&self) -> Result<i8, TryPeekError> {
+    self.try_peek_u8().map(|v| v as i8)
+  }
+
   /// Reads an `i8` value from the buffer and advances the internal cursor.
   ///
   /// Returns the first byte from the buffer as a signed integer and advances the cursor by 1 byte.
@@ -1154,6 +1227,27 @@ pub trait Buf {
   #[inline]
   fn read_i8_checked(&mut self) -> Option<i8> {
     self.read_u8_checked().map(|v| v as i8)
+  }
+
+  /// Reads an `i8` value from the buffer and advances the internal cursor.
+  ///
+  /// This is the non-panicking version of [`read_i8`](Buf::read_i8).
+  /// Returns `Ok(byte)` and advances the cursor on success, or `Err(Try
+  /// ReadError)` if the buffer is empty.
+  ///
+  /// # Examples
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [255u8]; // -1 as i8
+  /// let mut buf = &data[..];
+  /// assert_eq!(buf.try_read_i8(), Ok(-1));
+  /// assert_eq!(buf.remaining(), 0);
+  /// assert!(buf.try_read_i8().is_err()); // Empty now
+  /// ```
+  #[inline]
+  fn try_read_i8(&mut self) -> Result<i8, TryReadError> {
+    self.try_read_u8().map(|v| v as i8)
   }
 
   /// Converts the read buffer to a `Vec<u8>` instance.
@@ -1614,6 +1708,11 @@ const _: () = {
     }
 
     #[inline]
+    fn try_read_u8(&mut self) -> Result<u8, TryReadError> {
+      self.try_get_u8().map_err(Into::into)
+    }
+
+    #[inline]
     fn read_i8(&mut self) -> i8 {
       self.get_i8()
     }
@@ -1621,6 +1720,11 @@ const _: () = {
     #[inline]
     fn read_i8_checked(&mut self) -> Option<i8> {
       self.try_get_i8().ok()
+    }
+
+    #[inline]
+    fn try_read_i8(&mut self) -> Result<i8, TryReadError> {
+      self.try_get_i8().map_err(Into::into)
     }
 
     #[cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc")))]
@@ -1687,9 +1791,7 @@ fn read_array_checked<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Option<[u
 }
 
 #[inline(always)]
-fn try_read_array<B: Buf + ?Sized, const N: usize>(
-  buf: &mut B,
-) -> Result<[u8; N], TryReadError> {
+fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N], TryReadError> {
   try_peek_array::<B, N>(buf)
     .inspect(|_| {
       buf.advance(N);
