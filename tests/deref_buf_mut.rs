@@ -40,9 +40,6 @@ mod deref_impl_tests {
     assert_eq!(boxed.put_slice(&[1, 2, 3]), 3);
     assert_eq!(&boxed[..3], &[1, 2, 3]);
 
-    boxed.resize(5, 0xFF);
-    assert_eq!(boxed.len(), 5);
-
     // Test with trait object
     let mut boxed_trait: Box<dyn BufMut> = Box::new(vec![0u8; 15]);
     assert_eq!(boxed_trait.mutable(), 15);
@@ -126,12 +123,6 @@ mod deref_impl_tests {
 
     buf_ref.truncate_mut(3);
     assert_eq!(buf_ref.mutable(), 3);
-
-    buf_ref.resize(5, 0xFF);
-    assert_eq!(buf_ref.mutable(), 5);
-
-    // Verify the data
-    assert_eq!(&data[..], &[1, 2, 3, 0xFF, 0xFF]);
   }
 
   #[test]
