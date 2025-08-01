@@ -1033,7 +1033,7 @@ pub trait Buf {
       .buffer()
       .first()
       .copied()
-      .ok_or(TryPeekError::new(1, self.remaining()))
+      .ok_or_else(|| TryPeekError::new(1, self.remaining()))
   }
 
   /// Reads a `u8` value from the buffer and advances the internal cursor.
@@ -1110,7 +1110,7 @@ pub trait Buf {
   fn try_read_u8(&mut self) -> Result<u8, TryReadError> {
     self
       .read_u8_checked()
-      .ok_or(TryReadError::new(1, self.remaining()))
+      .ok_or_else(|| TryReadError::new(1, self.remaining()))
   }
 
   /// Peeks an `i8` value from the buffer without advancing the internal cursor.
