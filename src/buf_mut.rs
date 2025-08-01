@@ -642,8 +642,9 @@ pub trait BufMut {
   /// ```rust
   /// use bufkit::BufMut;
   ///
-  /// let mut buf = vec![1, 2, 3, 4];
-  /// let slice = buf.buffer_mut();
+  /// let mut buf = [1, 2, 3, 4];
+  /// let mut slice = &mut buf[..];
+  /// let slice = slice.buffer_mut();
   /// slice[0] = 0xFF;
   /// assert_eq!(buf[0], 0xFF);
   /// ```
