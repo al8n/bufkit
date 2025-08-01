@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod deref_impl_tests {
   use bufkit::{BufMut, BufMutExt};
 
