@@ -320,7 +320,7 @@ impl OutOfBounds {
   /// This is equivalent to `offset() - length() + 1`.
   #[inline]
   pub const fn excess(&self) -> usize {
-    self.offset - self.length + 1
+    self.offset() - self.length() + 1
   }
 }
 
