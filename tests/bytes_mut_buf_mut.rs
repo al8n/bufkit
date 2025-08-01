@@ -277,14 +277,10 @@ mod bytes_mut_buf_mut_tests {
     // Insufficient space
     let err = buf.try_put_u32_le_at(0x12345678, 8).unwrap_err();
     match err {
-      TryWriteAtError::InsufficientSpace {
-        requested,
-        available,
-        offset,
-      } => {
-        assert_eq!(requested, 4);
-        assert_eq!(available, 2);
-        assert_eq!(offset, 8);
+      TryWriteAtError::InsufficientSpace(e) => {
+        assert_eq!(e.requested(), 4);
+        assert_eq!(e.available(), 2);
+        assert_eq!(e.offset(), 8);
       }
       _ => panic!("Expected InsufficientSpace error"),
     }
