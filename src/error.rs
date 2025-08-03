@@ -125,7 +125,10 @@ impl From<TryPeekError> for std::io::Error {
 impl From<TryPeekError> for TryReadError {
   #[inline]
   fn from(e: TryPeekError) -> Self {
-    TryReadError::new(e.requested, e.available)
+    TryReadError {
+      requested: e.requested,
+      available: e.available,
+    }
   }
 }
 
