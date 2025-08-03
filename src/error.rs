@@ -31,7 +31,7 @@ macro_rules! try_op_error {
           debug_assert!(requested > available, concat!(stringify!([< Try $op:camel Error >]), ": requested must be greater than available"));
 
           Self {
-            requested: NonZeroUsize::new(requested).expected(
+            requested: NonZeroUsize::new(requested).expect(
               concat!(stringify!([< Try $op:camel Error >]), ": requested must be non-zero")
             ),
             available,
@@ -369,7 +369,7 @@ impl InsufficientSpaceAt {
 
     Self {
       requested: NonZeroUsize::new(requested)
-        .expected("InsufficientSpaceAt: requested must be non-zero"),
+        .expect("InsufficientSpaceAt: requested must be non-zero"),
       available,
       offset,
     }
