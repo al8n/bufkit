@@ -398,7 +398,7 @@ impl InsufficientSpaceAt {
   /// This is equivalent to `requested() - available()`.
   #[inline]
   pub const fn shortage(&self) -> usize {
-    self.requested - self.available
+    self.requested() - self.available()
   }
 }
 
