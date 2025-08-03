@@ -2,6 +2,8 @@
 #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
 pub use varing::{DecodeError as ReadVarintError, EncodeError as WriteVarintError};
 
+use core::num::NonZeroUsize;
+
 macro_rules! try_op_error {
   (
     #[doc = $doc:literal]
@@ -13,7 +15,7 @@ macro_rules! try_op_error {
       #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
       #[error($msg)]
       pub struct [< Try $op:camel Error >] {
-        requested: usize,
+        requested: NonZeroUsize,
         available: usize,
       }
 
@@ -22,13 +24,16 @@ macro_rules! try_op_error {
         ///
         /// # Panics
         ///
-        /// In debug builds, panics if `requested <= available` (this would not be an error condition).
+        /// - In debug builds, panics if `requested <= available` (this would not be an error condition).
+        /// - The `requested` value must be a non-zero.
         #[inline]
         pub const fn new(requested: usize, available: usize) -> Self {
           debug_assert!(requested > available, concat!(stringify!([< Try $op:camel Error >]), ": requested must be greater than available"));
 
           Self {
-            requested,
+            requested: NonZeroUsize::new(requested).expected(
+              concat!(stringify!([< Try $op:camel Error >]), ": requested must be non-zero")
+            ),
             available,
           }
         }
@@ -38,7 +43,7 @@ macro_rules! try_op_error {
         /// This is the minimum number of bytes needed for the operation to succeed.
         #[inline]
         pub const fn requested(&self) -> usize {
-          self.requested
+          self.requested.get()
         }
 
         /// Returns the number of bytes available in the buffer.
@@ -54,7 +59,7 @@ macro_rules! try_op_error {
         /// This is equivalent to `requested() - available()`.
         #[inline]
         pub const fn shortage(&self) -> usize {
-          self.requested - self.available
+          self.requested() - self.available()
         }
       }
     }
@@ -341,7 +346,7 @@ impl From<OutOfBounds> for std::io::Error {
 )]
 pub struct InsufficientSpaceAt {
   /// The number of bytes requested to write.
-  requested: usize,
+  requested: NonZeroUsize,
   /// The number of bytes available from the offset to the end of buffer.
   available: usize,
   /// The offset at which the write was attempted.
@@ -353,7 +358,8 @@ impl InsufficientSpaceAt {
   ///
   /// # Panics
   ///
-  /// In debug builds, panics if `requested <= available` (would not be an error).
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
   #[inline]
   pub const fn new(requested: usize, available: usize, offset: usize) -> Self {
     debug_assert!(
@@ -362,7 +368,8 @@ impl InsufficientSpaceAt {
     );
 
     Self {
-      requested,
+      requested: NonZeroUsize::new(requested)
+        .expected("InsufficientSpaceAt: requested must be non-zero"),
       available,
       offset,
     }
@@ -371,7 +378,7 @@ impl InsufficientSpaceAt {
   /// Returns the number of bytes requested to write.
   #[inline]
   pub const fn requested(&self) -> usize {
-    self.requested
+    self.requested.get()
   }
 
   /// Returns the number of bytes available from the offset.
@@ -417,6 +424,11 @@ impl TryWriteAtError {
   }
 
   /// Creates a new `TryWriteAtError::InsufficientSpace` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
   #[inline]
   pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
     Self::InsufficientSpace(InsufficientSpaceAt::new(requested, available, offset))
@@ -471,6 +483,11 @@ impl WriteVarintAtError {
   }
 
   /// Creates a new `WriteVarintAtError::Insufficient` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
   #[inline]
   pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
     Self::InsufficientSpace(InsufficientSpaceAt::new(requested, available, offset))
