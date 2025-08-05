@@ -517,6 +517,58 @@ pub trait Buf {
   /// ```
   fn buffer(&self) -> &[u8];
 
+  /// Returns a slice of the buffer starting from the specified offset.
+  ///
+  /// This is similar to [`buffer`](Buf::buffer) but starts from the given offset
+  /// rather than the current cursor position.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `offset > self.remaining()`.
+  /// Use [`buffer_from_checked`](Buf::buffer_from_checked) for non-panicking access.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [1u8, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  ///
+  /// assert_eq!(buf.buffer(), &[1, 2, 3, 4, 5]);
+  /// assert_eq!(buf.buffer_from(2), &[3, 4, 5]);
+  /// ```
+  #[inline]
+  fn buffer_from(&self, offset: usize) -> &[u8] {
+    &self.buffer()[offset..]
+  }
+
+  /// Returns a slice of the buffer starting from the specified offset.
+  ///
+  /// This is the non-panicking version of [`buffer_from`](Buf::buffer_from).
+  /// Returns `Some(slice)` if `offset <= self.remaining()`, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [1u8, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  ///
+  /// assert_eq!(buf.buffer_from_checked(2), Some(&[3, 4, 5][..]));
+  /// assert_eq!(buf.buffer_from_checked(5), Some(&[][..])); // Empty slice at end
+  /// assert_eq!(buf.buffer_from_checked(10), None); // Out of bounds
+  /// ```
+  #[inline]
+  fn buffer_from_checked(&self, offset: usize) -> Option<&[u8]> {
+    if offset > self.remaining() {
+      None
+    } else {
+      Some(&self.buffer()[offset..])
+    }
+  }
+
   /// Advances the internal cursor by the specified number of bytes.
   ///
   /// This moves the read position forward, making the advanced bytes no longer
@@ -1609,6 +1661,16 @@ impl Buf for &[u8] {
   fn buffer(&self) -> &[u8] {
     self
   }
+
+  #[inline]
+  fn buffer_from(&self, offset: usize) -> &[u8] {
+    &self[offset..]
+  }
+
+  #[inline]
+  fn buffer_from_checked(&self, offset: usize) -> Option<&[u8]> {
+    self.split_at_checked(offset).map(|(_, right)| right)
+  }
 }
 
 #[cfg(feature = "bytes_1")]
@@ -1673,6 +1735,19 @@ const _: () = {
     #[inline]
     fn buffer(&self) -> &[u8] {
       self.as_ref()
+    }
+
+    #[inline]
+    fn buffer_from(&self, offset: usize) -> &[u8] {
+      &self.as_ref()[offset..]
+    }
+
+    #[inline]
+    fn buffer_from_checked(&self, offset: usize) -> Option<&[u8]> {
+      self
+        .as_ref()
+        .split_at_checked(offset)
+        .map(|(_, right)| right)
     }
 
     #[inline]
