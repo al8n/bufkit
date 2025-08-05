@@ -250,7 +250,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in little-endian format at the beginning
         ///
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _le>](&mut self, value: $ty) -> usize {
@@ -271,7 +271,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_le_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -297,7 +297,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_le(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -329,7 +329,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in big-endian format at the beginning
         ///
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _be>](&mut self, value: $ty) -> usize {
@@ -350,7 +350,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_be_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -376,7 +376,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_be(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -411,7 +411,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in native-endian format at the beginning
         ///
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _ne>](&mut self, value: $ty) -> usize {
@@ -433,7 +433,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_ne_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -460,7 +460,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_ne(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(buf.mutable(), 24);
+        /// assert_eq!(slice.mutable(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -575,7 +575,7 @@ macro_rules! write_fixed {
   ($($ty:ty),+$(,)?) => {
     paste::paste! {
       $(
-        #[doc = "Writes `" $ty "` value in little-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Writes `" $ty "` value in little-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "Returns the number of bytes written (always `size_of::<" $ty ">()` for this type)."]
         ///
@@ -600,7 +600,7 @@ macro_rules! write_fixed {
           self.write_slice(&value.to_le_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_le`](BufMut::write_" $ty "_le)."]
         ///
@@ -624,7 +624,7 @@ macro_rules! write_fixed {
           self.write_slice_checked(&value.to_le_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_le`](BufMut::write_" $ty "_le)."]
         ///
@@ -650,7 +650,7 @@ macro_rules! write_fixed {
           self.try_write_slice(&value.to_le_bytes())
         }
 
-        #[doc = "Writes `" $ty "` value in big-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Writes `" $ty "` value in big-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "Returns the number of bytes written (always `size_of::<" $ty ">()` for this type)."]
         ///
@@ -675,7 +675,7 @@ macro_rules! write_fixed {
           self.write_slice(&value.to_be_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_be`](BufMut::write_" $ty "_be)."]
         ///
@@ -699,7 +699,7 @@ macro_rules! write_fixed {
           self.write_slice_checked(&value.to_be_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_be`](BufMut::write_" $ty "_be)."]
         ///
@@ -725,7 +725,7 @@ macro_rules! write_fixed {
           self.try_write_slice(&value.to_be_bytes())
         }
 
-        #[doc = "Writes `" $ty "` value in native-endian byte order to the beginning of the buffer and advance the internal cursor."]
+        #[doc = "Writes `" $ty "` value in native-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness (little-endian on x86/x64,
         /// big-endian on some embedded platforms).
@@ -753,7 +753,7 @@ macro_rules! write_fixed {
           self.write_slice(&value.to_ne_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer without advancing the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
         #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](BufMut::write_" $ty "_ne)."]
@@ -778,7 +778,7 @@ macro_rules! write_fixed {
           self.write_slice_checked(&value.to_ne_bytes())
         }
 
-        #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer without advancing the internal cursor."]
+        #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
         #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](BufMut::write_" $ty "_ne)."]
@@ -1715,7 +1715,7 @@ pub trait BufMut {
     self.put_slice(&[value as u8])
   }
 
-  /// Tries to putn `i8` value to the beginning of the buffer without advancing the internal cursor.
+  /// Tries to put `i8` value to the beginning of the buffer without advancing the internal cursor.
   ///
   /// This is the non-panicking version of [`put_i8`](BufMut::put_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
@@ -1808,7 +1808,7 @@ pub trait BufMut {
     self.put_slice_at(&[value as u8], offset)
   }
 
-  /// Tries to putn `i8` value to the buffer at the specified offset without advancing the internal cursor.
+  /// Tries to put `i8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
   /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
@@ -1906,7 +1906,7 @@ pub trait BufMut {
     self.try_put_slice_at(&[value], offset)
   }
 
-  /// Tries to putn `i8` value to the buffer at the specified offset without advancing the internal cursor.
+  /// Tries to put `i8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
   /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at) that
   /// returns detailed error information on failure.
@@ -2026,7 +2026,7 @@ pub trait BufMutExt: BufMut {
   where
     V: Varint,
   {
-    value.encode(self.buffer_mut()).inspect(|_| {
+    value.encode(self.buffer_mut()).inspect(|bytes_written| {
       self.advance_mut(bytes_written);
     })
   }
