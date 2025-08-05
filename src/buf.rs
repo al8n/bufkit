@@ -5,6 +5,8 @@ use core::ops::{Bound, RangeBounds};
 #[cfg(feature = "varing")]
 use varing::{DecodeError as ReadVarintError, Varint};
 
+use super::panic_advance;
+
 macro_rules! peek_fixed {
   ($($ty:ident), +$(,)?) => {
     paste::paste! {
@@ -1842,16 +1844,6 @@ fn check_segment<R: RangeBounds<usize>>(
   }
 
   Ok((begin, end))
-}
-
-/// Panic with a nice error message.
-#[cold]
-fn panic_advance(error_info: &TryAdvanceError) -> ! {
-  panic!(
-    "advance out of bounds: the len is {} but advancing by {}",
-    error_info.available(),
-    error_info.requested()
-  );
 }
 
 #[inline(always)]
