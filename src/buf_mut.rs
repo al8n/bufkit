@@ -2027,7 +2027,7 @@ pub trait BufMutExt: BufMut {
     V: Varint,
   {
     value.encode(self.buffer_mut()).inspect(|bytes_written| {
-      self.advance_mut(bytes_written);
+      self.advance_mut(*bytes_written);
     })
   }
 }
