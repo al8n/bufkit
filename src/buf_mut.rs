@@ -1386,7 +1386,7 @@ pub trait BufMut {
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
-  /// let written = slice.put_i8(-42);
+  /// let written = slice.write_i8(-42);
   /// assert_eq!(written, 1);
   /// assert_eq!(buf[0], 214); // -42 as u8 is
   /// ```
@@ -1628,6 +1628,7 @@ pub trait BufMut {
   /// assert!(slice.try_put_slice_at(&[1, 2], 3).is_ok());
   ///
   /// let err = slice.try_put_slice_at(&[1, 2, 3, 4, 5], 30).unwrap_err();
+  /// let err = slice.try_put_slice_at(&[1, 2, 3, 4, 5], 20).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
   fn try_put_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryWriteAtError> {
