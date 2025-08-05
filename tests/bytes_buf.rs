@@ -327,7 +327,5 @@ mod bytes_buf_tests {
     let empty: &[u8] = &[];
     let seg = empty.try_segment(..).unwrap();
     assert_eq!(seg.remaining(), 0);
-
-    &empty[0..];
   }
 }
