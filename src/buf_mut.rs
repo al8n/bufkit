@@ -593,6 +593,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_le(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in little-endian format at the beginning
         /// ```
         #[inline]
@@ -614,6 +615,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_le_checked(0x1234 as " $ty ").is_some());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -639,6 +641,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_le(0x1234 as " $ty ").is_ok());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -668,6 +671,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_be(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in big-endian format at the beginning
         /// ```
         #[inline]
@@ -689,6 +693,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_be_checked(0x1234 as " $ty ").is_some());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -714,6 +719,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_be(0x1234 as " $ty ").is_ok());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -746,6 +752,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_ne(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in native-endian format at the beginning
         /// ```
         #[inline]
@@ -768,6 +775,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_ne_checked(0x1234 as " $ty ").is_some());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -794,6 +802,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_ne(0x1234 as " $ty ").is_ok());"]
+        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -2018,6 +2027,8 @@ pub trait BufMutExt: BufMut {
   /// let mut slice = &mut buf[..];
   /// let written = slice.write_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
+  ///
+  /// assert_eq!(slice.mutable(), 24 - written);
   /// ```
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
