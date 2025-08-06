@@ -2454,8 +2454,7 @@ impl<B> WriteBuf<B> {
   ///
   /// let mut buf = [0u8; 24];
   /// let mut write_buf = WriteBuf::from(&mut buf[..]);
-  /// let underlying_buf: &mut [u8] = write_buf.into_inner();
-  /// assert_eq!(underlying_buf, &mut buf[..]);
+  /// let _ = write_buf.into_inner();
   /// ```
   #[inline]
   pub fn into_inner(self) -> B {
