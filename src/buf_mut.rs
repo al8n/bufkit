@@ -1129,12 +1129,14 @@ pub trait BufMut {
   /// let mut slice = &mut buf[..];
   ///
   /// assert!(slice.prefix_mut_checked(3).is_some());
+  /// assert_eq!(slice.prefix_mut_checked(5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
   fn prefix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    match self.mutable().checked_sub(len)? {
-      0 => Some(&mut []),
-      end => Some(&mut self.buffer_mut()[..end]),
+    if self.mutable() < len {
+      None
+    } else {
+      Some(&mut self.buffer_mut()[..len])
     }
   }
 
@@ -1178,13 +1180,14 @@ pub trait BufMut {
   /// let mut slice = &mut buf[..];
   ///
   /// assert!(slice.suffix_mut_checked(2).is_some());
+  /// assert_eq!(slice.suffix_mut_checked(5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(slice.suffix_mut_checked(10).is_none());
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    match self.mutable().checked_sub(len)? {
-      0 => Some(&mut []),
-      start => Some(&mut self.buffer_mut()[start..]),
-    }
+    self
+      .mutable()
+      .checked_sub(len)
+      .map(|start| &mut self.buffer_mut()[start..])
   }
 
   /// Divides the buffer into two mutable slices at the given index.

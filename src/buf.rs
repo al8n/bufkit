@@ -633,14 +633,15 @@ pub trait Buf {
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
   /// assert!(Buf::prefix_checked(&&buf[..], 3).is_some());
-  /// assert!(Buf::prefix_checked(&&buf[..], 5).is_some());
+  /// assert_eq!(Buf::prefix_checked(&&buf[..], 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::prefix_checked(&&buf[..], 10).is_none());
   /// ```
   #[inline]
   fn prefix_checked(&self, len: usize) -> Option<&[u8]> {
-    match self.remaining().checked_sub(len)? {
-      0 => Some(&[]),
-      end => Some(&self.buffer()[..end]),
+    if self.remaining() < len {
+      None
+    } else {
+      Some(&self.buffer()[..len])
     }
   }
 
@@ -684,15 +685,15 @@ pub trait Buf {
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
   /// assert!(Buf::suffix_checked(&slice, 2).is_some());
-  /// assert!(Buf::suffix_checked(&slice, 5).is_some());
+  /// assert_eq!(Buf::suffix_checked(&slice, 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::suffix_checked(&slice, 10).is_none());
   /// ```
   #[inline]
   fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
-    match self.remaining().checked_sub(len)? {
-      0 => Some(&[]),
-      start => Some(&self.buffer()[start..]),
-    }
+    self
+      .remaining()
+      .checked_sub(len)
+      .map(|start| &self.buffer()[start..])
   }
 
   /// Creates an independent buffer containing a segment of the current buffer's data.
