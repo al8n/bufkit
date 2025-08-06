@@ -559,7 +559,7 @@ pub trait Buf {
   /// let buf = &data[..];
   ///
   /// assert_eq!(buf.buffer_from_checked(2), Some(&[3, 4, 5][..]));
-  /// assert_eq!(buf.buffer_from_checked(5), Some(&[][..])); // Empty slice at end
+  /// assert!(buf.buffer_from_checked(5).unwrap().is_empty()); // empty buffer
   /// assert_eq!(buf.buffer_from_checked(10), None); // Out of bounds
   /// ```
   #[inline]
@@ -632,7 +632,7 @@ pub trait Buf {
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
-  /// assert!(Buf::prefix_checked(&&buf[..], 3).is_some());
+  /// assert_eq!(Buf::prefix_checked(&&buf[..], 3).unwrap(), &[1, 2, 3]);
   /// assert_eq!(Buf::prefix_checked(&&buf[..], 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::prefix_checked(&&buf[..], 10).is_none());
   /// ```
@@ -684,7 +684,7 @@ pub trait Buf {
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
-  /// assert!(Buf::suffix_checked(&slice, 2).is_some());
+  /// assert_eq!(Buf::suffix_checked(&slice, 2).unwrap(), &[4, 5]);
   /// assert_eq!(Buf::suffix_checked(&slice, 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::suffix_checked(&slice, 10).is_none());
   /// ```

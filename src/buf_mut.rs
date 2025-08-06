@@ -964,13 +964,13 @@ pub trait BufMut {
 
   /// Returns a mutable slice of the buffer starting from the specified offset.
   ///
-  /// This is similar to [`buffer_mut`](Buf::buffer_mut) but starts from the given offset
+  /// This is similar to [`buffer_mut`](BufMut::buffer_mut) but starts from the given offset
   /// rather than the current cursor position.
   ///
   /// # Panics
   ///
   /// Panics if `offset > self.remaining()`.
-  /// Use [`buffer_mut_from_checked`](Buf::buffer_mut_from_checked) for non-panicking access.
+  /// Use [`buffer_mut_from_checked`](BufMut::buffer_mut_from_checked) for non-panicking access.
   ///
   /// # Examples
   ///
@@ -991,7 +991,7 @@ pub trait BufMut {
 
   /// Returns a mutable slice of the buffer starting from the specified offset.
   ///
-  /// This is the non-panicking version of [`buffer_mut_from`](Buf::buffer_mut_from).
+  /// This is the non-panicking version of [`buffer_mut_from`](BufMut::buffer_mut_from).
   /// Returns `Some(slice)` if `offset <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
@@ -1006,7 +1006,7 @@ pub trait BufMut {
   ///     slice[0] = 99;
   /// }
   /// assert_eq!(buf.buffer_mut(), &[1, 2, 99, 4, 5]);
-  ///
+  /// assert!(buf.buffer_mut_from_checked(5).unwrap().is_empty()); // empty buffer
   /// assert!(buf.buffer_mut_from_checked(10).is_none()); // Out of bounds
   /// ```
   #[inline]
@@ -1128,7 +1128,7 @@ pub trait BufMut {
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.prefix_mut_checked(3).is_some());
+  /// assert_eq!(slice.prefix_mut_checked(3).unwrap(), &[1, 2, 3]);
   /// assert_eq!(slice.prefix_mut_checked(5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
@@ -1179,7 +1179,7 @@ pub trait BufMut {
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
   ///
-  /// assert!(slice.suffix_mut_checked(2).is_some());
+  /// assert_eq!(slice.suffix_mut_checked(2).unwrap(), &[4, 5]);
   /// assert_eq!(slice.suffix_mut_checked(5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(slice.suffix_mut_checked(10).is_none());
   /// ```
