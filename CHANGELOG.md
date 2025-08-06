@@ -1,5 +1,10 @@
 # RELEASED
 
+## 0.2.1 (Aug 6th, 2025)
+
+- Add `WriteBuf` for convenient trait API design
+- Add an associated type `Segment` to `Buf` trait, and add blanket implementations of `Buf` for `&mut T` and `Box<T>`
+
 ## 0.2.0 (Aug 6th, 2025)
 
 - Remove `BufMut` implementation for `BytesMut` and `Vec<u8>`
