@@ -33,14 +33,14 @@ Providing `Buf` and `BufMut` for working with byte buffers. `bufkit` focuses on 
 
 ```toml
 [dependencies]
-bufkit = "0.1"
+bufkit = "0.2"
 ```
 
 - Enable LEB128 encoding/decoding methods
 
   ```toml
   [dependencies]
-  bufkit = { version = "0.1", features = ["varing"] }
+  bufkit = { version = "0.2", features = ["varing"] }
   ```
 
 ## Alternatives
