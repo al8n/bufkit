@@ -2504,10 +2504,10 @@ mod tests {
   fn test_blanket_has_mutable() {
     let mut buf = [0u8; 5];
     let slice = Wrapper(&mut buf[..]);
-    assert!(slice.has_mutable());
+    assert!(BufMut::has_mutable(&slice));
 
     let empty_slice = Wrapper(&mut []);
-    assert!(!empty_slice.has_mutable());
+    assert!(!BufMut::has_mutable(&empty_slice));
   }
 
   #[test]
@@ -2524,7 +2524,7 @@ mod tests {
   #[test]
   fn test_blanket_split_at_mut() {
     let mut buf = [1, 2, 3, 4, 5];
-    let slice = &mut buf[..];
+    let mut slice = Wrapper(&mut buf[..]);
     let (left, right) = slice.split_at_mut(2);
     assert_eq!(left, &[1, 2]);
     assert_eq!(right, &[3, 4, 5]);
@@ -2545,5 +2545,309 @@ mod tests {
     let val = core::ops::DerefMut::deref_mut(&mut write_buf);
     val[0] = 42; // Modify through deref_mut
     assert_eq!(buf[0], 42);
+  }
+
+  #[test]
+  fn test_deref_forward_has_mutable() {
+    let mut buf = [0u8; 5];
+    let slice = WriteBuf::from(&mut buf[..]);
+    assert!(slice.has_mutable());
+
+    let empty_slice: WriteBuf<&mut [u8]> = WriteBuf::from([].as_mut_slice());
+    assert!(!empty_slice.has_mutable());
+  }
+
+  #[test]
+  fn test_deref_forward_advance_mut() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    slice.advance_mut(3);
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after advancing
+  }
+
+  #[test]
+  fn test_deref_forward_try_advance_mut() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert!(slice.try_advance_mut(3).is_ok());
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after advancing
+
+    let err = slice.try_advance_mut(10);
+    assert!(err.is_err()); // Should fail since we can't advance beyond available space
+  }
+
+  #[test]
+  fn test_deref_forward_truncate_mut() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    slice.truncate_mut(3);
+    assert_eq!(slice.buffer_mut(), &[0, 0, 0]);
+    assert_eq!(slice.mutable(), 3); // Remaining space after truncation
+  }
+
+  #[test]
+  fn test_deref_forward_buffer_mut() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let buffer = slice.buffer_mut();
+    assert_eq!(buffer, &mut [0u8; 5]);
+    buffer[0] = 42; // Modify through buffer_mut
+    assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_fill() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    slice.fill(0xFF);
+    assert_eq!(slice.buffer_mut(), &[0xFF; 5]);
+  }
+
+  #[test]
+  fn test_deref_forward_prefix_mut() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let prefix = slice.prefix_mut(3);
+    assert_eq!(prefix, &mut [1, 2, 3]);
+    prefix[0] = 10; // Modify prefix
+    assert_eq!(slice.buffer_mut(), &[10, 2, 3, 4, 5]);
+  }
+
+  #[test]
+  fn test_deref_forward_prefix_mut_checked() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert!(slice.prefix_mut_checked(3).is_some());
+    assert!(slice.prefix_mut_checked(10).is_none()); // Out of bounds
+  }
+
+  #[test]
+  fn test_deref_forward_suffix_mut() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let suffix = slice.suffix_mut(2);
+    assert_eq!(suffix, &mut [4, 5]);
+  }
+
+  #[test]
+  fn test_deref_forward_suffix_mut_checked() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert!(slice.suffix_mut_checked(2).is_some());
+    assert!(slice.suffix_mut_checked(10).is_none()); // Out of bounds
+  }
+
+  #[test]
+  fn test_deref_forward_split_at_mut() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let (left, right) = slice.split_at_mut(2);
+    assert_eq!(left, &[1, 2]);
+    assert_eq!(right, &[3, 4, 5]);
+  }
+
+  #[test]
+  fn test_deref_forward_split_at_mut_checked() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert!(slice.split_at_mut_checked(2).is_some());
+    assert!(slice.split_at_mut_checked(10).is_none()); // Out of bounds
+  }
+
+  #[test]
+  fn test_deref_forward_put_slice() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let written = slice.put_slice(&[1, 2, 3]);
+    assert_eq!(written, 3);
+    assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_put_slice_checked() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.put_slice_checked(&[1, 2, 3]), Some(3));
+    assert_eq!(slice.put_slice_checked(&[1, 2, 3, 4, 5, 6]), None); // Out of bounds
+    assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_try_put_slice() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.try_put_slice(&[1, 2, 3]), Ok(3));
+    assert_eq!(
+      slice.try_put_slice(&[1, 2, 3, 4, 5, 6]),
+      Err(TryWriteError::new(6, 5))
+    ); // Out of bounds
+    assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_put_slice_at() {
+    let mut buf = [0u8; 10];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let written = slice.put_slice_at(&[1, 2, 3], 2);
+    assert_eq!(written, 3);
+    assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
+    assert_eq!(slice.mutable(), 10);
+  }
+
+  #[test]
+  fn test_deref_forward_put_slice_at_checked() {
+    let mut buf = [0u8; 10];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 2), Some(3));
+    assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 8), None); // Out of bounds
+    assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
+    assert_eq!(slice.mutable(), 10);
+  }
+
+  #[test]
+  fn test_deref_forward_try_put_slice_at() {
+    let mut buf = [0u8; 10];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.try_put_slice_at(&[1, 2, 3], 2), Ok(3));
+    assert_eq!(
+      slice.try_put_slice_at(&[1, 2, 3], 8),
+      Err(TryWriteAtError::insufficient_space(3, 2, 8))
+    );
+    assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
+    assert_eq!(slice.mutable(), 10);
+  }
+
+  macro_rules! deref_forward_put {
+    (@one $($ty:ident),+$(,)?) => {
+      paste::paste! {
+        $(
+          #[test]
+          fn [< test_deref_forward_put_ $ty >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            let written = slice.[< put_ $ty >](42);
+            assert_eq!(written, 1);
+            assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_put_ $ty _checked >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< put_ $ty _checked >](42), Some(1));
+            assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
+
+            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            assert_eq!(empty.[< put_ $ty _checked >](42), None); // Out of bounds,
+            assert_eq!(empty.buffer_mut(), &[]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_try_put_ $ty >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< try_put_ $ty >](42), Ok(1));
+            assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
+
+            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            assert_eq!(empty.[< try_put_ $ty >](42), Err(TryWriteError::new(1, 0)));
+            assert_eq!(empty.buffer_mut(), &[]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_put_ $ty _at >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< put_ $ty _at >](42, 1), 1);
+            assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
+            assert_eq!(slice.mutable(), 5);
+          }
+
+          #[test]
+          fn [< test_deref_forward_put_ $ty _at_checked >] () {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< put_ $ty _at_checked >](42, 1), Some(1));
+            assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
+            assert_eq!(slice.mutable(), 5);
+
+            assert_eq!(slice.[< put_ $ty _at_checked >](42, 5), None); // Out of bounds
+            assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_try_put_ $ty _at >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< try_put_ $ty _at >](42, 1), Ok(1));
+            assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
+            assert_eq!(slice.mutable(), 5);
+
+            assert_eq!(slice.[< try_put_ $ty _at >](42, 5), Err(TryWriteAtError::insufficient_space(1, 1, 5)));
+            assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
+          }
+        )*
+      }
+    };
+  }
+
+  deref_forward_put! {
+    @one u8, i8
+  }
+
+  macro_rules! deref_forward_write {
+    (@one $($ty:ident),+$(,)?) => {
+      paste::paste! {
+        $(
+          #[test]
+          fn [< test_deref_forward_write_ $ty >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            let written = slice.[< write_ $ty >](42);
+            assert_eq!(written, 1);
+            assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_write_ $ty _checked >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< write_ $ty _checked >](42), Some(1));
+            assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
+
+            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            assert_eq!(empty.[< write_ $ty _checked >](42), None); // Out of bounds,
+            assert_eq!(empty.buffer_mut(), &[]);
+          }
+
+          #[test]
+          fn [< test_deref_forward_try_write_ $ty >]() {
+            let mut buf = [0u8; 5];
+            let mut slice = WriteBuf::from(&mut buf[..]);
+            assert_eq!(slice.[< try_write_ $ty >](42), Ok(1));
+            assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
+
+            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            assert_eq!(empty.[< try_write_ $ty >](42), Err(TryWriteError::new(1, 0)));
+            assert_eq!(empty.buffer_mut(), &[]);
+          }
+        )*
+      }
+    };
+  }
+
+  deref_forward_write! {
+    @one u8, i8
+  }
+
+  #[test]
+  fn test_deref_forward_put_u32_le() {
+    let mut buf = [0u8; size_of::<u32>()];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let written = slice.put_u32_le(42);
+    assert_eq!(written, 4);
+    assert_eq!(slice.buffer_mut(), 42u32.to_le_bytes().as_slice());
   }
 }
