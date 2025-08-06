@@ -2448,7 +2448,7 @@ impl<B> WriteBuf<B> {
   /// Consumes the `WriteBuf` and returns the underlying `BufMut`.
   ///
   /// # Examples
-  /// /// ```rust
+  /// ```rust
   /// use bufkit::{BufMut, WriteBuf};
   ///
   /// let mut buf = [0u8; 24];
@@ -2462,6 +2462,88 @@ impl<B> WriteBuf<B> {
   }
 }
 
-// The existence of this function makes the compiler catch if the BufMut
-// trait is "object-safe" or not.
-fn _assert_trait_object(_b: &dyn BufMut) {}
+const _: () = {
+  // The existence of this function makes the compiler catch if the BufMut
+  // trait is "object-safe" or not.
+  fn _assert_trait_object(_b: &dyn BufMut) {}
+};
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  struct Wrapper<'a>(&'a mut [u8]);
+
+  impl BufMut for Wrapper<'_> {
+    fn mutable(&self) -> usize {
+      self.0.len()
+    }
+
+    fn truncate_mut(&mut self, new_len: usize) {
+      self.0.truncate_mut(new_len);
+    }
+
+    fn buffer_mut(&mut self) -> &mut [u8] {
+      self.0
+    }
+
+    fn advance_mut(&mut self, cnt: usize) {
+      self.0.advance_mut(cnt);
+    }
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_advance_mut_panic() {
+    let mut buf = [0u8; 5];
+    let mut slice = &mut buf[..];
+    slice.advance_mut(10);
+  }
+
+  #[test]
+  fn test_blanket_has_mutable() {
+    let mut buf = [0u8; 5];
+    let slice = Wrapper(&mut buf[..]);
+    assert!(slice.has_mutable());
+
+    let empty_slice = Wrapper(&mut []);
+    assert!(!empty_slice.has_mutable());
+  }
+
+  #[test]
+  fn test_blanket_fill() {
+    let mut buf = [0u8; 5];
+    let mut slice = Wrapper(&mut buf[..]);
+    slice.fill(0xFF);
+    assert_eq!(slice.0, &[0xFF; 5]);
+
+    slice.fill(0x00);
+    assert_eq!(slice.0, &[0x00; 5]);
+  }
+
+  #[test]
+  fn test_blanket_split_at_mut() {
+    let mut buf = [1, 2, 3, 4, 5];
+    let slice = &mut buf[..];
+    let (left, right) = slice.split_at_mut(2);
+    assert_eq!(left, &[1, 2]);
+    assert_eq!(right, &[3, 4, 5]);
+  }
+
+  #[test]
+  fn test_deref_write_buf() {
+    let mut buf = [0u8; 10];
+    let write_buf = WriteBuf::from(&mut buf[..]);
+    let val = core::ops::Deref::deref(&write_buf);
+    assert_eq!(val[0], 0); // Check deref gives the underlying buffer
+  }
+
+  #[test]
+  fn test_deref_mut_write_buf() {
+    let mut buf = [0u8; 10];
+    let mut write_buf = WriteBuf::from(&mut buf[..]);
+    let val = core::ops::DerefMut::deref_mut(&mut write_buf);
+    val[0] = 42; // Modify through deref_mut
+    assert_eq!(buf[0], 42);
+  }
+}

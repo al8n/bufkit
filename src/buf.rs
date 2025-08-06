@@ -581,9 +581,6 @@ macro_rules! read_fixed {
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
 pub trait Buf {
-  /// The segment type for the buffer.
-  type Segment: Buf;
-
   /// Returns the number of bytes available for reading in the buffer.
   ///
   /// This represents how many bytes can be read from the current cursor position
@@ -826,9 +823,9 @@ pub trait Buf {
   /// // Original buffer unchanged
   /// assert_eq!(buf.remaining(), 13);
   /// ```
-  fn segment(&self, range: impl RangeBounds<usize>) -> Self::Segment
+  fn segment(&self, range: impl RangeBounds<usize>) -> Self
   where
-    Self::Segment: Sized;
+    Self: Sized;
 
   /// Shortens the buffer to the specified length, keeping the first `len` bytes.
   ///
@@ -879,9 +876,9 @@ pub trait Buf {
   /// assert_eq!(tail.buffer(), &[3, 4, 5]);
   /// ```
   #[must_use = "consider Buf::truncate if you don't need the other half"]
-  fn split_off(&mut self, at: usize) -> Self::Segment
+  fn split_off(&mut self, at: usize) -> Self
   where
-    Self::Segment: Sized;
+    Self: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
@@ -902,9 +899,9 @@ pub trait Buf {
   /// assert!(Buf::split_off_checked(&mut small_buf, 5).is_none());
   /// ```
   #[must_use = "consider Buf::truncate if you don't need the other half"]
-  fn split_off_checked(&mut self, at: usize) -> Option<Self::Segment>
+  fn split_off_checked(&mut self, at: usize) -> Option<Self>
   where
-    Self::Segment: Sized,
+    Self: Sized,
   {
     if at > self.remaining() {
       None
@@ -935,9 +932,9 @@ pub trait Buf {
   /// // err contains details about requested vs available
   /// ```
   #[must_use = "consider Buf::try_split_off if you don't need the other half"]
-  fn try_split_off(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+  fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
-    Self::Segment: Sized,
+    Self: Sized,
   {
     if at > self.remaining() {
       Err(OutOfBounds::new(at, self.remaining()))
@@ -972,9 +969,9 @@ pub trait Buf {
   /// assert_eq!(buf.buffer(), b" world");
   /// ```
   #[must_use = "consider Buf::advance if you don't need the other half"]
-  fn split_to(&mut self, at: usize) -> Self::Segment
+  fn split_to(&mut self, at: usize) -> Self
   where
-    Self::Segment: Sized;
+    Self: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
@@ -993,9 +990,9 @@ pub trait Buf {
   /// assert!(Buf::split_to_checked(&mut buf, 10).is_none());
   /// ```
   #[must_use = "consider Buf::advance if you don't need the other half"]
-  fn split_to_checked(&mut self, at: usize) -> Option<Self::Segment>
+  fn split_to_checked(&mut self, at: usize) -> Option<Self>
   where
-    Self::Segment: Sized,
+    Self: Sized,
   {
     if at > self.remaining() {
       None
@@ -1025,9 +1022,9 @@ pub trait Buf {
   /// // err contains detailed information about the failure
   /// ```
   #[must_use = "consider Buf::try_split_to if you don't need the other half"]
-  fn try_split_to(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+  fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
-    Self::Segment: Sized,
+    Self: Sized,
   {
     if at > self.remaining() {
       Err(OutOfBounds::new(at, self.remaining()))
@@ -1107,9 +1104,9 @@ pub trait Buf {
   /// assert!(buf.try_segment(0..20).is_err()); // Out of bounds
   /// ```
   #[inline]
-  fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self::Segment, TrySegmentError>
+  fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self, TrySegmentError>
   where
-    Self::Segment: Sized,
+    Self: Sized,
   {
     check_segment(range, self.remaining()).map(|(start, end)| self.segment(start..end))
   }
@@ -1650,6 +1647,7 @@ pub trait BufExt: Buf {
 
 impl<T: Buf> BufExt for T {}
 
+#[allow(unused)]
 macro_rules! deref_forward_buf {
   () => {
     #[inline]
@@ -1708,17 +1706,17 @@ macro_rules! deref_forward_buf {
     }
 
     #[inline]
-    fn segment(&self, range: impl RangeBounds<usize>) -> Self::Segment
+    fn segment(&self, range: impl RangeBounds<usize>) -> Self
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).segment(range)
     }
 
     #[inline]
-    fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self::Segment, TrySegmentError>
+    fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self, TrySegmentError>
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).try_segment(range)
     }
@@ -1729,49 +1727,49 @@ macro_rules! deref_forward_buf {
     }
 
     #[inline]
-    fn split_off(&mut self, at: usize) -> Self::Segment
+    fn split_off(&mut self, at: usize) -> Self
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).split_off(at)
     }
 
     #[inline]
-    fn split_off_checked(&mut self, at: usize) -> Option<Self::Segment>
+    fn split_off_checked(&mut self, at: usize) -> Option<Self>
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).split_off_checked(at)
     }
 
     #[inline]
-    fn try_split_off(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+    fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds>
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).try_split_off(at)
     }
 
     #[inline]
-    fn split_to(&mut self, at: usize) -> Self::Segment
+    fn split_to(&mut self, at: usize) -> Self
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).split_to(at)
     }
 
     #[inline]
-    fn split_to_checked(&mut self, at: usize) -> Option<Self::Segment>
+    fn split_to_checked(&mut self, at: usize) -> Option<Self>
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).split_to_checked(at)
     }
 
     #[inline]
-    fn try_split_to(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+    fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds>
     where
-      Self::Segment: Sized,
+      Self: Sized,
     {
       (**self).try_split_to(at)
     }
@@ -1843,23 +1841,7 @@ macro_rules! deref_forward_buf {
   }
 }
 
-impl<T: ?Sized + Buf> Buf for &mut T {
-  type Segment = T::Segment;
-
-  deref_forward_buf!();
-}
-
-#[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
-impl<T: ?Sized + Buf> Buf for ::std::boxed::Box<T> {
-  type Segment = T::Segment;
-
-  deref_forward_buf!();
-}
-
 impl Buf for &[u8] {
-  type Segment = Self;
-
   #[inline]
   fn remaining(&self) -> usize {
     <[u8]>::len(self)
@@ -2037,8 +2019,6 @@ const _: () = {
   }
 
   impl Buf for Bytes {
-    type Segment = Self;
-
     #[inline]
     fn remaining(&self) -> usize {
       self.len()
@@ -2204,5 +2184,168 @@ fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], T
     Err(TryPeekError::new(N, buf.remaining()))
   } else {
     Ok(<[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes"))
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  struct Wrapper<'a>(&'a [u8]);
+
+  impl Buf for Wrapper<'_> {
+    fn remaining(&self) -> usize {
+      self.0.len()
+    }
+
+    fn buffer(&self) -> &[u8] {
+      self.0
+    }
+
+    fn advance(&mut self, cnt: usize) {
+      if self.0.len() < cnt {
+        panic_advance(&TryAdvanceError::new(cnt, self.0.len()));
+      }
+
+      self.0 = &self.0[cnt..];
+    }
+
+    fn segment(&self, range: impl RangeBounds<usize>) -> Self
+    where
+      Self: Sized,
+    {
+      let len = self.0.len();
+      let (begin, end) = check_segment(range, len).expect("out of range");
+      Wrapper(&self.0[begin..end])
+    }
+
+    fn truncate(&mut self, len: usize) {
+      if len > self.0.len() {
+        return;
+      }
+
+      self.0 = &self.0[..len];
+    }
+
+    fn split_off(&mut self, at: usize) -> Self
+    where
+      Self: Sized,
+    {
+      let (left, right) = self.0.split_at(at);
+      self.0 = left;
+      Wrapper(right)
+    }
+
+    fn split_to(&mut self, at: usize) -> Self
+    where
+      Self: Sized,
+    {
+      let (left, right) = self.0.split_at(at);
+      self.0 = right;
+      Wrapper(left)
+    }
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_advance_panic() {
+    let buf = [0u8; 5];
+    let mut slice = &buf[..];
+    slice.advance(10);
+  }
+
+  #[test]
+  fn test_blanket_has_remaining() {
+    let buf = [0u8; 5];
+    let slice = Wrapper(&buf[..]);
+    assert!(slice.has_remaining());
+
+    let empty = Wrapper(&[]);
+    assert!(!empty.has_remaining());
+  }
+
+  #[test]
+  fn test_blanket_split_off() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.split_off(2);
+    assert_eq!(slice.0, &[1, 2]);
+    assert_eq!(right.0, &[3, 4, 5]);
+  }
+
+  #[test]
+  fn test_blanket_split_off_checked() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.split_off_checked(2).unwrap();
+    assert_eq!(slice.0, &[1, 2]);
+    assert_eq!(right.0, &[3, 4, 5]);
+
+    assert!(slice.split_off_checked(10).is_none());
+  }
+
+  #[test]
+  fn test_blanket_try_split_off() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.try_split_off(2).unwrap();
+    assert_eq!(slice.0, &[1, 2]);
+    assert_eq!(right.0, &[3, 4, 5]);
+
+    assert!(slice.try_split_off(10).is_err());
+  }
+
+  #[test]
+  fn test_blanket_split_to() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.split_to(2);
+    assert_eq!(slice.0, &[3, 4, 5]);
+    assert_eq!(right.0, &[1, 2]);
+  }
+
+  #[test]
+  fn test_blanket_split_to_checked() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.split_to_checked(2).unwrap();
+    assert_eq!(slice.0, &[3, 4, 5]);
+    assert_eq!(right.0, &[1, 2]);
+
+    assert!(slice.split_to_checked(10).is_none());
+  }
+
+  #[test]
+  fn test_blanket_try_split_to() {
+    let buf = [1, 2, 3, 4, 5];
+    let mut slice = Wrapper(&buf[..]);
+    let right = slice.try_split_to(2).unwrap();
+    assert_eq!(slice.0, &[3, 4, 5]);
+    assert_eq!(right.0, &[1, 2]);
+
+    assert!(slice.try_split_to(10).is_err());
+  }
+
+  #[test]
+  fn test_blanket_buffer_from() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    assert_eq!(slice.buffer_from(2), &[3, 4, 5]);
+  }
+
+  #[test]
+  fn test_blanket_buffer_from_checked() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    assert_eq!(slice.buffer_from_checked(2), Some(&[3, 4, 5][..]));
+    assert_eq!(slice.buffer_from_checked(10), None);
+  }
+
+  #[test]
+  #[cfg(feature = "bytes_1")]
+  fn test_to_bytes() {
+    let slice = Wrapper(&[1, 2, 3, 4, 5]);
+    let bytes = slice.to_bytes();
+    assert_eq!(bytes, bytes_1::Bytes::from(&[1, 2, 3, 4, 5][..]));
   }
 }

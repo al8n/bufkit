@@ -1,6 +1,6 @@
 [package]
 name = "bufkit"
-version = "0.2.0"
+version = "0.2.2"
 edition = "2021"
 repository = "https://github.com/al8n/bufkit"
 homepage = "https://github.com/al8n/bufkit"
