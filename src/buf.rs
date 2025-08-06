@@ -5,6 +5,8 @@ use core::ops::{Bound, RangeBounds};
 #[cfg(feature = "varing")]
 use varing::{DecodeError as ReadVarintError, Varint};
 
+use super::panic_advance;
+
 macro_rules! peek_fixed {
   ($($ty:ident), +$(,)?) => {
     paste::paste! {
@@ -557,7 +559,7 @@ pub trait Buf {
   /// let buf = &data[..];
   ///
   /// assert_eq!(buf.buffer_from_checked(2), Some(&[3, 4, 5][..]));
-  /// assert_eq!(buf.buffer_from_checked(5), Some(&[][..])); // Empty slice at end
+  /// assert!(buf.buffer_from_checked(5).unwrap().is_empty()); // empty buffer
   /// assert_eq!(buf.buffer_from_checked(10), None); // Out of bounds
   /// ```
   #[inline]
@@ -630,15 +632,16 @@ pub trait Buf {
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
-  /// assert!(Buf::prefix_checked(&&buf[..], 3).is_some());
-  /// assert!(Buf::prefix_checked(&&buf[..], 5).is_some());
+  /// assert_eq!(Buf::prefix_checked(&&buf[..], 3).unwrap(), &[1, 2, 3]);
+  /// assert_eq!(Buf::prefix_checked(&&buf[..], 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::prefix_checked(&&buf[..], 10).is_none());
   /// ```
   #[inline]
   fn prefix_checked(&self, len: usize) -> Option<&[u8]> {
-    match self.remaining().checked_sub(len)? {
-      0 => Some(&[]),
-      end => Some(&self.buffer()[..end]),
+    if self.remaining() < len {
+      None
+    } else {
+      Some(&self.buffer()[..len])
     }
   }
 
@@ -681,16 +684,16 @@ pub trait Buf {
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
-  /// assert!(Buf::suffix_checked(&slice, 2).is_some());
-  /// assert!(Buf::suffix_checked(&slice, 5).is_some());
+  /// assert_eq!(Buf::suffix_checked(&slice, 2).unwrap(), &[4, 5]);
+  /// assert_eq!(Buf::suffix_checked(&slice, 5).unwrap(), &[1, 2, 3, 4, 5]);
   /// assert!(Buf::suffix_checked(&slice, 10).is_none());
   /// ```
   #[inline]
   fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
-    match self.remaining().checked_sub(len)? {
-      0 => Some(&[]),
-      start => Some(&self.buffer()[start..]),
-    }
+    self
+      .remaining()
+      .checked_sub(len)
+      .map(|start| &self.buffer()[start..])
   }
 
   /// Creates an independent buffer containing a segment of the current buffer's data.
@@ -1842,16 +1845,6 @@ fn check_segment<R: RangeBounds<usize>>(
   }
 
   Ok((begin, end))
-}
-
-/// Panic with a nice error message.
-#[cold]
-fn panic_advance(error_info: &TryAdvanceError) -> ! {
-  panic!(
-    "advance out of bounds: the len is {} but advancing by {}",
-    error_info.available(),
-    error_info.requested()
-  );
 }
 
 #[inline(always)]

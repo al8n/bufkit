@@ -306,4 +306,26 @@ mod bytes_buf_tests {
     assert_eq!(len, encoded_len);
     assert_eq!(buf.remaining(), 10 - encoded_len);
   }
+
+  #[test]
+  fn test_segment_edge() {
+    let empty = Bytes::new();
+    let seg = empty.segment(..);
+    assert_eq!(seg.remaining(), 0);
+
+    let empty: &[u8] = &[];
+    let seg = empty.segment(..);
+    assert_eq!(seg.remaining(), 0);
+  }
+
+  #[test]
+  fn test_try_segment_edge() {
+    let empty = Bytes::new();
+    let seg = empty.try_segment(..).unwrap();
+    assert_eq!(seg.remaining(), 0);
+
+    let empty: &[u8] = &[];
+    let seg = empty.try_segment(..).unwrap();
+    assert_eq!(seg.remaining(), 0);
+  }
 }
