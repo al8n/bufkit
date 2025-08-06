@@ -2255,6 +2255,20 @@ mod tests {
   }
 
   #[test]
+  fn test_segment_edge() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let output = slice
+      .try_segment((Bound::Excluded(1), Bound::Included(3)))
+      .unwrap();
+    assert_eq!(output.0, &[3, 4]);
+
+    assert!(slice
+      .try_segment((Bound::Included(usize::MAX), Bound::Included(usize::MAX)))
+      .is_err());
+  }
+
+  #[test]
   fn test_blanket_has_remaining() {
     let buf = [0u8; 5];
     let slice = Wrapper(&buf[..]);
