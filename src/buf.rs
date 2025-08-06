@@ -1,11 +1,20 @@
-use super::error::{OutOfBounds, TryAdvanceError, TryPeekError, TryReadError, TrySegmentError};
+use super::error::{
+  OutOfBounds, TryAdvanceError, TryPeekAtError, TryPeekError, TryReadError, TrySegmentError,
+};
 
 use core::ops::{Bound, RangeBounds};
 
 #[cfg(feature = "varing")]
-use varing::{DecodeError as ReadVarintError, Varint};
+use varing::Varint;
+
+#[cfg(feature = "varing")]
+use super::error::ReadVarintError;
 
 use super::panic_advance;
+
+pub use peeker::Peeker;
+
+mod peeker;
 
 macro_rules! peek_fixed {
   ($($ty:ident), +$(,)?) => {
@@ -225,6 +234,210 @@ macro_rules! peek_fixed {
         fn [<try_peek_ $ty _ne>](&self) -> Result<$ty, TryPeekError> {
           try_peek_array::<_, { core::mem::size_of::<$ty>() }>(self).map(<$ty>::from_ne_bytes)
         }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in little-endian byte order."]
+        ///
+        /// Returns the decoded value without modifying the buffer position.
+        /// The offset is relative to the current buffer position.
+        ///
+        /// # Panics
+        ///
+        #[doc = "Panics if `offset + size_of::<" $ty ">() > self.remaining()`."]
+        /// Use the `*_checked` or `try_*` variants for non-panicking peeks.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "let value = buf.peek_" $ty "_le_at(2); // Peek at offset 2"]
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _le_at>](&self, offset: usize) -> $ty {
+          <$ty>::from_le_bytes(peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset))
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in little-endian byte order."]
+        ///
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Buf::peek_" $ty "_le_at)."]
+        /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.peek_" $ty "_le_at_checked(2).is_some());"]
+        #[doc = "assert!(buf.peek_" $ty "_le_at_checked(100).is_none()); // Out of bounds"]
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _le_at_checked>](&self, offset: usize) -> Option<$ty> {
+          peek_array_at_checked::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_le_bytes)
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in little-endian byte order."]
+        ///
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Buf::peek_" $ty "_le_at)."]
+        /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
+        /// the error condition (out of bounds or insufficient data).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.try_peek_" $ty "_le_at(2).is_ok());"]
+        #[doc = "let err = buf.try_peek_" $ty "_le_at(100).unwrap_err();"]
+        /// // err contains details about the error
+        /// ```
+        #[inline]
+        fn [<try_peek_ $ty _le_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          try_peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_le_bytes)
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in big-endian byte order."]
+        ///
+        /// Returns the decoded value without modifying the buffer position.
+        /// The offset is relative to the current buffer position.
+        ///
+        /// # Panics
+        ///
+        #[doc = "Panics if `offset + size_of::<" $ty ">() > self.remaining()`."]
+        /// Use the `*_checked` or `try_*` variants for non-panicking peeks.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "let value = buf.peek_" $ty "_be_at(2); // Peek at offset 2"]
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _be_at>](&self, offset: usize) -> $ty {
+          <$ty>::from_be_bytes(peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset))
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in big-endian byte order."]
+        ///
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Buf::peek_" $ty "_be_at)."]
+        /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.peek_" $ty "_be_at_checked(2).is_some());"]
+        #[doc = "assert!(buf.peek_" $ty "_be_at_checked(100).is_none()); // Out of bounds"]
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _be_at_checked>](&self, offset: usize) -> Option<$ty> {
+          peek_array_at_checked::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_be_bytes)
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in big-endian byte order."]
+        ///
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Buf::peek_" $ty "_be_at)."]
+        /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
+        /// the error condition (out of bounds or insufficient data).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.try_peek_" $ty "_be_at(2).is_ok());"]
+        #[doc = "let err = buf.try_peek_" $ty "_be_at(100).unwrap_err();"]
+        /// // err contains details about the error
+        /// ```
+        #[inline]
+        fn [<try_peek_ $ty _be_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          try_peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_be_bytes)
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in native-endian byte order."]
+        ///
+        /// The byte order depends on the target platform's endianness.
+        /// Returns the decoded value without modifying the buffer position.
+        /// The offset is relative to the current buffer position.
+        ///
+        /// # Panics
+        ///
+        #[doc = "Panics if `offset + size_of::<" $ty ">() > self.remaining()`."]
+        /// Use the `*_checked` or `try_*` variants for non-panicking peeks.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "let value = buf.peek_" $ty "_ne_at(2); // Peek at offset 2"]
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _ne_at>](&self, offset: usize) -> $ty {
+          <$ty>::from_ne_bytes(peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset))
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in native-endian byte order."]
+        ///
+        /// The byte order depends on the target platform's endianness.
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Buf::peek_" $ty "_ne_at)."]
+        /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.peek_" $ty "_ne_at_checked(2).is_some());"]
+        #[doc = "assert!(buf.peek_" $ty "_ne_at_checked(100).is_none()); // Out of bounds"]
+        /// ```
+        #[inline]
+        fn [<peek_ $ty _ne_at_checked>](&self, offset: usize) -> Option<$ty> {
+          peek_array_at_checked::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_ne_bytes)
+        }
+
+        #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in native-endian byte order."]
+        ///
+        /// The byte order depends on the target platform's endianness.
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Buf::peek_" $ty "_ne_at)."]
+        /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
+        /// the error condition (out of bounds or insufficient data).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use bufkit::Buf;
+        ///
+        /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
+        /// let buf = &data[..];
+        #[doc = "assert!(buf.try_peek_" $ty "_ne_at(0).is_ok());"]
+        #[doc = "let err = buf.try_peek_" $ty "_ne_at(100).unwrap_err();"]
+        /// // err contains details about the error
+        /// ```
+        #[inline]
+        fn [<try_peek_ $ty _ne_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          try_peek_array_at::<_, { core::mem::size_of::<$ty>() }>(self, offset).map(<$ty>::from_ne_bytes)
+        }
       )*
     }
   };
@@ -274,6 +487,51 @@ macro_rules! peek_fixed {
         #[inline]
         fn [<try_peek_ $ty _ne>](&self) -> Result<$ty, TryPeekError> {
           (**self).[<try_peek_ $ty _ne>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _le_at>](&self, offset: usize) -> $ty {
+          (**self).[<peek_ $ty _le_at>](offset)
+        }
+
+        #[inline]
+        fn [<peek_ $ty _le_at_checked>](&self, offset: usize) -> Option<$ty> {
+          (**self).[<peek_ $ty _le_at_checked>](offset)
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _le_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          (**self).[<try_peek_ $ty _le_at>](offset)
+        }
+
+        #[inline]
+        fn [<peek_ $ty _be_at>](&self, offset: usize) -> $ty {
+          (**self).[<peek_ $ty _be_at>](offset)
+        }
+
+        #[inline]
+        fn [<peek_ $ty _be_at_checked>](&self, offset: usize) -> Option<$ty> {
+          (**self).[<peek_ $ty _be_at_checked>](offset)
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _be_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          (**self).[<try_peek_ $ty _be_at>](offset)
+        }
+
+        #[inline]
+        fn [<peek_ $ty _ne_at>](&self, offset: usize) -> $ty {
+          (**self).[<peek_ $ty _ne_at>](offset)
+        }
+
+        #[inline]
+        fn [<peek_ $ty _ne_at_checked>](&self, offset: usize) -> Option<$ty> {
+          (**self).[<peek_ $ty _ne_at_checked>](offset)
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _ne_at>](&self, offset: usize) -> Result<$ty, TryPeekAtError> {
+          (**self).[<try_peek_ $ty _ne_at>](offset)
         }
       )*
     }
@@ -1191,6 +1449,149 @@ pub trait Buf {
       .ok_or_else(|| TryPeekError::new(1, self.remaining()))
   }
 
+  /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// Returns the byte at the given offset without consuming it.
+  /// The buffer position remains unchanged after this operation.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `offset >= self.remaining()`.
+  /// Use [`peek_u8_at_checked`](Buf::peek_u8_at_checked) for non-panicking peeks.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [42, 1, 2, 3];
+  /// let buf = &data[..];
+  ///
+  /// assert_eq!(buf.peek_u8_at(0), 42);
+  /// assert_eq!(buf.peek_u8_at(2), 2);
+  /// assert_eq!(buf.remaining(), 4); // Unchanged
+  /// ```
+  #[inline]
+  fn peek_u8_at(&self, offset: usize) -> u8 {
+    self.buffer_from(offset)[0]
+  }
+
+  /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_u8_at`](Buf::peek_u8_at).
+  /// Returns `Some(byte)` if the offset is valid, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [42, 1, 2];
+  /// let buf = &data[..];
+  /// assert_eq!(buf.peek_u8_at_checked(1), Some(1));
+  /// assert_eq!(buf.peek_u8_at_checked(10), None);
+  /// ```
+  #[inline]
+  fn peek_u8_at_checked(&self, offset: usize) -> Option<u8> {
+    self.buffer().get(offset).copied()
+  }
+
+  /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_u8_at`](Buf::peek_u8_at).
+  /// Returns `Ok(byte)` if the offset is valid, otherwise returns `Err(TryPeekAtError)`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [42, 1, 2];
+  /// let buf = &data[..];
+  /// assert_eq!(buf.try_peek_u8_at(1), Ok(1));
+  ///
+  /// let err = buf.try_peek_u8_at(10).unwrap_err();
+  /// // err contains details about the error
+  /// ```
+  #[inline]
+  fn try_peek_u8_at(&self, offset: usize) -> Result<u8, TryPeekAtError> {
+    let buffer = self.buffer();
+
+    if offset >= buffer.len() {
+      return Err(TryPeekAtError::out_of_bounds(offset, buffer.len()));
+    }
+
+    Ok(buffer[offset])
+  }
+
+  /// Peeks an `i8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// Returns the byte at the given offset as a signed integer without consuming it.
+  /// The buffer position remains unchanged after this operation.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `offset >= self.remaining()`.
+  /// Use [`peek_i8_at_checked`](Buf::peek_i8_at_checked) for non-panicking peeks.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [255u8, 1, 2, 3]; // 255 as i8 is -1
+  /// let buf = &data[..];
+  ///
+  /// assert_eq!(buf.peek_i8_at(0), -1);
+  /// assert_eq!(buf.remaining(), 4); // Unchanged
+  /// ```
+  #[inline]
+  fn peek_i8_at(&self, offset: usize) -> i8 {
+    self.peek_u8_at(offset) as i8
+  }
+
+  /// Peeks an `i8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_i8_at`](Buf::peek_i8_at).
+  /// Returns `Some(byte)` if the offset is valid, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [255u8, 1, 2]; // 255 as i8 is -1
+  /// let buf = &data[..];
+  /// assert_eq!(buf.peek_i8_at_checked(0), Some(-1));
+  /// assert_eq!(buf.peek_i8_at_checked(10), None);
+  /// ```
+  #[inline]
+  fn peek_i8_at_checked(&self, offset: usize) -> Option<i8> {
+    self.peek_u8_at_checked(offset).map(|v| v as i8)
+  }
+
+  /// Peeks an `i8` value from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_i8_at`](Buf::peek_i8_at).
+  /// Returns `Ok(byte)` if the offset is valid, otherwise returns `Err(TryPeekAtError)`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::Buf;
+  ///
+  /// let data = [255u8, 1, 2]; // 255 as i8 is -1
+  /// let buf = &data[..];
+  /// assert_eq!(buf.try_peek_i8_at(0), Ok(-1));
+  ///
+  /// let err = buf.try_peek_i8_at(10).unwrap_err();
+  /// // err contains details about the error
+  /// ```
+  #[inline]
+  fn try_peek_i8_at(&self, offset: usize) -> Result<i8, TryPeekAtError> {
+    self.try_peek_u8_at(offset).map(|v| v as i8)
+  }
+
   /// Reads a `u8` value from the buffer and advances the internal cursor.
   ///
   /// Returns the first byte from the buffer and advances the cursor by 1 byte.
@@ -1532,6 +1933,82 @@ pub trait BufExt: Buf {
   #[inline]
   fn try_peek_array<const N: usize>(&self) -> Result<[u8; N], TryPeekError> {
     try_peek_array::<_, N>(self)
+  }
+
+  /// Peeks a fixed-size array from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This method creates a copy of `N` bytes from the buffer starting at the given offset
+  /// without consuming them. The buffer position remains unchanged after this operation.
+  ///
+  /// # Panics
+  ///
+  /// Panics if `offset + N > self.remaining()`.
+  /// Use [`peek_array_at_checked`](BufExt::peek_array_at_checked) or
+  /// [`try_peek_array_at`](BufExt::try_peek_array_at) for non-panicking peeks.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{Buf, BufExt};
+  ///
+  /// let data = [1, 2, 3, 4, 5, 6, 7, 8];
+  /// let buf = &data[..];
+  ///
+  /// let array_at_2: [u8; 3] = buf.peek_array_at(2);
+  /// assert_eq!(array_at_2, [3, 4, 5]);
+  /// // Buffer unchanged
+  /// assert_eq!(buf.remaining(), 8);
+  /// ```
+  #[inline]
+  fn peek_array_at<const N: usize>(&self, offset: usize) -> [u8; N] {
+    peek_array_at::<_, N>(self, offset)
+  }
+
+  /// Peeks a fixed-size array from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_array_at`](BufExt::peek_array_at).
+  /// Returns `Some(array)` if sufficient data is available at the offset, otherwise returns `None`.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{Buf, BufExt};
+  ///
+  /// let data = [1, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  ///
+  /// assert!(buf.peek_array_at_checked::<3>(1).is_some());
+  /// assert!(buf.peek_array_at_checked::<3>(4).is_none()); // Not enough bytes
+  /// ```
+  #[inline]
+  fn peek_array_at_checked<const N: usize>(&self, offset: usize) -> Option<[u8; N]> {
+    peek_array_at_checked::<_, N>(self, offset)
+  }
+
+  /// Peeks a fixed-size array from the buffer at the specified offset without advancing the cursor.
+  ///
+  /// This is the non-panicking version of [`peek_array_at`](BufExt::peek_array_at) that
+  /// returns detailed error information on failure.
+  /// Returns `Ok(array)` on success, or `Err(TryPeekAtError)` with details about
+  /// the error condition.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{Buf, BufExt};
+  ///
+  /// let data = [1, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  ///
+  /// assert!(buf.try_peek_array_at::<3>(1).is_ok());
+  ///
+  /// let err = buf.try_peek_array_at::<3>(4).unwrap_err();
+  /// let err = buf.try_peek_array_at::<3>(6).unwrap_err();
+  /// // err contains details about the error
+  /// ```
+  #[inline]
+  fn try_peek_array_at<const N: usize>(&self, offset: usize) -> Result<[u8; N], TryPeekAtError> {
+    try_peek_array_at::<_, N>(self, offset)
   }
 
   /// Reads a fixed-size array from the buffer and advances the internal cursor.
@@ -2141,21 +2618,21 @@ fn check_segment<R: RangeBounds<usize>>(
   Ok((begin, end))
 }
 
-#[inline(always)]
+#[inline]
 fn read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> [u8; N] {
   let output = peek_array::<B, N>(buf);
   buf.advance(N);
   output
 }
 
-#[inline(always)]
+#[inline]
 fn read_array_checked<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Option<[u8; N]> {
   peek_array_checked::<B, N>(buf).inspect(|_| {
     buf.advance(N);
   })
 }
 
-#[inline(always)]
+#[inline]
 fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N], TryReadError> {
   try_peek_array::<B, N>(buf)
     .inspect(|_| {
@@ -2164,12 +2641,12 @@ fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N
     .map_err(Into::into)
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
   <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
   if buf.remaining() < N {
     None
@@ -2178,12 +2655,50 @@ fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N
   }
 }
 
-#[inline(always)]
+#[inline]
 fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
   if buf.remaining() < N {
     Err(TryPeekError::new(N, buf.remaining()))
   } else {
     Ok(<[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes"))
+  }
+}
+
+#[inline]
+fn peek_array_at<B: Buf + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
+  buf.buffer_from(offset)[..N].try_into().unwrap()
+}
+
+#[inline]
+fn peek_array_at_checked<B: Buf + ?Sized, const N: usize>(
+  buf: &B,
+  offset: usize,
+) -> Option<[u8; N]> {
+  match buf.buffer_from_checked(offset) {
+    Some(slice) if slice.len() >= N => Some(slice[..N].try_into().unwrap()),
+    _ => None,
+  }
+}
+
+#[inline]
+fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
+  buf: &B,
+  offset: usize,
+) -> Result<[u8; N], TryPeekAtError> {
+  let buffer = buf.buffer();
+  let buf_len = buffer.len();
+
+  match buf_len.checked_sub(offset) {
+    None => Err(TryPeekAtError::out_of_bounds(offset, buf_len)),
+    Some(remaining) if remaining >= N => Ok(
+      buffer[offset..offset + N]
+        .try_into()
+        .expect("Already checked there are enough bytes"),
+    ),
+    Some(remaining) => {
+      let err = TryPeekAtError::insufficient_data_with_requested(remaining, offset, N);
+      Err(err)
+    }
   }
 }
 
@@ -2252,6 +2767,31 @@ mod tests {
     let buf = [0u8; 5];
     let mut slice = &buf[..];
     slice.advance(10);
+  }
+
+  #[test]
+  fn test_segment_edge() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let output = slice
+      .try_segment((Bound::Excluded(1), Bound::Included(3)))
+      .unwrap();
+    assert_eq!(output.0, &[3, 4]);
+
+    assert!(slice
+      .try_segment((Bound::Excluded(usize::MAX), Bound::Included(usize::MAX)))
+      .is_err());
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_segment_panic() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let output = slice.segment((Bound::Excluded(1), Bound::Included(3)));
+    assert_eq!(output.0, &[3, 4]);
+
+    slice.segment((Bound::Excluded(usize::MAX), Bound::Included(usize::MAX)));
   }
 
   #[test]
