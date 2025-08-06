@@ -2448,6 +2448,7 @@ impl<B> WriteBuf<B> {
   /// Consumes the `WriteBuf` and returns the underlying `BufMut`.
   ///
   /// # Examples
+  ///
   /// ```rust
   /// use bufkit::{BufMut, WriteBuf};
   ///
