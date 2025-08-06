@@ -2315,6 +2315,153 @@ impl BufMut for &mut [u8] {
   }
 }
 
+/// A wrapper around any type that implements `BufMut` for improved ergonomics in generic code.
+///
+/// `WriteBuf` provides a unified interface over different buffer types, making it easier to write
+/// generic functions that accept various writable buffer types without requiring complex type
+/// signatures or awkward reference patterns.
+///
+/// # Problem Solved
+///
+/// When writing generic functions that accept `BufMut` implementors, you often run into ergonomic
+/// issues with reference types. For example, with `&mut [u8]`, callers would need to pass
+/// `&mut &mut [u8]` which is awkward and unintuitive.
+///
+/// # Solution
+///
+/// By using `impl Into<WriteBuf<B>>` in your function signatures, callers can pass buffer types
+/// naturally without extra reference wrapping:
+///
+/// ```rust,ignore
+/// use bufkit::{BufMut, WriteBuf};
+///
+/// // Instead of this awkward signature:
+/// fn encode_bad<B: BufMut>(buf: &mut B) { /* ... */ }
+///
+/// // Use this ergonomic signature:
+/// fn encode_good<B: BufMut>(buf: impl Into<WriteBuf<B>>) { /* ... */ }
+///
+/// // Now callers can write:
+/// let mut buffer = [0u8; 64];
+/// encode_good(&mut buffer[..]);        // Natural - no double reference needed
+/// encode_bad(&mut &mut buffer[..]);    // Awkward - requires &mut &mut
+/// ```
+///
+/// # Common Usage Pattern
+///
+/// This type is particularly useful for encoding/serialization APIs where you want to accept
+/// various buffer types:
+///
+/// ```rust,ignore
+/// use bufkit::{BufMut, WriteBuf};
+///
+/// pub trait Encode {
+///     fn encode<B: BufMut>(&self, buf: impl Into<WriteBuf<B>>) -> Result<usize, Error>;
+/// }
+///
+/// impl Encode for MyStruct {
+///     fn encode<B: BufMut>(&self, buf: impl Into<WriteBuf<B>>) -> Result<usize, Error> {
+///         let mut buf = buf.into();
+///         // Write to buf...
+///         Ok(bytes_written)
+///     }
+/// }
+///
+/// // Usage is clean and intuitive:
+/// let my_struct = MyStruct::new();
+/// let mut array_buf = [0u8; 100];
+///
+/// my_struct.encode(&mut array_buf[..])?;  // No &mut &mut needed
+/// ```
+///
+/// # Type Flexibility
+///
+/// `WriteBuf` can wrap any type that implements `BufMut`, including:
+/// - `&mut [u8]` - Fixed-size byte arrays
+/// - Custom buffer implementations
+/// - Other `BufMut` implementors
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct WriteBuf<B: ?Sized>(B);
+
+impl<B> From<B> for WriteBuf<B> {
+  #[inline]
+  fn from(value: B) -> Self {
+    Self(value)
+  }
+}
+
+impl<B: ?Sized> core::ops::Deref for WriteBuf<B> {
+  type Target = B;
+
+  #[inline]
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<B: ?Sized> core::ops::DerefMut for WriteBuf<B> {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0
+  }
+}
+
+impl<B: ?Sized + BufMut> BufMut for WriteBuf<B> {
+  deref_forward_buf_mut!();
+}
+
+impl<B: ?Sized> WriteBuf<B> {
+  /// Similar to `Option::as_mut`, converts `&mut WriteBuf<B>` to `WriteBuf<&mut B>`.
+  ///
+  /// # Example
+  ///
+  /// ```rust
+  /// use bufkit::{BufMut, WriteBuf};
+  ///
+  /// let mut buf = [0u8; 24];
+  /// let mut write_buf = WriteBuf::from(&mut buf[..]);
+  /// let _ = write_buf.as_mut();
+  /// ```
+  #[inline]
+  pub const fn as_mut(&mut self) -> WriteBuf<&mut B> {
+    WriteBuf(&mut self.0)
+  }
+
+  /// Similar to `Option::as_ref`, converts `&WriteBuf<B>` to `WriteBuf<&B>`.
+  ///
+  /// # Example
+  ///
+  /// ```rust
+  /// use bufkit::{BufMut, WriteBuf};
+  ///
+  /// let mut buf = [0u8; 24];
+  /// let write_buf = WriteBuf::from(&mut buf[..]);
+  /// let _ = write_buf.as_ref();
+  /// ```
+  #[inline]
+  pub const fn as_ref(&self) -> WriteBuf<&B> {
+    WriteBuf(&self.0)
+  }
+}
+
+impl<B> WriteBuf<B> {
+  /// Consumes the `WriteBuf` and returns the underlying `BufMut`.
+  ///
+  /// # Examples
+  /// /// ```rust
+  /// use bufkit::{BufMut, WriteBuf};
+  ///
+  /// let mut buf = [0u8; 24];
+  /// let mut write_buf = WriteBuf::from(&mut buf[..]);
+  /// let underlying_buf: &mut [u8] = write_buf.into_inner();
+  /// assert_eq!(underlying_buf, &mut buf[..]);
+  /// ```
+  #[inline]
+  pub fn into_inner(self) -> B {
+    self.0
+  }
+}
+
 // The existence of this function makes the compiler catch if the BufMut
 // trait is "object-safe" or not.
 fn _assert_trait_object(_b: &dyn BufMut) {}

@@ -3,6 +3,7 @@ codecov:
 
 ignore:
   - src/error.rs
+  - examples/**
 
 coverage:
   status:

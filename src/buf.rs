@@ -228,6 +228,56 @@ macro_rules! peek_fixed {
       )*
     }
   };
+  (@forward $($ty:ident), +$(,)?) => {
+    paste::paste! {
+      $(
+        #[inline]
+        fn [<peek_ $ty _le>](&self) -> $ty {
+          (**self).[<peek_ $ty _le>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _le_checked>](&self) -> Option<$ty> {
+          (**self).[<peek_ $ty _le_checked>]()
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _le>](&self) -> Result<$ty, TryPeekError> {
+          (**self).[<try_peek_ $ty _le>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _be>](&self) -> $ty {
+          (**self).[<peek_ $ty _be>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _be_checked>](&self) -> Option<$ty> {
+          (**self).[<peek_ $ty _be_checked>]()
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _be>](&self) -> Result<$ty, TryPeekError> {
+          (**self).[<try_peek_ $ty _be>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _ne>](&self) -> $ty {
+          (**self).[<peek_ $ty _ne>]()
+        }
+
+        #[inline]
+        fn [<peek_ $ty _ne_checked>](&self) -> Option<$ty> {
+          (**self).[<peek_ $ty _ne_checked>]()
+        }
+
+        #[inline]
+        fn [<try_peek_ $ty _ne>](&self) -> Result<$ty, TryPeekError> {
+          (**self).[<try_peek_ $ty _ne>]()
+        }
+      )*
+    }
+  };
 }
 
 macro_rules! read_fixed {
@@ -463,6 +513,56 @@ macro_rules! read_fixed {
       )*
     }
   };
+  (@forward $($ty:ident), +$(,)?) => {
+    paste::paste! {
+      $(
+        #[inline]
+        fn [<read_ $ty _le>](&mut self) -> $ty {
+          (**self).[<read_ $ty _le>]()
+        }
+
+        #[inline]
+        fn [<read_ $ty _le_checked>](&mut self) -> Option<$ty> {
+          (**self).[<read_ $ty _le_checked>]()
+        }
+
+        #[inline]
+        fn [<try_read_ $ty _le>](&mut self) -> Result<$ty, TryReadError> {
+          (**self).[<try_read_ $ty _le>]()
+        }
+
+        #[inline]
+        fn [<read_ $ty _be>](&mut self) -> $ty {
+          (**self).[<read_ $ty _be>]()
+        }
+
+        #[inline]
+        fn [<read_ $ty _be_checked>](&mut self) -> Option<$ty> {
+          (**self).[<read_ $ty _be_checked>]()
+        }
+
+        #[inline]
+        fn [<try_read_ $ty _be>](&mut self) -> Result<$ty, TryReadError> {
+          (**self).[<try_read_ $ty _be>]()
+        }
+
+        #[inline]
+        fn [<read_ $ty _ne>](&mut self) -> $ty {
+          (**self).[<read_ $ty _ne>]()
+        }
+
+        #[inline]
+        fn [<read_ $ty _ne_checked>](&mut self) -> Option<$ty> {
+          (**self).[<read_ $ty _ne_checked>]()
+        }
+
+        #[inline]
+        fn [<try_read_ $ty _ne>](&mut self) -> Result<$ty, TryReadError> {
+          (**self).[<try_read_ $ty _ne>]()
+        }
+      )*
+    }
+  };
 }
 
 /// A trait for implementing custom buffers that can read and navigate through byte sequences.
@@ -481,6 +581,9 @@ macro_rules! read_fixed {
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
 pub trait Buf {
+  /// The segment type for the buffer.
+  type Segment: Buf;
+
   /// Returns the number of bytes available for reading in the buffer.
   ///
   /// This represents how many bytes can be read from the current cursor position
@@ -723,9 +826,9 @@ pub trait Buf {
   /// // Original buffer unchanged
   /// assert_eq!(buf.remaining(), 13);
   /// ```
-  fn segment(&self, range: impl RangeBounds<usize>) -> Self
+  fn segment(&self, range: impl RangeBounds<usize>) -> Self::Segment
   where
-    Self: Sized;
+    Self::Segment: Sized;
 
   /// Shortens the buffer to the specified length, keeping the first `len` bytes.
   ///
@@ -776,9 +879,9 @@ pub trait Buf {
   /// assert_eq!(tail.buffer(), &[3, 4, 5]);
   /// ```
   #[must_use = "consider Buf::truncate if you don't need the other half"]
-  fn split_off(&mut self, at: usize) -> Self
+  fn split_off(&mut self, at: usize) -> Self::Segment
   where
-    Self: Sized;
+    Self::Segment: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
@@ -799,9 +902,9 @@ pub trait Buf {
   /// assert!(Buf::split_off_checked(&mut small_buf, 5).is_none());
   /// ```
   #[must_use = "consider Buf::truncate if you don't need the other half"]
-  fn split_off_checked(&mut self, at: usize) -> Option<Self>
+  fn split_off_checked(&mut self, at: usize) -> Option<Self::Segment>
   where
-    Self: Sized,
+    Self::Segment: Sized,
   {
     if at > self.remaining() {
       None
@@ -832,9 +935,9 @@ pub trait Buf {
   /// // err contains details about requested vs available
   /// ```
   #[must_use = "consider Buf::try_split_off if you don't need the other half"]
-  fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds>
+  fn try_split_off(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
   where
-    Self: Sized,
+    Self::Segment: Sized,
   {
     if at > self.remaining() {
       Err(OutOfBounds::new(at, self.remaining()))
@@ -869,9 +972,9 @@ pub trait Buf {
   /// assert_eq!(buf.buffer(), b" world");
   /// ```
   #[must_use = "consider Buf::advance if you don't need the other half"]
-  fn split_to(&mut self, at: usize) -> Self
+  fn split_to(&mut self, at: usize) -> Self::Segment
   where
-    Self: Sized;
+    Self::Segment: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
@@ -890,9 +993,9 @@ pub trait Buf {
   /// assert!(Buf::split_to_checked(&mut buf, 10).is_none());
   /// ```
   #[must_use = "consider Buf::advance if you don't need the other half"]
-  fn split_to_checked(&mut self, at: usize) -> Option<Self>
+  fn split_to_checked(&mut self, at: usize) -> Option<Self::Segment>
   where
-    Self: Sized,
+    Self::Segment: Sized,
   {
     if at > self.remaining() {
       None
@@ -922,9 +1025,9 @@ pub trait Buf {
   /// // err contains detailed information about the failure
   /// ```
   #[must_use = "consider Buf::try_split_to if you don't need the other half"]
-  fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds>
+  fn try_split_to(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
   where
-    Self: Sized,
+    Self::Segment: Sized,
   {
     if at > self.remaining() {
       Err(OutOfBounds::new(at, self.remaining()))
@@ -1004,9 +1107,9 @@ pub trait Buf {
   /// assert!(buf.try_segment(0..20).is_err()); // Out of bounds
   /// ```
   #[inline]
-  fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self, TrySegmentError>
+  fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self::Segment, TrySegmentError>
   where
-    Self: Sized,
+    Self::Segment: Sized,
   {
     check_segment(range, self.remaining()).map(|(start, end)| self.segment(start..end))
   }
@@ -1547,7 +1650,216 @@ pub trait BufExt: Buf {
 
 impl<T: Buf> BufExt for T {}
 
+macro_rules! deref_forward_buf {
+  () => {
+    #[inline]
+    fn remaining(&self) -> usize {
+      (**self).remaining()
+    }
+
+    #[inline]
+    fn has_remaining(&self) -> bool {
+      (**self).has_remaining()
+    }
+
+    #[inline]
+    fn buffer(&self) -> &[u8] {
+      (**self).buffer()
+    }
+
+    #[inline]
+    fn buffer_from(&self, offset: usize) -> &[u8] {
+      (**self).buffer_from(offset)
+    }
+
+    #[inline]
+    fn buffer_from_checked(&self, offset: usize) -> Option<&[u8]> {
+      (**self).buffer_from_checked(offset)
+    }
+
+    #[inline]
+    fn advance(&mut self, cnt: usize) {
+      (**self).advance(cnt);
+    }
+
+    #[inline]
+    fn try_advance(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
+      (**self).try_advance(cnt)
+    }
+
+    #[inline]
+    fn prefix(&self, len: usize) -> &[u8] {
+      (**self).prefix(len)
+    }
+
+    #[inline]
+    fn prefix_checked(&self, len: usize) -> Option<&[u8]> {
+      (**self).prefix_checked(len)
+    }
+
+    #[inline]
+    fn suffix(&self, len: usize) -> &[u8] {
+      (**self).suffix(len)
+    }
+
+    #[inline]
+    fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
+      (**self).suffix_checked(len)
+    }
+
+    #[inline]
+    fn segment(&self, range: impl RangeBounds<usize>) -> Self::Segment
+    where
+      Self::Segment: Sized,
+    {
+      (**self).segment(range)
+    }
+
+    #[inline]
+    fn try_segment(&self, range: impl RangeBounds<usize>) -> Result<Self::Segment, TrySegmentError>
+    where
+      Self::Segment: Sized,
+    {
+      (**self).try_segment(range)
+    }
+
+    #[inline]
+    fn truncate(&mut self, len: usize) {
+      (**self).truncate(len);
+    }
+
+    #[inline]
+    fn split_off(&mut self, at: usize) -> Self::Segment
+    where
+      Self::Segment: Sized,
+    {
+      (**self).split_off(at)
+    }
+
+    #[inline]
+    fn split_off_checked(&mut self, at: usize) -> Option<Self::Segment>
+    where
+      Self::Segment: Sized,
+    {
+      (**self).split_off_checked(at)
+    }
+
+    #[inline]
+    fn try_split_off(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+    where
+      Self::Segment: Sized,
+    {
+      (**self).try_split_off(at)
+    }
+
+    #[inline]
+    fn split_to(&mut self, at: usize) -> Self::Segment
+    where
+      Self::Segment: Sized,
+    {
+      (**self).split_to(at)
+    }
+
+    #[inline]
+    fn split_to_checked(&mut self, at: usize) -> Option<Self::Segment>
+    where
+      Self::Segment: Sized,
+    {
+      (**self).split_to_checked(at)
+    }
+
+    #[inline]
+    fn try_split_to(&mut self, at: usize) -> Result<Self::Segment, OutOfBounds>
+    where
+      Self::Segment: Sized,
+    {
+      (**self).try_split_to(at)
+    }
+
+    peek_fixed!(@forward u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
+    read_fixed!(@forward u16, u32, u64, u128, i16, i32, i64, i128, f32, f64);
+
+    #[inline]
+    fn peek_u8(&self) -> u8 {
+      (**self).peek_u8()
+    }
+
+    #[inline]
+    fn peek_u8_checked(&self) -> Option<u8> {
+      (**self).peek_u8_checked()
+    }
+
+    #[inline]
+    fn try_peek_u8(&self) -> Result<u8, TryPeekError> {
+      (**self).try_peek_u8()
+    }
+
+    #[inline]
+    fn read_u8(&mut self) -> u8 {
+      (**self).read_u8()
+    }
+
+    #[inline]
+    fn read_u8_checked(&mut self) -> Option<u8> {
+      (**self).read_u8_checked()
+    }
+
+    #[inline]
+    fn try_read_u8(&mut self) -> Result<u8, TryReadError>
+    {
+      (**self).try_read_u8()
+    }
+
+    #[inline]
+    fn peek_i8(&self) -> i8 {
+      (**self).peek_i8()
+    }
+
+    #[inline]
+    fn peek_i8_checked(&self) -> Option<i8> {
+      (**self).peek_i8_checked()
+    }
+
+    #[inline]
+    fn try_peek_i8(&self) -> Result<i8, TryPeekError>
+    {
+      (**self).try_peek_i8()
+    }
+
+    #[inline]
+    fn read_i8(&mut self) -> i8 {
+      (**self).read_i8()
+    }
+
+    #[inline]
+    fn read_i8_checked(&mut self) -> Option<i8> {
+      (**self).read_i8_checked()
+    }
+
+    #[inline]
+    fn try_read_i8(&mut self) -> Result<i8, TryReadError> {
+      (**self).try_read_i8()
+    }
+  }
+}
+
+impl<T: ?Sized + Buf> Buf for &mut T {
+  type Segment = T::Segment;
+
+  deref_forward_buf!();
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "std", feature = "alloc"))))]
+impl<T: ?Sized + Buf> Buf for ::std::boxed::Box<T> {
+  type Segment = T::Segment;
+
+  deref_forward_buf!();
+}
+
 impl Buf for &[u8] {
+  type Segment = Self;
+
   #[inline]
   fn remaining(&self) -> usize {
     <[u8]>::len(self)
@@ -1725,6 +2037,8 @@ const _: () = {
   }
 
   impl Buf for Bytes {
+    type Segment = Self;
+
     #[inline]
     fn remaining(&self) -> usize {
       self.len()
