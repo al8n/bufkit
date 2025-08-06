@@ -69,7 +69,8 @@ impl Encode for Bar {
 impl Decode for Bar {
   fn decode<B: Buf>(mut buf: B) -> Result<(usize, Self), Error> {
     let id = buf.read_u64_le();
-    let (foo_len, foo) = Foo::decode(&mut buf)?;
+    let (foo_len, foo) = Foo::decode(buf.buffer())?;
+    buf.advance(foo_len);
     let n = buf.read_u32_le();
     Ok((12 + foo_len, Bar { id, foo, n }))
   }

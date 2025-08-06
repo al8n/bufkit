@@ -328,4 +328,12 @@ mod bytes_buf_tests {
     let seg = empty.try_segment(..).unwrap();
     assert_eq!(seg.remaining(), 0);
   }
+
+  #[test]
+  #[should_panic]
+  fn test_advance_panic_empty() {
+    let empty = Bytes::new();
+    let mut buf = empty;
+    buf.advance(1); // Should panic
+  }
 }
