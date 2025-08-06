@@ -1,5 +1,9 @@
 # RELEASED
 
+## 0.3.0 (Aug 8th, 2025)
+
+- Add `RefPeeker`, `Peeker` and `Putter`
+
 ## 0.2.2 (Aug 6th, 2025)
 
 - Add `WriteBuf` for convenient trait API design
