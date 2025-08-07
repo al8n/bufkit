@@ -2601,7 +2601,7 @@ mod tests {
   fn test_deref_forward_fill() {
     let mut buf = [0u8; 5];
     let mut slice = WriteBuf::from(&mut buf[..]);
-    slice.fill(0xFF);
+    BufMut::fill(&mut slice, 0xFF); // Call fill via BufMut trait
     assert_eq!(slice.buffer_mut(), &[0xFF; 5]);
   }
 
@@ -2785,16 +2785,137 @@ mod tests {
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
             assert_eq!(slice.mutable(), 5);
 
-            assert_eq!(slice.[< try_put_ $ty _at >](42, 5), Err(TryWriteAtError::insufficient_space(1, 1, 5)));
+            assert_eq!(slice.[< try_put_ $ty _at >](42, 5), Err(TryWriteAtError::out_of_bounds(5, 5)));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
           }
         )*
+      }
+    };
+    ($($ty:ident), +$(,)?) => {
+      $(deref_forward_put!(le $ty);)*
+      $(deref_forward_put!(be $ty);)*
+      $(deref_forward_put!(ne $ty);)*
+    };
+    ($endian:ident $ty:ident) => {
+      paste::paste! {
+        #[test]
+        fn [< test_deref_forward_put_ $ty _ $endian >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          let written = slice.[< put_ $ty _ $endian >](42 as $ty);
+          assert_eq!(written, size_of::<$ty>());
+          assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+        }
+
+        #[test]
+        fn [< test_deref_forward_put_ $ty _ $endian _checked >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< put_ $ty _ $endian _checked >](42 as $ty), Some(size_of::<$ty>()));
+          assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< put_ $ty _ $endian _checked >](42 as $ty), None); // Out of bounds
+        }
+
+        #[test]
+        fn [< test_deref_forward_try_put_ $ty _ $endian >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< try_put_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
+          assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(size_of::<$ty>(), 0)));
+          assert_eq!(empty.buffer_mut(), &[]);
+        }
+
+        #[test]
+        fn [< test_deref_forward_put_ $ty _ $endian _at >]() {
+          let mut buf = [0u8; { size_of::<$ty>() + 1 }];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          let written = slice.[< put_ $ty _ $endian _at >](42 as $ty, 1);
+          assert_eq!(written, size_of::<$ty>());
+          assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+        }
+
+        #[test]
+        fn [< test_deref_forward_put_ $ty _ $endian _at_checked >]() {
+          let mut buf = [0u8; { size_of::<$ty>() + 1 }];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< put_ $ty _ $endian _at_checked >](42 as $ty, 1), Some(size_of::<$ty>()));
+          assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< put_ $ty _ $endian _at_checked >](42 as $ty, 0), None); // Out of bounds
+        }
+
+        #[test]
+        fn [< test_deref_forward_try_put_ $ty _ $endian _at >]() {
+          let mut buf = [0u8; { size_of::<$ty>() + 1 }];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< try_put_ $ty _ $endian _at >](42 as $ty, 1), Ok(size_of::<$ty>()));
+          assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< try_put_ $ty _ $endian _at >](42 as $ty, 0), Err(TryWriteAtError::out_of_bounds(0, 0)));
+          assert_eq!(empty.buffer_mut(), &[]);
+        }
       }
     };
   }
 
   deref_forward_put! {
     @one u8, i8
+  }
+
+  deref_forward_put! {
+    u16, u32, u64, u128,
+    i16, i32, i64, i128,
+    f32, f64
+  }
+
+  #[test]
+  fn test_deref_forward_write_slice() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    let written = slice.write_slice(&[1, 2, 3]);
+    assert_eq!(written, 3);
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+    drop(slice);
+    assert_eq!(buf, [1, 2, 3, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_write_slice_checked() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.write_slice_checked(&[1, 2, 3]), Some(3));
+
+    assert_eq!(slice.write_slice_checked(&[1, 2, 3, 4, 5, 6]), None); // Out of bounds
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+
+    drop(slice);
+    assert_eq!(buf, [1, 2, 3, 0, 0]);
+  }
+
+  #[test]
+  fn test_deref_forward_try_write_slice() {
+    let mut buf = [0u8; 5];
+    let mut slice = WriteBuf::from(&mut buf[..]);
+    assert_eq!(slice.try_write_slice(&[1, 2, 3]), Ok(3));
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+
+    let err = slice.try_write_slice(&[1, 2, 3, 4, 5, 6]);
+    assert!(err.is_err()); // Should fail since we can't write beyond available space
+    assert_eq!(err.unwrap_err(), TryWriteError::new(6, 2));
+    assert_eq!(slice.buffer_mut(), &[0, 0]);
+    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+
+    drop(slice);
+    assert_eq!(buf, [1, 2, 3, 0, 0]);
   }
 
   macro_rules! deref_forward_write {
@@ -2836,18 +2957,64 @@ mod tests {
         )*
       }
     };
+    ($($ty:ident), +$(,)?) => {
+      $(deref_forward_write!(le $ty);)*
+      $(deref_forward_write!(be $ty);)*
+      $(deref_forward_write!(ne $ty);)*
+    };
+    ($endian:ident $ty:ident) => {
+      paste::paste! {
+        #[test]
+        fn [< test_deref_forward_write_ $ty _ $endian >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          let written = slice.[< write_ $ty _ $endian >](42 as $ty);
+          assert_eq!(written, size_of::<$ty>());
+          assert_eq!(slice.buffer_mut(), &[]);
+
+          drop(slice);
+          assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+        }
+
+        #[test]
+        fn [< test_deref_forward_write_ $ty _ $endian _checked >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< write_ $ty _ $endian _checked >](42 as $ty), Some(size_of::<$ty>()));
+          assert_eq!(slice.buffer_mut(), &[]);
+
+          drop(slice);
+          assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< write_ $ty _ $endian _checked >](42 as $ty), None); // Out of bounds
+          assert_eq!(empty.buffer_mut(), &[]);
+        }
+
+        #[test]
+        fn [< test_deref_forward_try_write_ $ty _ $endian >]() {
+          let mut buf = [0u8; size_of::<$ty>()];
+          let mut slice = WriteBuf::from(&mut buf[..]);
+          assert_eq!(slice.[< try_write_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
+          assert_eq!(slice.buffer_mut(), &[]);
+          drop(slice);
+          assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
+
+          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(size_of::<$ty>(), 0)));
+          assert_eq!(empty.buffer_mut(), &[]);
+        }
+      }
+    };
   }
 
   deref_forward_write! {
     @one u8, i8
   }
 
-  #[test]
-  fn test_deref_forward_put_u32_le() {
-    let mut buf = [0u8; size_of::<u32>()];
-    let mut slice = WriteBuf::from(&mut buf[..]);
-    let written = slice.put_u32_le(42);
-    assert_eq!(written, 4);
-    assert_eq!(slice.buffer_mut(), 42u32.to_le_bytes().as_slice());
+  deref_forward_write! {
+    u16, u32, u64, u128,
+    i16, i32, i64, i128,
+    f32, f64
   }
 }
