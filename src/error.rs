@@ -1,6 +1,9 @@
 #[cfg(feature = "varing")]
 #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-pub use varing::{DecodeError as ReadVarintError, EncodeError as WriteVarintError};
+pub use varing::InsufficientSpace;
+
+#[cfg(feature = "varing")]
+use varing::{DecodeError, EncodeError};
 
 use core::num::NonZeroUsize;
 
@@ -147,6 +150,43 @@ let mut small_buf = [0u8; 4];
 let mut writer = &mut small_buf[..];
 
 match writer.try_put_u64_le(0x123456789ABCDEF0) {
+    Err(e) => {
+        // Caller knows exactly how much space is needed
+        assert_eq!(e.requested(), 8);
+        assert_eq!(e.available(), 4);
+        println!(\"Need {} more bytes\", e.shortage());
+    }
+    _ => panic!(\"Expected error\"),
+}
+```"]
+  #[error(
+    "not enough space available to put value (requested {requested} but only {available} available)"
+  )]
+  put
+);
+
+#[cfg(feature = "std")]
+impl From<TryPutError> for std::io::Error {
+  fn from(e: TryPutError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
+  }
+}
+
+try_op_error!(
+  #[doc = "An error that occurs when trying to write data to a buffer with insufficient space.
+  
+This error indicates that a write operation failed because the buffer does not have
+enough remaining capacity to hold the data.
+
+This error is particularly useful for Sans-I/O designs as it provides exact information
+about space requirements, allowing the caller to allocate a larger buffer and retry:
+
+```rust
+# use bufkit::BufMut;
+let mut small_buf = [0u8; 4];
+let mut writer = &mut small_buf[..];
+
+match writer.try_write_u64_le(0x123456789ABCDEF0) {
     Err(e) => {
         // Caller knows exactly how much space is needed
         assert_eq!(e.requested(), 8);
@@ -410,7 +450,7 @@ impl InsufficientSpaceAt {
 /// This error is returned when the offset is out of bounds or when there is insufficient space to write the requested data.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-pub enum TryWriteAtError {
+pub enum TryPutAtError {
   /// An error that occurs when trying to write at an offset that is out of bounds for the buffer.
   #[error(transparent)]
   OutOfBounds(#[from] OutOfBounds),
@@ -419,14 +459,14 @@ pub enum TryWriteAtError {
   InsufficientSpace(#[from] InsufficientSpaceAt),
 }
 
-impl TryWriteAtError {
-  /// Creates a new `TryWriteAtError::OutOfBounds` error.
+impl TryPutAtError {
+  /// Creates a new `TryPutAtError::OutOfBounds` error.
   #[inline]
   pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
     Self::OutOfBounds(OutOfBounds::new(offset, length))
   }
 
-  /// Creates a new `TryWriteAtError::InsufficientSpace` error.
+  /// Creates a new `TryPutAtError::InsufficientSpace` error.
   ///
   /// # Panics
   ///
@@ -439,11 +479,11 @@ impl TryWriteAtError {
 }
 
 #[cfg(feature = "std")]
-impl From<TryWriteAtError> for std::io::Error {
-  fn from(e: TryWriteAtError) -> Self {
+impl From<TryPutAtError> for std::io::Error {
+  fn from(e: TryPutAtError) -> Self {
     match e {
-      TryWriteAtError::OutOfBounds(e) => std::io::Error::new(std::io::ErrorKind::InvalidInput, e),
-      TryWriteAtError::InsufficientSpace(e) => {
+      TryPutAtError::OutOfBounds(e) => std::io::Error::new(std::io::ErrorKind::InvalidInput, e),
+      TryPutAtError::InsufficientSpace(e) => {
         if e.offset() >= e.available() {
           std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
         } else {
@@ -454,12 +494,156 @@ impl From<TryWriteAtError> for std::io::Error {
   }
 }
 
-/// An error that occurs when trying to write type in LEB128 format at a specific offset in the buffer.
+/// An error that occurs when trying to write type in LEB128 format to the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 #[cfg(feature = "varing")]
 #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-pub enum WriteVarintAtError {
+pub enum WriteVarintError {
+  /// The buffer does not have enough capacity to encode the value.
+  #[error(transparent)]
+  InsufficientSpace(#[from] InsufficientSpace),
+
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  Other(&'static str),
+
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  Other(std::borrow::Cow<'static, str>),
+}
+
+#[cfg(feature = "varing")]
+impl WriteVarintError {
+  /// Creates a new `PutVarintError::Insufficient` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn insufficient_space(requested: usize, available: usize) -> Self {
+    Self::InsufficientSpace(InsufficientSpace::new(requested, available))
+  }
+
+  /// Creates a new `PutVarintAtError::Other` error.
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  #[inline]
+  pub const fn other(msg: &'static str) -> Self {
+    Self::Other(msg)
+  }
+
+  /// Creates a new `PutVarintAtError::Other` error.
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  #[inline]
+  pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {
+    Self::Other(msg.into())
+  }
+}
+
+#[cfg(feature = "varing")]
+impl From<EncodeError> for WriteVarintError {
+  #[inline]
+  fn from(e: EncodeError) -> Self {
+    match e {
+      EncodeError::InsufficientSpace(e) => WriteVarintError::InsufficientSpace(e),
+      EncodeError::Other(msg) => Self::other(msg),
+      _ => Self::other("unknown error"),
+    }
+  }
+}
+
+#[cfg(all(feature = "varing", feature = "std"))]
+impl From<WriteVarintError> for std::io::Error {
+  fn from(e: WriteVarintError) -> Self {
+    match e {
+      WriteVarintError::InsufficientSpace(e) => {
+        std::io::Error::new(std::io::ErrorKind::WriteZero, e)
+      }
+      WriteVarintError::Other(msg) => std::io::Error::other(msg),
+    }
+  }
+}
+
+/// An error that occurs when trying to put type in LEB128 format to the buffer.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+#[cfg(feature = "varing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+pub enum PutVarintError {
+  /// The buffer does not have enough capacity to encode the value.
+  #[error(transparent)]
+  InsufficientSpace(#[from] InsufficientSpace),
+
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  Other(&'static str),
+
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  Other(std::borrow::Cow<'static, str>),
+}
+
+#[cfg(feature = "varing")]
+impl PutVarintError {
+  /// Creates a new `PutVarintError::Insufficient` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn insufficient_space(requested: usize, available: usize) -> Self {
+    Self::InsufficientSpace(InsufficientSpace::new(requested, available))
+  }
+
+  /// Creates a new `PutVarintAtError::Other` error.
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  #[inline]
+  pub const fn other(msg: &'static str) -> Self {
+    Self::Other(msg)
+  }
+
+  /// Creates a new `PutVarintAtError::Other` error.
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  #[inline]
+  pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {
+    Self::Other(msg.into())
+  }
+}
+
+#[cfg(feature = "varing")]
+impl From<EncodeError> for PutVarintError {
+  #[inline]
+  fn from(e: EncodeError) -> Self {
+    match e {
+      EncodeError::InsufficientSpace(e) => PutVarintError::InsufficientSpace(e),
+      EncodeError::Other(msg) => Self::other(msg),
+      _ => Self::other("unknown error"),
+    }
+  }
+}
+
+#[cfg(all(feature = "varing", feature = "std"))]
+impl From<PutVarintError> for std::io::Error {
+  fn from(e: PutVarintError) -> Self {
+    match e {
+      PutVarintError::InsufficientSpace(e) => std::io::Error::new(std::io::ErrorKind::WriteZero, e),
+      PutVarintError::Other(msg) => std::io::Error::other(msg),
+    }
+  }
+}
+
+/// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+#[cfg(feature = "varing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+pub enum PutVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
   OutOfBounds(#[from] OutOfBounds),
@@ -478,14 +662,14 @@ pub enum WriteVarintAtError {
 }
 
 #[cfg(feature = "varing")]
-impl WriteVarintAtError {
-  /// Creates a new `WriteVarintAtError::OutOfBounds` error.
+impl PutVarintAtError {
+  /// Creates a new `PutVarintAtError::OutOfBounds` error.
   #[inline]
   pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
     Self::OutOfBounds(OutOfBounds::new(offset, length))
   }
 
-  /// Creates a new `WriteVarintAtError::Insufficient` error.
+  /// Creates a new `PutVarintAtError::Insufficient` error.
   ///
   /// # Panics
   ///
@@ -496,32 +680,25 @@ impl WriteVarintAtError {
     Self::InsufficientSpace(InsufficientSpaceAt::new(requested, available, offset))
   }
 
-  /// Creates a new `WriteVarintAtError` error from `WriteVarintError`.
+  /// Creates a new `PutVarintAtError` error from `PutVarintError`.
   #[inline]
-  pub const fn from_write_varint_error(err: WriteVarintError, offset: usize) -> Self {
+  pub fn from_put_varint_error(err: PutVarintError, offset: usize) -> Self {
     match err {
-      WriteVarintError::InsufficientSpace(e) => {
+      PutVarintError::InsufficientSpace(e) => {
         Self::insufficient_space(e.requested(), e.available(), offset)
       }
-      #[cfg(any(feature = "std", feature = "alloc"))]
-      WriteVarintError::Other(msg) => Self::Other(std::borrow::Cow::Borrowed(msg)),
-      #[cfg(not(any(feature = "std", feature = "alloc")))]
-      WriteVarintError::Other(msg) => Self::other(msg),
-      #[cfg(any(feature = "std", feature = "alloc"))]
-      _ => Self::Other(std::borrow::Cow::Borrowed("unknown error")),
-      #[cfg(not(any(feature = "std", feature = "alloc")))]
-      _ => Self::Other("unknown error"),
+      PutVarintError::Other(msg) => Self::Other(msg),
     }
   }
 
-  /// Creates a new `WriteVarintAtError::Other` error.
+  /// Creates a new `PutVarintAtError::Other` error.
   #[cfg(not(any(feature = "std", feature = "alloc")))]
   #[inline]
   pub const fn other(msg: &'static str) -> Self {
     Self::Other(msg)
   }
 
-  /// Creates a new `WriteVarintAtError::Other` error.
+  /// Creates a new `PutVarintAtError::Other` error.
   #[cfg(any(feature = "std", feature = "alloc"))]
   #[inline]
   pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {
@@ -530,20 +707,18 @@ impl WriteVarintAtError {
 }
 
 #[cfg(all(feature = "varing", feature = "std"))]
-impl From<WriteVarintAtError> for std::io::Error {
-  fn from(e: WriteVarintAtError) -> Self {
+impl From<PutVarintAtError> for std::io::Error {
+  fn from(e: PutVarintAtError) -> Self {
     match e {
-      WriteVarintAtError::OutOfBounds(e) => {
-        std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
-      }
-      WriteVarintAtError::InsufficientSpace(e) => {
+      PutVarintAtError::OutOfBounds(e) => std::io::Error::new(std::io::ErrorKind::InvalidInput, e),
+      PutVarintAtError::InsufficientSpace(e) => {
         if e.offset() >= e.available() {
           std::io::Error::new(std::io::ErrorKind::InvalidInput, e)
         } else {
           std::io::Error::new(std::io::ErrorKind::WriteZero, e)
         }
       }
-      WriteVarintAtError::Other(msg) => std::io::Error::other(msg),
+      PutVarintAtError::Other(msg) => std::io::Error::other(msg),
     }
   }
 }
