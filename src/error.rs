@@ -528,14 +528,14 @@ impl PutVarintError {
     Self::InsufficientSpace(InsufficientSpace::new(requested, available))
   }
 
-  /// Creates a new `PutVarintAtError::Other` error.
+  /// Creates a new `PutVarintError::Other` error.
   #[cfg(not(any(feature = "std", feature = "alloc")))]
   #[inline]
   pub const fn other(msg: &'static str) -> Self {
     Self::Other(msg)
   }
 
-  /// Creates a new `PutVarintAtError::Other` error.
+  /// Creates a new `PutVarintError::Other` error.
   #[cfg(any(feature = "std", feature = "alloc"))]
   #[inline]
   pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {

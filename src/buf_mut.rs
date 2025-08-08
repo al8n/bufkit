@@ -2044,12 +2044,9 @@ pub trait BufMutExt: BufMut {
   where
     V: Varint,
   {
-    value
-      .encode(self.buffer_mut())
-      .inspect(|bytes_written| {
-        self.advance_mut(*bytes_written);
-      })
-      .map_err(Into::into)
+    value.encode(self.buffer_mut()).inspect(|bytes_written| {
+      self.advance_mut(*bytes_written);
+    })
   }
 }
 
