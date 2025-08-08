@@ -2784,6 +2784,17 @@ mod tests {
   }
 
   #[test]
+  #[should_panic]
+  fn test_segment_panic() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let output = slice.segment((Bound::Excluded(1), Bound::Included(3)));
+    assert_eq!(output.0, &[3, 4]);
+
+    slice.segment((Bound::Excluded(usize::MAX), Bound::Included(usize::MAX)));
+  }
+
+  #[test]
   fn test_blanket_has_remaining() {
     let buf = [0u8; 5];
     let slice = Wrapper(&buf[..]);
