@@ -2687,9 +2687,6 @@ fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
 ) -> Result<[u8; N], TryPeekAtError> {
   let buffer = buf.buffer();
   let buf_len = buffer.len();
-  if offset >= buf_len {
-    return Err(TryPeekAtError::out_of_bounds(offset, buf_len));
-  }
 
   match buf_len.checked_sub(offset) {
     None => Err(TryPeekAtError::out_of_bounds(offset, buf_len)),
