@@ -1473,15 +1473,7 @@ pub trait Buf {
   /// ```
   #[inline]
   fn peek_u8_at(&self, offset: usize) -> u8 {
-    let buffer = self.buffer();
-    if offset >= buffer.len() {
-      panic!(
-        "peek_u8_at: offset {} is out of bounds for buffer of length {}",
-        offset,
-        buffer.len()
-      );
-    }
-    buffer[offset]
+    self.buffer_from(offset)[0]
   }
 
   /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
@@ -2011,6 +2003,7 @@ pub trait BufExt: Buf {
   /// assert!(buf.try_peek_array_at::<3>(1).is_ok());
   ///
   /// let err = buf.try_peek_array_at::<3>(4).unwrap_err();
+  /// let err = buf.try_peek_array_at::<3>(6).unwrap_err();
   /// // err contains details about the error
   /// ```
   #[inline]
@@ -2625,21 +2618,21 @@ fn check_segment<R: RangeBounds<usize>>(
   Ok((begin, end))
 }
 
-#[inline(always)]
+#[inline]
 fn read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> [u8; N] {
   let output = peek_array::<B, N>(buf);
   buf.advance(N);
   output
 }
 
-#[inline(always)]
+#[inline]
 fn read_array_checked<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Option<[u8; N]> {
   peek_array_checked::<B, N>(buf).inspect(|_| {
     buf.advance(N);
   })
 }
 
-#[inline(always)]
+#[inline]
 fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N], TryReadError> {
   try_peek_array::<B, N>(buf)
     .inspect(|_| {
@@ -2648,12 +2641,12 @@ fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N
     .map_err(Into::into)
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
   <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
   if buf.remaining() < N {
     None
@@ -2662,7 +2655,7 @@ fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N
   }
 }
 
-#[inline(always)]
+#[inline]
 fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
   if buf.remaining() < N {
     Err(TryPeekError::new(N, buf.remaining()))
@@ -2671,12 +2664,12 @@ fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], T
   }
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array_at<B: Buf + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
   buf.buffer_from(offset)[..N].try_into().unwrap()
 }
 
-#[inline(always)]
+#[inline]
 fn peek_array_at_checked<B: Buf + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
@@ -2687,7 +2680,7 @@ fn peek_array_at_checked<B: Buf + ?Sized, const N: usize>(
   }
 }
 
-#[inline(always)]
+#[inline]
 fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
@@ -2705,9 +2698,10 @@ fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
         .try_into()
         .expect("Already checked there are enough bytes"),
     ),
-    Some(remaining) => Err(TryPeekAtError::insufficient_data_with_requested(
-      remaining, offset, N,
-    )),
+    Some(remaining) => {
+      let err = TryPeekAtError::insufficient_data_with_requested(remaining, offset, N);
+      Err(err)
+    }
   }
 }
 
