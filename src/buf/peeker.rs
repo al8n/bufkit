@@ -5,7 +5,7 @@ use crate::error::TryAdvanceError;
 use super::Buf;
 
 /// A peeker for reading from a buffer without advancing the original buffer's cursor.
-/// 
+///
 /// `Peeker` provides a non-destructive way to examine buffer contents by maintaining
 /// its own independent cursor position. This is particularly useful when you need to:
 /// - Look ahead in a buffer before deciding how to process the data
@@ -29,7 +29,7 @@ use super::Buf;
 /// assert_eq!(peeker.read_u8(), b'H');
 /// assert_eq!(peeker.read_u8(), b'e');
 /// assert_eq!(buf.remaining(), 13); // Original buffer unchanged
-/// 
+///
 /// // Create a constrained peeker for safe parsing
 /// let mut word_peeker = peeker.segment(0..5); // "Hello"
 /// assert_eq!(word_peeker.remaining(), 5);
@@ -159,7 +159,12 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
 
   #[inline]
   const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, end: Option<usize>) -> Self {
-    Self { buf, cursor, start: cursor, end }
+    Self {
+      buf,
+      cursor,
+      start: cursor,
+      end,
+    }
   }
 }
 
@@ -273,10 +278,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     Self: Sized,
   {
     let remaining = self.remaining();
-    assert!(
-      at <= remaining,
-      "split_off out of bounds: {at} <= {remaining}",
-    );
+    check_out_of_bounds("split_off", at, remaining);
 
     let new_cursor = self.cursor + at;
     let old_end = self.end;
@@ -294,10 +296,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     Self: Sized,
   {
     let remaining = self.remaining();
-    assert!(
-      at <= remaining,
-      "split_to out of bounds: {at} <= {remaining}",
-    );
+    check_out_of_bounds("split_to", at, remaining);
 
     let old_cursor = self.cursor;
     let new_end = self.cursor + at;
@@ -308,6 +307,14 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     // Return the left part [0, at)
     Self::with_cursor_and_limit_inner(self.buf, old_cursor, Some(new_end))
   }
+}
+
+#[inline]
+fn check_out_of_bounds(method_name: &'static str, at: usize, remaining: usize) {
+  assert!(
+    at <= remaining,
+    "{method_name} out of bounds: {at} <= {remaining}",
+  );
 }
 
 #[cfg(test)]
@@ -381,6 +388,24 @@ mod tests {
     assert_eq!(world_peeker.remaining(), 5);
     assert_eq!(world_peeker.read_u8(), b'W');
     assert_eq!(world_peeker.read_u8(), b'o');
+  }
+
+  #[test]
+  fn test_peeker_segment_edge_1() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = &buf[..];
+    let slice = Peeker::from(&slice);
+    let output = slice.segment((Bound::Excluded(1), Bound::Included(3)));
+    assert_eq!(output.buffer(), &[3, 4]);
+  }
+
+  #[test]
+  fn test_peeker_segment_edge_2() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = &buf[..];
+    let slice = Peeker::from(&slice);
+    let output = slice.segment(2..);
+    assert_eq!(output.buffer(), &[3, 4, 5]);
   }
 
   #[test]
