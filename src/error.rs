@@ -445,6 +445,168 @@ impl InsufficientSpaceAt {
   }
 }
 
+/// An error indicating insufficient data available at a specific offset in a buffer.
+///
+/// This error provides detailed information about data requirements when a read
+/// operation fails due to insufficient remaining capacity from a given offset.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct InsufficientDataAt {
+  /// The number of bytes requested to read.
+  requested: Option<NonZeroUsize>,
+  /// The number of bytes available from the offset to the end of buffer.
+  available: usize,
+  /// The offset at which the read was attempted.
+  offset: usize,
+}
+
+impl core::fmt::Display for InsufficientDataAt {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    match self.requested {
+      Some(requested) => write!(
+        f,
+        "not enough bytes available at {}: available {}, requested {}",
+        self.offset, self.available, requested
+      ),
+      None => write!(
+        f,
+        "not enough bytes available at {}: available {}",
+        self.offset, self.available
+      ),
+    }
+  }
+}
+
+impl core::error::Error for InsufficientDataAt {}
+
+impl InsufficientDataAt {
+  /// Creates a new `InsufficientDataAt` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn new(available: usize, offset: usize) -> Self {
+    debug_assert!(
+      offset >= available,
+      "InsufficientDataAt: offset must be greater than or equal to available"
+    );
+
+    Self {
+      requested: None,
+      available,
+      offset,
+    }
+  }
+
+  /// Creates a new `InsufficientDataAt` error with a specific requested size.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn with_requested(available: usize, offset: usize, requested: usize) -> Self {
+    debug_assert!(
+      requested > available,
+      "InsufficientDataAt: requested must be greater than available"
+    );
+
+    Self {
+      requested: Some(
+        NonZeroUsize::new(requested).expect("InsufficientDataAt: requested must be non-zero"),
+      ),
+      available,
+      offset,
+    }
+  }
+
+  /// Returns the number of bytes requested to write.
+  #[inline]
+  pub const fn requested(&self) -> Option<usize> {
+    match self.requested {
+      Some(requested) => Some(requested.get()),
+      None => None,
+    }
+  }
+
+  /// Returns the number of bytes available from the offset.
+  #[inline]
+  pub const fn available(&self) -> usize {
+    self.available
+  }
+
+  /// Returns the offset at which the write was attempted.
+  #[inline]
+  pub const fn offset(&self) -> usize {
+    self.offset
+  }
+}
+
+#[cfg(feature = "std")]
+impl From<InsufficientDataAt> for std::io::Error {
+  fn from(e: InsufficientDataAt) -> Self {
+    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+  }
+}
+
+/// An error that occurs when trying to peek at a specific offset in the buffer.
+///
+/// This error is returned when the offset is out of bounds or when there is insufficient space to peek the requested data.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+pub enum TryPeekAtError {
+  /// An error that occurs when trying to peek at an offset that is out of bounds for the buffer.
+  #[error(transparent)]
+  OutOfBounds(#[from] OutOfBounds),
+  /// An error that occurs when there is not enough space in the buffer to peek the requested data.
+  #[error(transparent)]
+  InsufficientData(#[from] InsufficientDataAt),
+}
+
+impl TryPeekAtError {
+  /// Creates a new `TryPeekAtError::OutOfBounds` error.
+  #[inline]
+  pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
+    Self::OutOfBounds(OutOfBounds::new(offset, length))
+  }
+
+  /// Creates a new `TryPeekAtError::InsufficientSpace` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn insufficient_data(available: usize, offset: usize) -> Self {
+    Self::InsufficientData(InsufficientDataAt::new(available, offset))
+  }
+
+  /// Creates a new `TryPeekAtError::InsufficientSpace` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn insufficient_data_with_requested(
+    available: usize,
+    offset: usize,
+    requested: usize,
+  ) -> Self {
+    Self::InsufficientData(InsufficientDataAt::with_requested(
+      available, offset, requested,
+    ))
+  }
+}
+
+#[cfg(feature = "std")]
+impl From<TryPeekAtError> for std::io::Error {
+  fn from(e: TryPeekAtError) -> Self {
+    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e)
+  }
+}
+
 /// An error that occurs when trying to write at a specific offset in the buffer.
 ///
 /// This error is returned when the offset is out of bounds or when there is insufficient space to write the requested data.
@@ -646,6 +808,83 @@ impl From<PutVarintAtError> for std::io::Error {
         }
       }
       PutVarintAtError::Other(msg) => std::io::Error::other(msg),
+    }
+  }
+}
+
+/// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+#[cfg(feature = "varing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+pub enum PeekVarintAtError {
+  /// The offset is out of bounds for the buffer length.
+  #[error(transparent)]
+  OutOfBounds(#[from] OutOfBounds),
+  /// The buffer does not have enough capacity to encode the value.
+  #[error(transparent)]
+  InsufficientData(#[from] InsufficientDataAt),
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  Other(&'static str),
+
+  /// A custom error message.
+  #[error("{0}")]
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  Other(std::borrow::Cow<'static, str>),
+}
+
+#[cfg(feature = "varing")]
+impl PeekVarintAtError {
+  /// Creates a new `PeekVarintAtError::OutOfBounds` error.
+  #[inline]
+  pub const fn out_of_bounds(offset: usize, length: usize) -> Self {
+    Self::OutOfBounds(OutOfBounds::new(offset, length))
+  }
+
+  /// Creates a new `PeekVarintAtError::Insufficient` error.
+  ///
+  /// # Panics
+  ///
+  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - The `requested` value must be a non-zero.
+  #[inline]
+  pub const fn insufficient_data(available: usize, offset: usize) -> Self {
+    Self::InsufficientData(InsufficientDataAt::new(available, offset))
+  }
+
+  /// Creates a new `PeekVarintAtError` error from `PutVarintError`.
+  #[inline]
+  pub fn from_peek_varint_error(err: ReadVarintError, offset: usize) -> Self {
+    match err {
+      ReadVarintError::InsufficientData { available } => Self::insufficient_data(available, offset),
+      ReadVarintError::Other(msg) => Self::other(msg),
+      _ => Self::other("unknown error"),
+    }
+  }
+
+  /// Creates a new `PeekVarintAtError::Other` error.
+  #[cfg(not(any(feature = "std", feature = "alloc")))]
+  #[inline]
+  pub const fn other(msg: &'static str) -> Self {
+    Self::Other(msg)
+  }
+
+  /// Creates a new `PeekVarintAtError::Other` error.
+  #[cfg(any(feature = "std", feature = "alloc"))]
+  #[inline]
+  pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {
+    Self::Other(msg.into())
+  }
+}
+
+#[cfg(all(feature = "varing", feature = "std"))]
+impl From<PeekVarintAtError> for std::io::Error {
+  fn from(e: PeekVarintAtError) -> Self {
+    match e {
+      PeekVarintAtError::Other(msg) => std::io::Error::other(msg),
+      _ => std::io::Error::new(std::io::ErrorKind::UnexpectedEof, e),
     }
   }
 }
