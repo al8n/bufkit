@@ -181,21 +181,8 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
   fn buffer(&self) -> &[u8] {
     let start = self.cursor.min(self.buf.remaining());
     match self.end {
-      Some(end) => {
-        let actual_end = end.min(self.buf.remaining());
-        if start >= actual_end {
-          &[]
-        } else {
-          &self.buf.buffer()[start..actual_end]
-        }
-      }
-      None => {
-        if start >= self.buf.remaining() {
-          &[]
-        } else {
-          self.buf.buffer_from(start)
-        }
-      }
+      Some(end) => &self.buf.buffer()[start..end.min(self.buf.remaining())],
+      None => self.buf.buffer_from(start),
     }
   }
 
