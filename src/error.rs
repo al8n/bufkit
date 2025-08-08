@@ -3,7 +3,7 @@
 pub use varing::InsufficientSpace;
 
 #[cfg(feature = "varing")]
-use varing::{DecodeError, EncodeError};
+pub use varing::{DecodeError as ReadVarintError, EncodeError as WriteVarintError};
 
 use core::num::NonZeroUsize;
 
@@ -494,79 +494,6 @@ impl From<TryPutAtError> for std::io::Error {
   }
 }
 
-/// An error that occurs when trying to write type in LEB128 format to the buffer.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[non_exhaustive]
-#[cfg(feature = "varing")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-pub enum WriteVarintError {
-  /// The buffer does not have enough capacity to encode the value.
-  #[error(transparent)]
-  InsufficientSpace(#[from] InsufficientSpace),
-
-  /// A custom error message.
-  #[error("{0}")]
-  #[cfg(not(any(feature = "std", feature = "alloc")))]
-  Other(&'static str),
-
-  /// A custom error message.
-  #[error("{0}")]
-  #[cfg(any(feature = "std", feature = "alloc"))]
-  Other(std::borrow::Cow<'static, str>),
-}
-
-#[cfg(feature = "varing")]
-impl WriteVarintError {
-  /// Creates a new `PutVarintError::Insufficient` error.
-  ///
-  /// # Panics
-  ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
-  /// - The `requested` value must be a non-zero.
-  #[inline]
-  pub const fn insufficient_space(requested: usize, available: usize) -> Self {
-    Self::InsufficientSpace(InsufficientSpace::new(requested, available))
-  }
-
-  /// Creates a new `PutVarintAtError::Other` error.
-  #[cfg(not(any(feature = "std", feature = "alloc")))]
-  #[inline]
-  pub const fn other(msg: &'static str) -> Self {
-    Self::Other(msg)
-  }
-
-  /// Creates a new `PutVarintAtError::Other` error.
-  #[cfg(any(feature = "std", feature = "alloc"))]
-  #[inline]
-  pub fn other(msg: impl Into<std::borrow::Cow<'static, str>>) -> Self {
-    Self::Other(msg.into())
-  }
-}
-
-#[cfg(feature = "varing")]
-impl From<EncodeError> for WriteVarintError {
-  #[inline]
-  fn from(e: EncodeError) -> Self {
-    match e {
-      EncodeError::InsufficientSpace(e) => WriteVarintError::InsufficientSpace(e),
-      EncodeError::Other(msg) => Self::other(msg),
-      _ => Self::other("unknown error"),
-    }
-  }
-}
-
-#[cfg(all(feature = "varing", feature = "std"))]
-impl From<WriteVarintError> for std::io::Error {
-  fn from(e: WriteVarintError) -> Self {
-    match e {
-      WriteVarintError::InsufficientSpace(e) => {
-        std::io::Error::new(std::io::ErrorKind::WriteZero, e)
-      }
-      WriteVarintError::Other(msg) => std::io::Error::other(msg),
-    }
-  }
-}
-
 /// An error that occurs when trying to put type in LEB128 format to the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
@@ -617,12 +544,12 @@ impl PutVarintError {
 }
 
 #[cfg(feature = "varing")]
-impl From<EncodeError> for PutVarintError {
+impl From<WriteVarintError> for PutVarintError {
   #[inline]
-  fn from(e: EncodeError) -> Self {
+  fn from(e: WriteVarintError) -> Self {
     match e {
-      EncodeError::InsufficientSpace(e) => PutVarintError::InsufficientSpace(e),
-      EncodeError::Other(msg) => Self::other(msg),
+      WriteVarintError::InsufficientSpace(e) => PutVarintError::InsufficientSpace(e),
+      WriteVarintError::Other(msg) => Self::other(msg),
       _ => Self::other("unknown error"),
     }
   }

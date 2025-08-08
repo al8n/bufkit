@@ -3,9 +3,16 @@ use super::error::{OutOfBounds, TryAdvanceError, TryPeekError, TryReadError, Try
 use core::ops::{Bound, RangeBounds};
 
 #[cfg(feature = "varing")]
-use varing::{DecodeError as ReadVarintError, Varint};
+use varing::Varint;
+
+#[cfg(feature = "varing")]
+use super::error::ReadVarintError;
 
 use super::panic_advance;
+
+pub use peeker::Peeker;
+
+mod peeker;
 
 macro_rules! peek_fixed {
   ($($ty:ident), +$(,)?) => {

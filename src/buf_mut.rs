@@ -18,7 +18,7 @@ macro_rules! put_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
+        /// Panics if `offset >= self.remaining_mut()` or if `offset + size_of::<T>() > self.remaining_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
@@ -89,7 +89,7 @@ macro_rules! put_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
+        /// Panics if `offset >= self.remaining_mut()` or if `offset + size_of::<T>() > self.remaining_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
@@ -163,7 +163,7 @@ macro_rules! put_fixed {
         ///
         /// # Panics
         ///
-        /// Panics if `offset >= self.mutable()` or if `offset + size_of::<T>() > self.mutable()`.
+        /// Panics if `offset >= self.remaining_mut()` or if `offset + size_of::<T>() > self.remaining_mut()`.
         /// Use the `*_checked` or `try_*` variants for non-panicking writes.
         ///
         /// # Examples
@@ -250,7 +250,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in little-endian format at the beginning
         ///
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _le>](&mut self, value: $ty) -> usize {
@@ -271,7 +271,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_le_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -297,7 +297,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_le(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -329,7 +329,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in big-endian format at the beginning
         ///
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _be>](&mut self, value: $ty) -> usize {
@@ -350,7 +350,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_be_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -376,7 +376,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_be(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -411,7 +411,7 @@ macro_rules! put_fixed {
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
         /// // Value is written in native-endian format at the beginning
         ///
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         /// ```
         #[inline]
         fn [< put_ $ty _ne>](&mut self, value: $ty) -> usize {
@@ -433,7 +433,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.put_" $ty "_ne_checked(0x1234 as " $ty ").is_some());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -460,7 +460,7 @@ macro_rules! put_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_put_" $ty "_ne(0x1234 as " $ty ").is_ok());"]
-        /// assert_eq!(slice.mutable(), 24);
+        /// assert_eq!(slice.remaining_mut(), 24);
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -593,7 +593,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_le(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in little-endian format at the beginning
         /// ```
         #[inline]
@@ -615,7 +615,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_le_checked(0x1234 as " $ty ").is_some());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -641,7 +641,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_le(0x1234 as " $ty ").is_ok());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -671,7 +671,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_be(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in big-endian format at the beginning
         /// ```
         #[inline]
@@ -693,7 +693,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_be_checked(0x1234 as " $ty ").is_some());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -719,7 +719,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_be(0x1234 as " $ty ").is_ok());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -752,7 +752,7 @@ macro_rules! write_fixed {
         /// let mut slice = &mut buf[..];
         #[doc = "let written = slice.write_" $ty "_ne(0x1234 as " $ty ");"]
         #[doc = "assert_eq!(written, size_of::<" $ty ">());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         /// // Value is written in native-endian format at the beginning
         /// ```
         #[inline]
@@ -775,7 +775,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.write_" $ty "_ne_checked(0x1234 as " $ty ").is_some());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -802,7 +802,7 @@ macro_rules! write_fixed {
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
         #[doc = "assert!(slice.try_write_" $ty "_ne(0x1234 as " $ty ").is_ok());"]
-        #[doc = "assert_eq!(slice.mutable(), 24 - size_of::<" $ty ">());"]
+        #[doc = "assert_eq!(slice.remaining_mut(), 24 - size_of::<" $ty ">());"]
         ///
         /// let mut small_buf = [0u8; 1];
         /// let mut small_slice = &mut small_buf[..];
@@ -880,7 +880,7 @@ macro_rules! write_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Buffer inspection**: `mutable()`, `has_mutable()`, `buffer()`, `buffer_mut()`
+/// - **Buffer inspection**: `remaining_mut()`, `has_remaining_mut()`, `buffer()`, `buffer_mut()`
 /// - **Buffer manipulation**: `resize()`, `truncate_mut()`, `fill()`
 /// - **Slice operations**: `prefix_mut()`, `suffix_mut()`, `split_at_mut()`
 /// - **Writing data**: `put_slice()`, `put_u8()`, `put_u16_le()`, etc.
@@ -888,7 +888,7 @@ macro_rules! write_fixed {
 pub trait BufMut {
   /// Returns `true` if the buffer has available space for writing.
   ///
-  /// This is equivalent to `self.mutable() == 0`.
+  /// This is equivalent to `self.remaining_mut() == 0`.
   ///
   /// # Examples
   ///
@@ -897,13 +897,13 @@ pub trait BufMut {
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// assert!(BufMut::has_mutable(&slice));
+  /// assert!(BufMut::has_remaining_mut(&slice));
   ///
   /// let mut empty: &mut [u8] = &mut [];
-  /// assert!(!BufMut::has_mutable(&empty));
+  /// assert!(!BufMut::has_remaining_mut(&empty));
   /// ```
-  fn has_mutable(&self) -> bool {
-    self.mutable() > 0
+  fn has_remaining_mut(&self) -> bool {
+    self.remaining_mut() > 0
   }
 
   /// Returns the number of bytes available for writing in the buffer.
@@ -918,9 +918,9 @@ pub trait BufMut {
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// assert_eq!(slice.mutable(), 24);
+  /// assert_eq!(slice.remaining_mut(), 24);
   /// ```
-  fn mutable(&self) -> usize;
+  fn remaining_mut(&self) -> usize;
 
   /// Shortens the buffer to the specified length, keeping the first `len` bytes.
   ///
@@ -944,7 +944,7 @@ pub trait BufMut {
   /// ```
   fn truncate_mut(&mut self, new_len: usize);
 
-  /// Returns the entire initialized buffer as a mutable slice.
+  /// Returns the entire initialized buffer as a remaining_mut slice.
   ///
   /// This provides direct access to all buffer contents for efficient manipulation.
   /// The returned slice covers all initialized bytes in the buffer.
@@ -962,7 +962,7 @@ pub trait BufMut {
   /// ```
   fn buffer_mut(&mut self) -> &mut [u8];
 
-  /// Returns a mutable slice of the buffer starting from the specified offset.
+  /// Returns a remaining_mut slice of the buffer starting from the specified offset.
   ///
   /// This is similar to [`buffer_mut`](BufMut::buffer_mut) but starts from the given offset
   /// rather than the current cursor position.
@@ -989,7 +989,7 @@ pub trait BufMut {
     &mut self.buffer_mut()[offset..]
   }
 
-  /// Returns a mutable slice of the buffer starting from the specified offset.
+  /// Returns a remaining_mut slice of the buffer starting from the specified offset.
   ///
   /// This is the non-panicking version of [`buffer_mut_from`](BufMut::buffer_mut_from).
   /// Returns `Some(slice)` if `offset <= self.remaining()`, otherwise returns `None`.
@@ -1011,7 +1011,7 @@ pub trait BufMut {
   /// ```
   #[inline]
   fn buffer_mut_from_checked(&mut self, offset: usize) -> Option<&mut [u8]> {
-    if offset > self.mutable() {
+    if offset > self.remaining_mut() {
       None
     } else {
       Some(&mut self.buffer_mut()[offset..])
@@ -1025,7 +1025,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `cnt > self.mutable()`.
+  /// Panics if `cnt > self.remaining_mut()`.
   /// Use [`try_advance_mut`](BufMut::try_advance_mut) for non-panicking advancement.
   ///
   /// # Examples
@@ -1037,7 +1037,7 @@ pub trait BufMut {
   /// let mut buf = &mut data[..];
   ///
   /// buf.advance_mut(2);
-  /// assert_eq!(buf.mutable(), 3);
+  /// assert_eq!(buf.remaining_mut(), 3);
   /// assert_eq!(buf.buffer_mut(), &[3, 4, 5]);
   /// ```
   fn advance_mut(&mut self, cnt: usize);
@@ -1057,13 +1057,13 @@ pub trait BufMut {
   /// let mut buf = &mut data[..];
   ///
   /// assert!(buf.try_advance_mut(3).is_ok());
-  /// assert_eq!(buf.mutable(), 2);
+  /// assert_eq!(buf.remaining_mut(), 2);
   ///
   /// let err = buf.try_advance_mut(5).unwrap_err();
   /// // err contains details about requested vs available
   /// ```
   fn try_advance_mut(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
-    let remaining = self.mutable();
+    let remaining = self.remaining_mut();
     if remaining < cnt {
       return Err(TryAdvanceError::new(cnt, remaining));
     }
@@ -1090,14 +1090,14 @@ pub trait BufMut {
     self.buffer_mut().fill(value);
   }
 
-  /// Returns a mutable slice containing the first `len` bytes of the buffer.
+  /// Returns a remaining_mut slice containing the first `len` bytes of the buffer.
   ///
   /// This provides access to a prefix of the buffer for efficient manipulation
   /// of a specific portion without affecting the rest of the buffer.
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.mutable()`.
+  /// Panics if `len > self.remaining_mut()`.
   /// Use [`prefix_mut_checked`](BufMut::prefix_mut_checked) for non-panicking access.
   ///
   /// # Examples
@@ -1115,10 +1115,10 @@ pub trait BufMut {
     &mut self.buffer_mut()[..len]
   }
 
-  /// Returns a mutable slice containing the first `len` bytes of the buffer.
+  /// Returns a remaining_mut slice containing the first `len` bytes of the buffer.
   ///
   /// This is the non-panicking version of [`prefix_mut`](BufMut::prefix_mut).
-  /// Returns `Some(slice)` if `len <= self.mutable()`, otherwise returns `None`.
+  /// Returns `Some(slice)` if `len <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
@@ -1133,21 +1133,21 @@ pub trait BufMut {
   /// assert!(slice.prefix_mut_checked(10).is_none());
   /// ```
   fn prefix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
-    if self.mutable() < len {
+    if self.remaining_mut() < len {
       None
     } else {
       Some(&mut self.buffer_mut()[..len])
     }
   }
 
-  /// Returns a mutable slice containing the last `len` bytes of the buffer.
+  /// Returns a remaining_mut slice containing the last `len` bytes of the buffer.
   ///
   /// This provides access to a suffix of the buffer for efficient manipulation
   /// of the trailing portion without affecting the rest of the buffer.
   ///
   /// # Panics
   ///
-  /// Panics if `len > self.mutable()`.
+  /// Panics if `len > self.remaining_mut()`.
   /// Use [`suffix_mut_checked`](BufMut::suffix_mut_checked) for non-panicking access.
   ///
   /// # Examples
@@ -1162,14 +1162,14 @@ pub trait BufMut {
   /// assert_eq!(buf, [1, 2, 3, 0xFF, 0xFF]);
   /// ```
   fn suffix_mut(&mut self, len: usize) -> &mut [u8] {
-    let total_len = self.mutable();
+    let total_len = self.remaining_mut();
     &mut self.buffer_mut()[total_len - len..]
   }
 
-  /// Returns a mutable slice containing the last `len` bytes of the buffer.
+  /// Returns a remaining_mut slice containing the last `len` bytes of the buffer.
   ///
   /// This is the non-panicking version of [`suffix_mut`](BufMut::suffix_mut).
-  /// Returns `Some(slice)` if `len <= self.mutable()`, otherwise returns `None`.
+  /// Returns `Some(slice)` if `len <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
@@ -1185,19 +1185,19 @@ pub trait BufMut {
   /// ```
   fn suffix_mut_checked(&mut self, len: usize) -> Option<&mut [u8]> {
     self
-      .mutable()
+      .remaining_mut()
       .checked_sub(len)
       .map(|start| &mut self.buffer_mut()[start..])
   }
 
-  /// Divides the buffer into two mutable slices at the given index.
+  /// Divides the buffer into two remaining_mut slices at the given index.
   ///
   /// Returns a tuple where the first slice contains indices `[0, mid)` and
   /// the second slice contains indices `[mid, len)`.
   ///
   /// # Panics
   ///
-  /// Panics if `mid > self.mutable()`.
+  /// Panics if `mid > self.remaining_mut()`.
   /// Use [`split_at_mut_checked`](BufMut::split_at_mut_checked) for non-panicking splitting.
   ///
   /// # Examples
@@ -1215,10 +1215,10 @@ pub trait BufMut {
     self.buffer_mut().split_at_mut(mid)
   }
 
-  /// Divides the buffer into two mutable slices at the given index.
+  /// Divides the buffer into two remaining_mut slices at the given index.
   ///
   /// This is the non-panicking version of [`split_at_mut`](BufMut::split_at_mut).
-  /// Returns `Some((left, right))` if `mid <= self.mutable()`, otherwise returns `None`.
+  /// Returns `Some((left, right))` if `mid <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
@@ -1242,7 +1242,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `slice.len() > self.mutable()`.
+  /// Panics if `slice.len() > self.remaining_mut()`.
   /// Use [`put_slice_checked`](BufMut::put_slice_checked) or
   /// [`try_put_slice`](BufMut::try_put_slice) for non-panicking writes.
   ///
@@ -1282,7 +1282,7 @@ pub trait BufMut {
   /// ```
   fn write_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
     let len = slice.len();
-    if len <= self.mutable() {
+    if len <= self.remaining_mut() {
       self.buffer_mut()[..len].copy_from_slice(slice);
       self.advance_mut(len);
       Some(len)
@@ -1313,7 +1313,7 @@ pub trait BufMut {
   /// ```
   fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
     let len = slice.len();
-    let space = self.mutable();
+    let space = self.remaining_mut();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       self.advance_mut(len);
@@ -1479,7 +1479,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `slice.len() > self.mutable()`.
+  /// Panics if `slice.len() > self.remaining_mut()`.
   /// Use [`put_slice_checked`](BufMut::put_slice_checked) or
   /// [`try_put_slice`](BufMut::try_put_slice) for non-panicking writes.
   ///
@@ -1518,7 +1518,7 @@ pub trait BufMut {
   /// ```
   fn put_slice_checked(&mut self, slice: &[u8]) -> Option<usize> {
     let len = slice.len();
-    if len <= self.mutable() {
+    if len <= self.remaining_mut() {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -1548,7 +1548,7 @@ pub trait BufMut {
   /// ```
   fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryPutError> {
     let len = slice.len();
-    let space = self.mutable();
+    let space = self.remaining_mut();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Ok(len)
@@ -1564,7 +1564,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `offset + slice.len() > self.mutable()` or if `offset >= self.mutable()`.
+  /// Panics if `offset + slice.len() > self.remaining_mut()` or if `offset >= self.remaining_mut()`.
   /// Use [`put_slice_at_checked`](BufMut::put_slice_at_checked) or
   /// [`try_put_slice_at`](BufMut::try_put_slice_at) for non-panicking writes.
   ///
@@ -1605,7 +1605,7 @@ pub trait BufMut {
   /// ```
   fn put_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
     let len = slice.len();
-    if len + offset <= self.mutable() {
+    if len + offset <= self.remaining_mut() {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -1636,7 +1636,7 @@ pub trait BufMut {
   /// ```
   fn try_put_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryPutAtError> {
     let len = slice.len();
-    let space = self.mutable();
+    let space = self.remaining_mut();
     if offset >= space {
       return Err(TryPutAtError::out_of_bounds(offset, space));
     }
@@ -1756,7 +1756,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.mutable()`.
+  /// Panics if `offset >= self.remaining_mut()`.
   /// Use [`put_u8_at_checked`](BufMut::put_u8_at_checked) for non-panicking writes.
   ///
   /// # Examples
@@ -1802,7 +1802,7 @@ pub trait BufMut {
   ///
   /// # Panics
   ///
-  /// Panics if `offset >= self.mutable()`.
+  /// Panics if `offset >= self.remaining_mut()`.
   /// Use [`put_i8_at_checked`](BufMut::put_i8_at_checked) for non-panicking writes.
   ///
   /// # Examples
@@ -2010,7 +2010,10 @@ pub trait BufMutExt: BufMut {
         Ok(read) => Ok(read),
         Err(e) => Err(PutVarintAtError::from_put_varint_error(e.into(), offset)),
       },
-      None => Err(PutVarintAtError::out_of_bounds(offset, self.mutable())),
+      None => Err(PutVarintAtError::out_of_bounds(
+        offset,
+        self.remaining_mut(),
+      )),
     }
   }
 
@@ -2032,7 +2035,7 @@ pub trait BufMutExt: BufMut {
   /// let written = slice.write_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   ///
-  /// assert_eq!(slice.mutable(), 24 - written);
+  /// assert_eq!(slice.remaining_mut(), 24 - written);
   /// ```
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
@@ -2055,13 +2058,13 @@ impl<T: BufMut> BufMutExt for T {}
 macro_rules! deref_forward_buf_mut {
   () => {
     #[inline]
-    fn has_mutable(&self) -> bool {
-      (**self).has_mutable()
+    fn has_remaining_mut(&self) -> bool {
+      (**self).has_remaining_mut()
     }
 
     #[inline]
-    fn mutable(&self) -> usize {
-      (**self).mutable()
+    fn remaining_mut(&self) -> usize {
+      (**self).remaining_mut()
     }
 
     #[inline]
@@ -2308,12 +2311,12 @@ impl BufMut for &mut [u8] {
   }
 
   #[inline]
-  fn mutable(&self) -> usize {
+  fn remaining_mut(&self) -> usize {
     <[u8]>::len(self)
   }
 
   #[inline]
-  fn has_mutable(&self) -> bool {
+  fn has_remaining_mut(&self) -> bool {
     !self.is_empty()
   }
 }
@@ -2478,7 +2481,7 @@ mod tests {
   struct Wrapper<'a>(&'a mut [u8]);
 
   impl BufMut for Wrapper<'_> {
-    fn mutable(&self) -> usize {
+    fn remaining_mut(&self) -> usize {
       self.0.len()
     }
 
@@ -2504,13 +2507,13 @@ mod tests {
   }
 
   #[test]
-  fn test_blanket_has_mutable() {
+  fn test_blanket_has_remaining_mut() {
     let mut buf = [0u8; 5];
     let slice = Wrapper(&mut buf[..]);
-    assert!(BufMut::has_mutable(&slice));
+    assert!(BufMut::has_remaining_mut(&slice));
 
     let empty_slice = Wrapper(&mut []);
-    assert!(!BufMut::has_mutable(&empty_slice));
+    assert!(!BufMut::has_remaining_mut(&empty_slice));
   }
 
   #[test]
@@ -2551,13 +2554,13 @@ mod tests {
   }
 
   #[test]
-  fn test_deref_forward_has_mutable() {
+  fn test_deref_forward_has_remaining_mut() {
     let mut buf = [0u8; 5];
     let slice = WriteBuf::from(&mut buf[..]);
-    assert!(slice.has_mutable());
+    assert!(slice.has_remaining_mut());
 
     let empty_slice: WriteBuf<&mut [u8]> = WriteBuf::from([].as_mut_slice());
-    assert!(!empty_slice.has_mutable());
+    assert!(!empty_slice.has_remaining_mut());
   }
 
   #[test]
@@ -2566,7 +2569,7 @@ mod tests {
     let mut slice = WriteBuf::from(&mut buf[..]);
     slice.advance_mut(3);
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after advancing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after advancing
   }
 
   #[test]
@@ -2575,7 +2578,7 @@ mod tests {
     let mut slice = WriteBuf::from(&mut buf[..]);
     assert!(slice.try_advance_mut(3).is_ok());
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after advancing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after advancing
 
     let err = slice.try_advance_mut(10);
     assert!(err.is_err()); // Should fail since we can't advance beyond available space
@@ -2587,7 +2590,7 @@ mod tests {
     let mut slice = WriteBuf::from(&mut buf[..]);
     slice.truncate_mut(3);
     assert_eq!(slice.buffer_mut(), &[0, 0, 0]);
-    assert_eq!(slice.mutable(), 3); // Remaining space after truncation
+    assert_eq!(slice.remaining_mut(), 3); // Remaining space after truncation
   }
 
   #[test]
@@ -2696,7 +2699,7 @@ mod tests {
     let written = slice.put_slice_at(&[1, 2, 3], 2);
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
-    assert_eq!(slice.mutable(), 10);
+    assert_eq!(slice.remaining_mut(), 10);
   }
 
   #[test]
@@ -2706,7 +2709,7 @@ mod tests {
     assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 2), Some(3));
     assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 8), None); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
-    assert_eq!(slice.mutable(), 10);
+    assert_eq!(slice.remaining_mut(), 10);
   }
 
   #[test]
@@ -2719,7 +2722,7 @@ mod tests {
       Err(TryPutAtError::insufficient_space(3, 2, 8))
     );
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
-    assert_eq!(slice.mutable(), 10);
+    assert_eq!(slice.remaining_mut(), 10);
   }
 
   macro_rules! deref_forward_put {
@@ -2765,7 +2768,7 @@ mod tests {
             let mut slice = WriteBuf::from(&mut buf[..]);
             assert_eq!(slice.[< put_ $ty _at >](42, 1), 1);
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
-            assert_eq!(slice.mutable(), 5);
+            assert_eq!(slice.remaining_mut(), 5);
           }
 
           #[test]
@@ -2774,7 +2777,7 @@ mod tests {
             let mut slice = WriteBuf::from(&mut buf[..]);
             assert_eq!(slice.[< put_ $ty _at_checked >](42, 1), Some(1));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
-            assert_eq!(slice.mutable(), 5);
+            assert_eq!(slice.remaining_mut(), 5);
 
             assert_eq!(slice.[< put_ $ty _at_checked >](42, 5), None); // Out of bounds
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
@@ -2786,7 +2789,7 @@ mod tests {
             let mut slice = WriteBuf::from(&mut buf[..]);
             assert_eq!(slice.[< try_put_ $ty _at >](42, 1), Ok(1));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
-            assert_eq!(slice.mutable(), 5);
+            assert_eq!(slice.remaining_mut(), 5);
 
             assert_eq!(slice.[< try_put_ $ty _at >](42, 5), Err(TryPutAtError::out_of_bounds(5, 5)));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
@@ -2884,7 +2887,7 @@ mod tests {
     let written = slice.write_slice(&[1, 2, 3]);
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
     drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
   }
@@ -2897,7 +2900,7 @@ mod tests {
 
     assert_eq!(slice.write_slice_checked(&[1, 2, 3, 4, 5, 6]), None); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
     drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
@@ -2909,13 +2912,13 @@ mod tests {
     let mut slice = WriteBuf::from(&mut buf[..]);
     assert_eq!(slice.try_write_slice(&[1, 2, 3]), Ok(3));
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
     let err = slice.try_write_slice(&[1, 2, 3, 4, 5, 6]);
     assert!(err.is_err()); // Should fail since we can't write beyond available space
     assert_eq!(err.unwrap_err(), TryWriteError::new(6, 2));
     assert_eq!(slice.buffer_mut(), &[0, 0]);
-    assert_eq!(slice.mutable(), 2); // Remaining space after writing
+    assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
     drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
