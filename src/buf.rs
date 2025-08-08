@@ -431,7 +431,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "assert!(buf.try_peek_" $ty "_ne_at(0).is_ok());"]
-        #[doc = "let err = buf.try_peek_" $ty "_ne_at(10).unwrap_err();"]
+        #[doc = "let err = buf.try_peek_" $ty "_ne_at(100).unwrap_err();"]
         /// // err contains details about the error
         /// ```
         #[inline]
