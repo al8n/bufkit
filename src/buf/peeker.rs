@@ -4,14 +4,41 @@ use crate::error::TryAdvanceError;
 
 use super::Buf;
 
-/// A peeker for reading from a buffer without advancing the cursor.
+/// A peeker for reading from a buffer without advancing the original buffer's cursor.
+/// 
+/// `Peeker` provides a non-destructive way to examine buffer contents by maintaining
+/// its own independent cursor position. This is particularly useful when you need to:
+/// - Look ahead in a buffer before deciding how to process the data
+/// - Parse data that might need to be rolled back
+/// - Implement backtracking algorithms
+/// - Share read access to the same buffer data from different positions
 ///
-/// Sometimes we do not want to mut the buf until some conditions happen, a peeker is for this use case,
-/// a peeker will wrap any `Buf` type and works like a Cursor.
+/// The peeker can be constrained to a specific range within the buffer, making it
+/// safe for parsing operations that should not read beyond certain boundaries.
+///
+/// # Examples
+///
+/// ```rust
+/// use bufkit::{Buf, Peeker};
+///
+/// let data = b"Hello, World!";
+/// let buf = &data[..];
+/// let mut peeker = Peeker::new(&buf);
+///
+/// // Read without affecting the original buffer
+/// assert_eq!(peeker.read_u8(), b'H');
+/// assert_eq!(peeker.read_u8(), b'e');
+/// assert_eq!(buf.remaining(), 13); // Original buffer unchanged
+/// 
+/// // Create a constrained peeker for safe parsing
+/// let mut word_peeker = peeker.segment(0..5); // "Hello"
+/// assert_eq!(word_peeker.remaining(), 5);
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 pub struct Peeker<'a, B: ?Sized> {
   buf: &'a B,
   cursor: usize,
+  start: usize,
   end: Option<usize>,
 }
 
@@ -52,6 +79,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
     Self {
       buf,
       cursor: 0,
+      start: 0,
       end: None,
     }
   }
@@ -131,7 +159,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
 
   #[inline]
   const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, end: Option<usize>) -> Self {
-    Self { buf, cursor, end }
+    Self { buf, cursor, start: cursor, end }
   }
 }
 
@@ -214,18 +242,10 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     );
 
     if end == begin {
-      return Self {
-        buf: self.buf,
-        cursor: self.cursor,
-        end: Some(self.cursor),
-      };
+      return Self::with_cursor_and_limit_inner(self.buf, self.cursor, Some(self.cursor));
     }
 
-    Self {
-      buf: self.buf,
-      cursor: self.cursor + begin,
-      end: Some(self.cursor + end),
-    }
+    Self::with_cursor_and_limit_inner(self.buf, self.cursor + begin, Some(self.cursor + end))
   }
 
   #[inline]
