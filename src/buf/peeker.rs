@@ -76,12 +76,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   where
     B: Buf,
   {
-    let actual_limit = limit.min(buf.remaining());
-    Self {
-      buf,
-      cursor: 0,
-      end: Some(actual_limit),
-    }
+    Self::with_cursor_and_limit_inner(buf, 0, Some(limit.min(buf.remaining())))
   }
 
   /// Returns the number of bytes that have been peeked (read) from the underlying buffer.
@@ -132,6 +127,15 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   #[inline]
   pub fn reset(&mut self) {
     self.cursor = 0;
+  }
+
+  #[inline]
+  const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, end: Option<usize>) -> Self {
+    Self {
+      buf,
+      cursor,
+      end,
+    }
   }
 }
 
@@ -265,11 +269,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     self.end = Some(self.cursor + at);
 
     // Return the right part [at, end)
-    Self {
-      buf: self.buf,
-      cursor: new_cursor,
-      end: old_end,
-    }
+    Self::with_cursor_and_limit_inner(self.buf, new_cursor, old_end)
   }
 
   #[inline]
@@ -290,11 +290,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     self.cursor += at;
 
     // Return the left part [0, at)
-    Self {
-      buf: self.buf,
-      cursor: old_cursor,
-      end: Some(new_end),
-    }
+    Self::with_cursor_and_limit_inner(self.buf, old_cursor, Some(new_end))
   }
 }
 
@@ -375,7 +371,7 @@ mod tests {
   fn test_peeker_truncate() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(&buf);
+    let mut peeker = Peeker::from(&buf);
 
     peeker.truncate(3);
     assert_eq!(peeker.remaining(), 3);
@@ -385,6 +381,23 @@ mod tests {
     assert_eq!(peeker.read_u8(), 2);
     assert_eq!(peeker.read_u8(), 3);
     assert_eq!(peeker.remaining(), 0);
+
+    let mut peeker = Peeker::with_limit(&buf, 3);
+    assert_eq!(peeker.remaining(), 3);
+    peeker.truncate(2);
+
+    assert_eq!(peeker.remaining(), 2);
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_peeker_split_off_panic() {
+    let data = [1u8, 2, 3];
+    let buf = &data[..];
+    let mut peeker = Peeker::new(&buf);
+
+    // This should panic because we are trying to split_off more than available
+    let _ = peeker.split_off(5);
   }
 
   #[test]
@@ -406,6 +419,17 @@ mod tests {
     assert_eq!(right.read_u8(), 3);
     assert_eq!(right.read_u8(), 4);
     assert_eq!(right.read_u8(), 5);
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_peeker_split_to_panic() {
+    let data = [1u8, 2, 3];
+    let buf = &data[..];
+    let mut peeker = Peeker::new(&buf);
+
+    // This should panic because we are trying to split_to more than available
+    let _ = peeker.split_to(5);
   }
 
   #[test]
@@ -492,6 +516,28 @@ mod tests {
     let mut peeker = Peeker::new(&buf);
     assert_eq!(peeker.remaining(), 3);
     assert_eq!(peeker.read_u8(), 3); // Should read the 3rd byte
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_peeker_segment_panic_1() {
+    let data = b"Hello, World!";
+    let buf = &data[..];
+    let peeker = Peeker::new(&buf);
+
+    // This should panic because the segment end is out of bounds
+    let _ = peeker.segment(3..1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_peeker_segment_panic_2() {
+    let data = b"Hello, World!";
+    let buf = &data[..];
+    let peeker = Peeker::new(&buf);
+
+    // This should panic because the segment end is out of bounds
+    let _ = peeker.segment(..20);
   }
 
   #[test]
