@@ -131,11 +131,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
 
   #[inline]
   const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, end: Option<usize>) -> Self {
-    Self {
-      buf,
-      cursor,
-      end,
-    }
+    Self { buf, cursor, end }
   }
 }
 
