@@ -521,7 +521,7 @@ impl InsufficientDataAt {
     }
   }
 
-  /// Returns the number of bytes requested to write.
+  /// Returns the number of bytes requested to read.
   #[inline]
   pub const fn requested(&self) -> Option<usize> {
     match self.requested {
@@ -536,7 +536,7 @@ impl InsufficientDataAt {
     self.available
   }
 
-  /// Returns the offset at which the write was attempted.
+  /// Returns the offset at which the read was attempted.
   #[inline]
   pub const fn offset(&self) -> usize {
     self.offset
@@ -552,14 +552,14 @@ impl From<InsufficientDataAt> for std::io::Error {
 
 /// An error that occurs when trying to peek at a specific offset in the buffer.
 ///
-/// This error is returned when the offset is out of bounds or when there is insufficient space to peek the requested data.
+/// This error is returned when the offset is out of bounds or when there is insufficient data to peek the requested data.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 pub enum TryPeekAtError {
   /// An error that occurs when trying to peek at an offset that is out of bounds for the buffer.
   #[error(transparent)]
   OutOfBounds(#[from] OutOfBounds),
-  /// An error that occurs when there is not enough space in the buffer to peek the requested data.
+  /// An error that occurs when there is not enough data in the buffer to peek the requested data.
   #[error(transparent)]
   InsufficientData(#[from] InsufficientDataAt),
 }
@@ -571,7 +571,7 @@ impl TryPeekAtError {
     Self::OutOfBounds(OutOfBounds::new(offset, length))
   }
 
-  /// Creates a new `TryPeekAtError::InsufficientSpace` error.
+  /// Creates a new `TryPeekAtError::InsufficientData` error.
   ///
   /// # Panics
   ///
@@ -582,7 +582,7 @@ impl TryPeekAtError {
     Self::InsufficientData(InsufficientDataAt::new(available, offset))
   }
 
-  /// Creates a new `TryPeekAtError::InsufficientSpace` error.
+  /// Creates a new `TryPeekAtError::InsufficientData` error.
   ///
   /// # Panics
   ///
