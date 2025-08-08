@@ -44,7 +44,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let peeker = Peeker::new(buf);
+  /// let peeker = Peeker::new(&buf);
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
@@ -68,7 +68,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
-  /// let peeker = Peeker::with_limit(buf, 5); // Only peek first 5 bytes
+  /// let peeker = Peeker::with_limit(&buf, 5); // Only peek first 5 bytes
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
@@ -95,7 +95,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let mut peeker = Peeker::new(buf);
+  /// let mut peeker = Peeker::new(&buf);
   ///
   /// assert_eq!(peeker.peeked(), 0);
   /// peeker.read_u8();
@@ -120,7 +120,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let mut peeker = Peeker::new(buf);
+  /// let mut peeker = Peeker::new(&buf);
   ///
   /// peeker.advance(3);
   /// assert_eq!(peeker.peeked(), 3);
