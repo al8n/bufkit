@@ -2782,7 +2782,7 @@ mod tests {
     assert_eq!(output.0, &[3, 4]);
 
     assert!(slice
-      .try_segment((Bound::Included(usize::MAX), Bound::Included(usize::MAX)))
+      .try_segment((Bound::Excluded(usize::MAX), Bound::Included(usize::MAX)))
       .is_err());
   }
 
