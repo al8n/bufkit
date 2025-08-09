@@ -80,13 +80,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   /// ```
   #[inline]
   pub const fn new(buf: &'a B) -> Self {
-    Self {
-      buf,
-      cursor: 0,
-      start: Bound::Included(0),
-      end: Bound::Unbounded,
-      limit: Bound::Unbounded,
-    }
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Unbounded)
   }
 
   /// Creates a new `Peeker` constrained to a specific length.
@@ -331,21 +325,14 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     );
 
     let start = self.cursor + begin;
+    let start_bound = Bound::Included(start);
     if end == begin {
-      return Self::with_cursor_and_bounds_inner(
-        self.buf,
-        start,
-        Bound::Included(start),
-        Bound::Excluded(start),
-      );
+      let end_bound = Bound::Excluded(start);
+      return Self::with_cursor_and_bounds_inner(self.buf, start, start_bound, end_bound);
     }
 
-    Self::with_cursor_and_bounds_inner(
-      self.buf,
-      start,
-      Bound::Included(start),
-      Bound::Excluded(self.cursor + end),
-    )
+    let end_bound = Bound::Excluded(self.cursor + end);
+    Self::with_cursor_and_bounds_inner(self.buf, start, start_bound, end_bound)
   }
 
   #[inline]
@@ -378,8 +365,9 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     // Truncate self to [0, at)
     self.limit = Bound::Excluded(self.cursor + at);
 
+    let start = Bound::Included(self.cursor);
     // Return the right part [at, end)
-    Self::with_cursor_and_bounds_inner(self.buf, new_cursor, Bound::Included(new_cursor), old_limit)
+    Self::with_cursor_and_bounds_inner(self.buf, new_cursor, start, old_limit)
   }
 
   #[inline]
@@ -396,13 +384,10 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     // Advance self to [at, end)
     self.cursor += at;
 
+    let start = Bound::Included(old_cursor);
+    let end = Bound::Excluded(new_end);
     // Return the left part [0, at)
-    Self::with_cursor_and_bounds_inner(
-      self.buf,
-      old_cursor,
-      Bound::Included(old_cursor),
-      Bound::Excluded(new_end),
-    )
+    Self::with_cursor_and_bounds_inner(self.buf, old_cursor, start, end)
   }
 }
 
@@ -692,5 +677,51 @@ mod tests {
     let mut hello_mut = hello;
     assert_eq!(hello_mut.read_u8(), b'H');
     assert_eq!(hello_mut.read_u8(), b'e');
+  }
+
+  #[test]
+  fn test_peeker_range() {
+    let data = b"Hello, World!";
+    let buf = &data[..];
+
+    // Peek from index 2 to 7 (inclusive)
+    let mut peeker = Peeker::with_range(&buf, 2..=7);
+    assert_eq!(peeker.remaining(), 6);
+    assert_eq!(peeker.buffer(), b"llo, W");
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 2);
+
+    peeker.read_u8();
+    assert_eq!(peeker.position(), 1);
+    assert_eq!(peeker.absolute_position(), 3);
+    peeker.reset();
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 2);
+
+    let mut peeker = Peeker::with_range(&buf, ..5);
+    assert_eq!(peeker.remaining(), 5);
+    assert_eq!(peeker.buffer(), b"Hello");
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 0);
+
+    peeker.read_u8();
+    assert_eq!(peeker.position(), 1);
+    assert_eq!(peeker.absolute_position(), 1);
+    peeker.reset();
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 0);
+
+    let mut peeker = Peeker::with_range(&buf, (Bound::Excluded(1), Bound::Unbounded));
+    assert_eq!(peeker.remaining(), 11);
+    assert_eq!(peeker.buffer(), b"llo, World!");
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 2);
+
+    peeker.read_u8();
+    assert_eq!(peeker.position(), 1);
+    assert_eq!(peeker.absolute_position(), 3);
+    peeker.reset();
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.absolute_position(), 2);
   }
 }

@@ -73,13 +73,7 @@ impl<B> Putter<B> {
   where
     B: BufMut,
   {
-    Self {
-      buf: buf.into(),
-      cursor: 0,
-      start: Bound::Included(0),
-      end: Bound::Unbounded,
-      limit: Bound::Unbounded,
-    }
+    Self::with_cursor_and_bounds_inner(buf.into(), 0, Bound::Included(0), Bound::Unbounded)
   }
 
   /// Creates a new `Putter` instance with the given buffer.
@@ -99,13 +93,7 @@ impl<B> Putter<B> {
   /// ```
   #[inline]
   pub const fn const_new(buf: B) -> Self {
-    Self {
-      buf: WriteBuf::new(buf),
-      cursor: 0,
-      start: Bound::Included(0),
-      end: Bound::Unbounded,
-      limit: Bound::Unbounded,
-    }
+    Self::with_cursor_and_bounds_inner(WriteBuf::new(buf), 0, Bound::Included(0), Bound::Unbounded)
   }
 
   /// Creates a new `Putter` constrained to a specific length.
@@ -810,5 +798,35 @@ mod tests {
 
     drop(putter);
     assert_eq!(data[0], 0x42);
+  }
+
+  #[test]
+  fn test_putter_with_range() {
+    let mut data = [0u8; 10];
+    let mut putter = Putter::with_range(&mut data[..], 2..=8);
+
+    assert_eq!(putter.remaining_mut(), 7);
+
+    putter.write_u8(0x42);
+    assert_eq!(putter.position(), 1);
+    putter.reset();
+    drop(putter);
+    assert_eq!(data[2], 0);
+
+    let mut putter = Putter::with_range(&mut data[..], ..7);
+    assert_eq!(putter.remaining_mut(), 7);
+    putter.write_u8(0x99);
+    assert_eq!(putter.position(), 1);
+    putter.reset();
+    drop(putter);
+    assert_eq!(data[0], 0);
+
+    let mut putter = Putter::with_range(&mut data[..], (Bound::Excluded(1), Bound::Unbounded));
+    assert_eq!(putter.remaining_mut(), 8);
+    putter.write_u8(0x77);
+    assert_eq!(putter.position(), 1);
+    putter.reset();
+    drop(putter);
+    assert_eq!(data[2], 0);
   }
 }
