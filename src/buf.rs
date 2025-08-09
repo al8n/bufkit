@@ -13,8 +13,10 @@ use super::error::ReadVarintError;
 use super::panic_advance;
 
 pub use peeker::Peeker;
+pub use ref_peeker::RefPeeker;
 
 mod peeker;
+mod ref_peeker;
 
 macro_rules! peek_fixed {
   ($($ty:ident), +$(,)?) => {
@@ -2700,6 +2702,14 @@ fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
       Err(err)
     }
   }
+}
+
+#[inline]
+fn check_out_of_bounds(method_name: &'static str, at: usize, remaining: usize) {
+  assert!(
+    at <= remaining,
+    "{method_name} out of bounds: {at} <= {remaining}",
+  );
 }
 
 #[cfg(test)]

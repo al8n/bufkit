@@ -266,6 +266,27 @@ impl<B> Putter<B> {
     self.fill(0);
   }
 
+  /// Consumes the putter and returns the underlying buffer.
+  ///
+  /// Any writes made through the putter will be reflected in the returned buffer.
+  /// This is useful when you want to finalize the writes and retrieve the modified buffer.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{BufMut, Putter};
+  ///
+  /// let mut data = [0u8; 10];
+  /// let mut putter = Putter::new(&mut data[..]);
+  /// putter.put_u8(0x42);
+  /// let buf = putter.into_inner();
+  /// assert_eq!(buf[0], 0x42);
+  /// ```
+  #[inline]
+  pub fn into_inner(self) -> B {
+    self.buf.0
+  }
+
   #[inline]
   const fn with_cursor_and_bounds_inner(
     buf: WriteBuf<B>,
