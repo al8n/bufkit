@@ -143,7 +143,7 @@ impl<B> Putter<B> {
   /// let mut putter = Putter::new(&mut data[..]);
   ///
   /// assert_eq!(putter.written(), 0);
-  /// putter.put_u8(0x42);
+  /// putter.write_u8(0x42);
   /// assert_eq!(putter.written(), 1);
   /// putter.advance_mut(2);
   /// assert_eq!(putter.written(), 3);
