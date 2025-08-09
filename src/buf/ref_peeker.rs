@@ -6,7 +6,7 @@ use super::{check_out_of_bounds, Buf};
 
 /// A peeker for reading from a buffer without advancing the original buffer's cursor.
 ///
-/// `Peeker` provides a non-destructive way to examine buffer contents by maintaining
+/// `RefPeeker` provides a non-destructive way to examine buffer contents by maintaining
 /// its own independent cursor position. This is particularly useful when you need to:
 /// - Look ahead in a buffer before deciding how to process the data
 /// - Parse data that might need to be rolled back
@@ -19,11 +19,11 @@ use super::{check_out_of_bounds, Buf};
 /// # Examples
 ///
 /// ```rust
-/// use bufkit::{Buf, Peeker};
+/// use bufkit::{Buf, RefPeeker};
 ///
 /// let data = b"Hello, World!";
 /// let buf = &data[..];
-/// let mut peeker = Peeker::new(buf);
+/// let mut peeker = RefPeeker::new(&buf);
 ///
 /// // Read without affecting the original buffer
 /// assert_eq!(peeker.read_u8(), b'H');
@@ -35,7 +35,8 @@ use super::{check_out_of_bounds, Buf};
 /// assert_eq!(word_peeker.remaining(), 5);
 /// ```
 #[derive(Debug, PartialEq, Eq)]
-pub struct Peeker<B: ?Sized> {
+pub struct RefPeeker<'a, B: ?Sized> {
+  buf: &'a B,
   cursor: usize,
   /// The original start bound of the peeker, used for resetting.
   start: Bound<usize>,
@@ -43,33 +44,26 @@ pub struct Peeker<B: ?Sized> {
   end: Bound<usize>,
   /// Current limit bound of the peeker
   limit: Bound<usize>,
-  buf: B,
 }
 
-impl<B> From<B> for Peeker<B> {
+impl<'a, B: 'a + ?Sized> From<&'a B> for RefPeeker<'a, B> {
   #[inline]
-  fn from(buf: B) -> Self {
+  fn from(buf: &'a B) -> Self {
     Self::new(buf)
   }
 }
 
-impl<B: Clone> Clone for Peeker<B> {
+impl<'a, B: 'a + ?Sized> Clone for RefPeeker<'a, B> {
   #[inline]
   fn clone(&self) -> Self {
-    Self {
-      cursor: self.cursor,
-      start: self.start.clone(),
-      end: self.end.clone(),
-      limit: self.limit.clone(),
-      buf: self.buf.clone(),
-    }
+    *self
   }
 }
 
-impl<B: Copy> Copy for Peeker<B> {}
+impl<'a, B: 'a + ?Sized> Copy for RefPeeker<'a, B> {}
 
-impl<B> Peeker<B> {
-  /// Creates a new `Peeker` instance with the given buffer.
+impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
+  /// Creates a new `RefPeeker` instance with the given buffer.
   ///
   /// The peeker starts at the beginning of the buffer's current position
   /// and can read all remaining bytes in the buffer.
@@ -77,19 +71,19 @@ impl<B> Peeker<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let peeker = Peeker::new(buf);
+  /// let peeker = RefPeeker::new(&buf);
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
-  pub const fn new(buf: B) -> Self {
+  pub const fn new(buf: &'a B) -> Self {
     Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Unbounded)
   }
 
-  /// Creates a new `Peeker` constrained to a specific length.
+  /// Creates a new `RefPeeker` constrained to a specific length.
   ///
   /// This is useful when you want to ensure the peeker cannot read beyond
   /// a certain number of bytes, providing additional safety for parsing operations.
@@ -97,19 +91,19 @@ impl<B> Peeker<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
-  /// let peeker = Peeker::with_limit(buf, 5); // Only peek first 5 bytes
+  /// let peeker = RefPeeker::with_limit(&buf, 5); // Only peek first 5 bytes
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
-  pub const fn with_limit(buf: B, limit: usize) -> Self {
+  pub const fn with_limit(buf: &'a B, limit: usize) -> Self {
     Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
   }
 
-  /// Creates a new `Peeker` with specific start and end bounds.
+  /// Creates a new `RefPeeker` with specific start and end bounds.
   ///
   /// This provides maximum flexibility in defining the peeker's range,
   /// allowing for more complex parsing scenarios.
@@ -118,24 +112,46 @@ impl<B> Peeker<B> {
   ///
   /// ```rust
   /// use core::ops::Bound;
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
   ///
   /// // Peek from index 2 to 7 (exclusive)
-  /// let peeker = Peeker::with_range(buf, 2..7);
+  /// let peeker = RefPeeker::with_range(&buf, 2..7);
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
-  pub fn with_range(buf: B, range: impl RangeBounds<usize>) -> Self
+  pub fn with_range(buf: &'a B, range: impl RangeBounds<usize>) -> Self
   where
     B: Buf,
   {
     let start = range.start_bound().cloned();
     let end = range.end_bound().cloned();
-    let start_pos = Self::resolve_start_bound(start, &buf);
+    let start_pos = Self::resolve_start_bound(start, buf);
     Self::with_cursor_and_bounds_inner(buf, start_pos, Bound::Included(start_pos), end)
+  }
+
+  /// Returns the bounds of the peeker.
+  ///
+  /// This is useful for understanding the range within which the peeker can read.
+  /// The bounds are represented as a tuple of `Bound<usize>`, indicating the start
+  /// and end positions.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use core::ops::Bound;
+  /// use bufkit::{Buf, RefPeeker};
+  ///
+  /// let data = [1, 2, 3, 4, 5];
+  /// let buf = &data[..];
+  /// let peeker = RefPeeker::with_range(&buf, 1..4);
+  /// assert_eq!(peeker.bounds(), (Bound::Included(1), Bound::Excluded(4)));
+  /// ```
+  #[inline]
+  pub const fn bounds(&self) -> (Bound<usize>, Bound<usize>) {
+    (self.start, self.end)
   }
 
   /// Returns the current position of the internal cursor relative to the start of the buffer.
@@ -145,11 +161,11 @@ impl<B> Peeker<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let mut peeker = Peeker::new(buf);
+  /// let mut peeker = RefPeeker::new(&buf);
   ///
   /// assert_eq!(peeker.position(), 0);
   /// peeker.read_u8();
@@ -172,11 +188,11 @@ impl<B> Peeker<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let mut peeker = Peeker::new(buf);
+  /// let mut peeker = RefPeeker::new(&buf);
   ///
   /// let mut seg = peeker.segment(1..4);
   /// seg.advance(2);
@@ -191,28 +207,6 @@ impl<B> Peeker<B> {
     self.cursor
   }
 
-  /// Returns the bounds of the peeker.
-  ///
-  /// This is useful for understanding the range within which the peeker can read.
-  /// The bounds are represented as a tuple of `Bound<usize>`, indicating the start
-  /// and end positions.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use core::ops::Bound;
-  /// use bufkit::{Buf, Peeker};
-  ///
-  /// let data = [1, 2, 3, 4, 5];
-  /// let buf = &data[..];
-  /// let peeker = Peeker::with_range(buf, 1..4);
-  /// assert_eq!(peeker.bounds(), (Bound::Included(1), Bound::Excluded(4)));
-  /// ```
-  #[inline]
-  pub const fn bounds(&self) -> (Bound<usize>, Bound<usize>) {
-    (self.start, self.end)
-  }
-
   /// Resets the peeker's cursor to the beginning.
   ///
   /// After calling this method, the peeker will start reading from the same
@@ -221,11 +215,11 @@ impl<B> Peeker<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, Peeker};
+  /// use bufkit::{Buf, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
-  /// let mut peeker = Peeker::new(buf);
+  /// let mut peeker = RefPeeker::new(&buf);
   ///
   /// peeker.advance(3);
   /// assert_eq!(peeker.position(), 3);
@@ -240,30 +234,9 @@ impl<B> Peeker<B> {
     self.limit = self.end;
   }
 
-  /// Consumes the peeker and returns the underlying buffer.
-  ///
-  /// This is useful when you want to retrieve the original buffer
-  /// after peeking operations are complete.
-  ///
-  /// # Examples
-  ///
-  /// ```rust
-  /// use bufkit::{Buf, Peeker};
-  ///
-  /// let data = [1, 2, 3, 4, 5];
-  /// let buf = &data[..];
-  /// let peeker = Peeker::new(buf);
-  /// let original_buf = peeker.into_inner();
-  /// assert_eq!(original_buf.remaining(), 5);
-  /// ```
-  #[inline]
-  pub fn into_inner(self) -> B {
-    self.buf
-  }
-
   #[inline]
   const fn with_cursor_and_bounds_inner(
-    buf: B,
+    buf: &'a B,
     cursor: usize,
     start: Bound<usize>,
     end: Bound<usize>,
@@ -312,7 +285,7 @@ impl<B> Peeker<B> {
   }
 }
 
-impl<B: Buf> Buf for Peeker<B> {
+impl<'a, B: 'a + Buf + ?Sized> Buf for RefPeeker<'a, B> {
   #[inline]
   fn remaining(&self) -> usize {
     let end_pos = self.resolve_end_bound(self.limit);
@@ -377,16 +350,11 @@ impl<B: Buf> Buf for Peeker<B> {
     let start_bound = Bound::Included(start);
     if end == begin {
       let end_bound = Bound::Excluded(start);
-      return Self::with_cursor_and_bounds_inner(
-        self.buf.segment(..),
-        start,
-        start_bound,
-        end_bound,
-      );
+      return Self::with_cursor_and_bounds_inner(self.buf, start, start_bound, end_bound);
     }
 
     let end_bound = Bound::Excluded(self.cursor + end);
-    Self::with_cursor_and_bounds_inner(self.buf.segment(..), start, start_bound, end_bound)
+    Self::with_cursor_and_bounds_inner(self.buf, start, start_bound, end_bound)
   }
 
   #[inline]
@@ -421,7 +389,7 @@ impl<B: Buf> Buf for Peeker<B> {
 
     let start = Bound::Included(self.cursor);
     // Return the right part [at, end)
-    Self::with_cursor_and_bounds_inner(self.buf.segment(..), new_cursor, start, old_limit)
+    Self::with_cursor_and_bounds_inner(self.buf, new_cursor, start, old_limit)
   }
 
   #[inline]
@@ -441,7 +409,7 @@ impl<B: Buf> Buf for Peeker<B> {
     let start = Bound::Included(old_cursor);
     let end = Bound::Excluded(new_end);
     // Return the left part [0, at)
-    Self::with_cursor_and_bounds_inner(self.buf.segment(..), old_cursor, start, end)
+    Self::with_cursor_and_bounds_inner(self.buf, old_cursor, start, end)
   }
 }
 
@@ -453,7 +421,7 @@ mod tests {
   fn test_peeker_basic_functionality() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     assert_eq!(peeker.remaining(), 5);
     assert_eq!(peeker.position(), 0);
@@ -471,7 +439,7 @@ mod tests {
   fn test_peeker_with_limit() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::with_limit(buf, 3);
+    let mut peeker = RefPeeker::with_limit(&buf, 3);
 
     assert_eq!(peeker.remaining(), 3);
 
@@ -488,7 +456,7 @@ mod tests {
   fn test_peeker_reset() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     peeker.advance(3);
     assert_eq!(peeker.position(), 3);
@@ -503,7 +471,7 @@ mod tests {
   fn test_peeker_segment() {
     let data = b"Hello, World!";
     let buf = &data[..];
-    let peeker = Peeker::new(buf);
+    let peeker = RefPeeker::new(&buf);
 
     // Segment "Hello"
     let mut hello_peeker = peeker.segment(0..5);
@@ -522,7 +490,7 @@ mod tests {
   fn test_peeker_segment_edge_1() {
     let buf = [1, 2, 3, 4, 5];
     let slice = &buf[..];
-    let slice = Peeker::from(slice);
+    let slice = RefPeeker::from(&slice);
     let output = slice.segment((Bound::Excluded(1), Bound::Included(3)));
     assert_eq!(output.buffer(), &[3, 4]);
   }
@@ -531,7 +499,7 @@ mod tests {
   fn test_peeker_segment_edge_2() {
     let buf = [1, 2, 3, 4, 5];
     let slice = &buf[..];
-    let slice = Peeker::from(slice);
+    let slice = RefPeeker::from(&slice);
     let output = slice.segment(2..);
     assert_eq!(output.buffer(), &[3, 4, 5]);
   }
@@ -540,7 +508,7 @@ mod tests {
   fn test_peeker_truncate() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::from(buf);
+    let mut peeker = RefPeeker::from(&buf);
 
     peeker.truncate(3);
     assert_eq!(peeker.remaining(), 3);
@@ -551,7 +519,7 @@ mod tests {
     assert_eq!(peeker.read_u8(), 3);
     assert_eq!(peeker.remaining(), 0);
 
-    let mut peeker = Peeker::with_limit(buf, 3);
+    let mut peeker = RefPeeker::with_limit(&buf, 3);
     assert_eq!(peeker.remaining(), 3);
     peeker.truncate(2);
 
@@ -563,7 +531,7 @@ mod tests {
   fn test_peeker_split_off_panic() {
     let data = [1u8, 2, 3];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     // This should panic because we are trying to split_off more than available
     let _ = peeker.split_off(5);
@@ -573,7 +541,7 @@ mod tests {
   fn test_peeker_split_off() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     let right_peeker = peeker.split_off(2);
 
@@ -595,7 +563,7 @@ mod tests {
   fn test_peeker_split_to_panic() {
     let data = [1u8, 2, 3];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     // This should panic because we are trying to split_to more than available
     let _ = peeker.split_to(5);
@@ -605,7 +573,7 @@ mod tests {
   fn test_peeker_split_to() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     let left_peeker = peeker.split_to(2);
 
@@ -626,7 +594,7 @@ mod tests {
   fn test_peeker_try_advance() {
     let data = [1u8, 2, 3];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     assert!(peeker.try_advance(2).is_ok());
     assert_eq!(peeker.position(), 2);
@@ -641,7 +609,7 @@ mod tests {
   fn test_peeker_advance_panic() {
     let data = [1u8, 2, 3];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     peeker.advance(5); // Should panic
   }
@@ -650,7 +618,7 @@ mod tests {
   fn test_peeker_empty_segment() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let peeker = Peeker::new(buf);
+    let peeker = RefPeeker::new(&buf);
 
     let empty_peeker = peeker.segment(2..2);
     assert_eq!(empty_peeker.remaining(), 0);
@@ -660,7 +628,7 @@ mod tests {
   fn test_peeker_clone_and_copy() {
     let data = [1u8, 2, 3, 4, 5];
     let buf = &data[..];
-    let mut peeker = Peeker::new(buf);
+    let mut peeker = RefPeeker::new(&buf);
 
     peeker.advance(2);
 
@@ -681,8 +649,8 @@ mod tests {
     buf.advance(2);
     assert_eq!(buf.remaining(), 3);
 
-    // Peeker should work with the advanced buffer
-    let mut peeker = Peeker::new(buf);
+    // RefPeeker should work with the advanced buffer
+    let mut peeker = RefPeeker::new(&buf);
     assert_eq!(peeker.remaining(), 3);
     assert_eq!(peeker.read_u8(), 3); // Should read the 3rd byte
   }
@@ -692,7 +660,7 @@ mod tests {
   fn test_peeker_segment_panic_1() {
     let data = b"Hello, World!";
     let buf = &data[..];
-    let peeker = Peeker::new(buf);
+    let peeker = RefPeeker::new(&buf);
 
     // This should panic because the segment end is out of bounds
     let _ = peeker.segment(3..1);
@@ -703,7 +671,7 @@ mod tests {
   fn test_peeker_segment_panic_2() {
     let data = b"Hello, World!";
     let buf = &data[..];
-    let peeker = Peeker::new(buf);
+    let peeker = RefPeeker::new(&buf);
 
     // This should panic because the segment end is out of bounds
     let _ = peeker.segment(..20);
@@ -713,7 +681,7 @@ mod tests {
   fn test_peeker_multi_level_segments() {
     let data = b"Hello, World!";
     let buf = &data[..];
-    let peeker = Peeker::new(buf);
+    let peeker = RefPeeker::new(&buf);
 
     // Create a segment, then segment that
     let hello_comma = peeker.segment(0..6); // "Hello,"
@@ -731,7 +699,7 @@ mod tests {
     let buf = &data[..];
 
     // Peek from index 2 to 7 (inclusive)
-    let mut peeker = Peeker::with_range(buf, 2..=7);
+    let mut peeker = RefPeeker::with_range(&buf, 2..=7);
     assert_eq!(peeker.remaining(), 6);
     assert_eq!(peeker.buffer(), b"llo, W");
     assert_eq!(peeker.position(), 0);
@@ -744,7 +712,7 @@ mod tests {
     assert_eq!(peeker.position(), 0);
     assert_eq!(peeker.absolute_position(), 2);
 
-    let mut peeker = Peeker::with_range(buf, ..5);
+    let mut peeker = RefPeeker::with_range(&buf, ..5);
     assert_eq!(peeker.remaining(), 5);
     assert_eq!(peeker.buffer(), b"Hello");
     assert_eq!(peeker.position(), 0);
@@ -757,7 +725,7 @@ mod tests {
     assert_eq!(peeker.position(), 0);
     assert_eq!(peeker.absolute_position(), 0);
 
-    let mut peeker = Peeker::with_range(buf, (Bound::Excluded(1), Bound::Unbounded));
+    let mut peeker = RefPeeker::with_range(&buf, (Bound::Excluded(1), Bound::Unbounded));
     assert_eq!(peeker.remaining(), 11);
     assert_eq!(peeker.buffer(), b"llo, World!");
     assert_eq!(peeker.position(), 0);
