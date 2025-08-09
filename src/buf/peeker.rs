@@ -1,4 +1,4 @@
-use core::ops::Bound;
+use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
@@ -108,6 +108,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   pub const fn with_limit(buf: &'a B, limit: usize) -> Self {
     Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
   }
+
   /// Creates a new `Peeker` with specific start and end bounds.
   ///
   /// This provides maximum flexibility in defining the peeker's range,
@@ -123,14 +124,16 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   /// let buf = &data[..];
   ///
   /// // Peek from index 2 to 7 (exclusive)
-  /// let peeker = Peeker::with_bounds(&buf, Bound::Included(2), Bound::Excluded(7));
+  /// let peeker = Peeker::with_range(&buf, 2..7);
   /// assert_eq!(peeker.remaining(), 5);
   /// ```
   #[inline]
-  pub fn with_bounds(buf: &'a B, start: Bound<usize>, end: Bound<usize>) -> Self
+  pub fn with_range(buf: &'a B, range: impl RangeBounds<usize>) -> Self
   where
     B: Buf,
   {
+    let start = range.start_bound().cloned();
+    let end = range.end_bound().cloned();
     let start_pos = Self::resolve_start_bound(start, buf);
     Self::with_cursor_and_bounds_inner(buf, start_pos, Bound::Included(start_pos), end)
   }

@@ -1,4 +1,4 @@
-use core::ops::Bound;
+use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
@@ -161,14 +161,16 @@ impl<B> Putter<B> {
   /// let mut data = [0u8; 10];
   ///
   /// // Write from index 2 to 7 (exclusive)
-  /// let putter = Putter::with_bounds(&mut data[..], Bound::Included(2), Bound::Excluded(7));
+  /// let putter = Putter::with_range(&mut data[..], 2..7);
   /// assert_eq!(putter.remaining_mut(), 5);
   /// ```
   #[inline]
-  pub fn with_bounds(buf: impl Into<WriteBuf<B>>, start: Bound<usize>, end: Bound<usize>) -> Self
+  pub fn with_range(buf: impl Into<WriteBuf<B>>, range: impl RangeBounds<usize>) -> Self
   where
     B: BufMut,
   {
+    let start = range.start_bound().cloned();
+    let end = range.end_bound().cloned();
     let write_buf = buf.into();
     let start_pos = Self::resolve_start_bound(start, &write_buf);
     Self::with_cursor_and_bounds_inner(write_buf, start_pos, Bound::Included(start_pos), end)
@@ -207,9 +209,10 @@ impl<B> Putter<B> {
   ///
   /// ```rust
   /// use bufkit::{BufMut, Putter};
+  /// use core::ops::Bound;
   ///
   /// let mut data = [0u8; 10];
-  /// let mut putter = Putter::with_offset(&mut data[..], 3);
+  /// let mut putter = Putter::with_range(&mut data[..], 3..7);
   ///
   /// putter.write_u8(0x42);
   /// assert_eq!(putter.absolute_position(), 4); // 3 (offset) + 1 (written)
