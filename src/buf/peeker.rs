@@ -58,9 +58,9 @@ impl<B: Clone> Clone for Peeker<B> {
   fn clone(&self) -> Self {
     Self {
       cursor: self.cursor,
-      start: self.start.clone(),
-      end: self.end.clone(),
-      limit: self.limit.clone(),
+      start: self.start,
+      end: self.end,
+      limit: self.limit,
       buf: self.buf.clone(),
     }
   }
@@ -86,7 +86,7 @@ impl<B> Peeker<B> {
   /// ```
   #[inline]
   pub const fn new(buf: B) -> Self {
-    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Unbounded)
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Unbounded, Bound::Unbounded)
   }
 
   /// Creates a new `Peeker` constrained to a specific length.
@@ -106,7 +106,7 @@ impl<B> Peeker<B> {
   /// ```
   #[inline]
   pub const fn with_limit(buf: B, limit: usize) -> Self {
-    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Unbounded, Bound::Excluded(limit))
   }
 
   /// Creates a new `Peeker` with specific start and end bounds.

@@ -80,7 +80,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// ```
   #[inline]
   pub const fn new(buf: &'a B) -> Self {
-    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Unbounded)
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Unbounded, Bound::Unbounded)
   }
 
   /// Creates a new `RefPeeker` constrained to a specific length.
@@ -100,7 +100,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// ```
   #[inline]
   pub const fn with_limit(buf: &'a B, limit: usize) -> Self {
-    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Unbounded, Bound::Excluded(limit))
   }
 
   /// Creates a new `RefPeeker` with specific start and end bounds.
