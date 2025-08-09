@@ -8,6 +8,10 @@ use super::error::{PutVarintAtError, PutVarintError, WriteVarintError};
 #[cfg(feature = "varing")]
 use varing::Varint;
 
+pub use putter::Putter;
+
+mod putter;
+
 macro_rules! put_fixed {
   ($($ty:ty),+$(,)?) => {
     paste::paste! {
@@ -2448,6 +2452,12 @@ impl<B: ?Sized> WriteBuf<B> {
 }
 
 impl<B> WriteBuf<B> {
+  /// Creates a new `WriteBuf` from the given `BufMut`.
+  #[inline]
+  pub const fn new(buf: B) -> Self {
+    WriteBuf(buf)
+  }
+
   /// Consumes the `WriteBuf` and returns the underlying `BufMut`.
   ///
   /// # Examples

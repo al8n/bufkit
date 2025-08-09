@@ -38,8 +38,11 @@ use super::Buf;
 pub struct Peeker<'a, B: ?Sized> {
   buf: &'a B,
   cursor: usize,
+  /// The original start position of the peeker, used for resetting.
   start: usize,
+  /// The original limit of the peeker, used for resetting.
   end: Option<usize>,
+  limit: Option<usize>,
 }
 
 impl<'a, B: 'a + ?Sized> From<&'a B> for Peeker<'a, B> {
@@ -81,6 +84,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
       cursor: 0,
       start: 0,
       end: None,
+      limit: None,
     }
   }
 
@@ -128,7 +132,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   /// ```
   #[inline]
   pub const fn peeked(&self) -> usize {
-    self.cursor
+    self.cursor.saturating_sub(self.start)
   }
 
   /// Resets the peeker's cursor to the beginning.
@@ -154,16 +158,18 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
   /// ```
   #[inline]
   pub fn reset(&mut self) {
-    self.cursor = 0;
+    self.cursor = self.start;
+    self.limit = self.end;
   }
 
   #[inline]
-  const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, end: Option<usize>) -> Self {
+  const fn with_cursor_and_limit_inner(buf: &'a B, cursor: usize, limit: Option<usize>) -> Self {
     Self {
       buf,
       cursor,
       start: cursor,
-      end,
+      end: limit,
+      limit,
     }
   }
 }
@@ -171,7 +177,7 @@ impl<'a, B: 'a + ?Sized> Peeker<'a, B> {
 impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
   #[inline]
   fn remaining(&self) -> usize {
-    match self.end {
+    match self.limit {
       Some(end) => end.saturating_sub(self.cursor),
       None => self.buf.remaining().saturating_sub(self.cursor),
     }
@@ -180,7 +186,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
   #[inline]
   fn buffer(&self) -> &[u8] {
     let start = self.cursor.min(self.buf.remaining());
-    match self.end {
+    match self.limit {
       Some(end) => &self.buf.buffer()[start..end.min(self.buf.remaining())],
       None => self.buf.buffer_from(start),
     }
@@ -249,12 +255,12 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
 
     let new_end = self.cursor + len;
 
-    match self.end {
+    match self.limit {
       Some(existing_end) => {
-        self.end = Some(new_end.min(existing_end));
+        self.limit = Some(new_end.min(existing_end));
       }
       None => {
-        self.end = Some(new_end);
+        self.limit = Some(new_end);
       }
     }
   }
@@ -268,10 +274,10 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for Peeker<'a, B> {
     check_out_of_bounds("split_off", at, remaining);
 
     let new_cursor = self.cursor + at;
-    let old_end = self.end;
+    let old_end = self.limit;
 
     // Truncate self to [0, at)
-    self.end = Some(self.cursor + at);
+    self.limit = Some(self.cursor + at);
 
     // Return the right part [at, end)
     Self::with_cursor_and_limit_inner(self.buf, new_cursor, old_end)
