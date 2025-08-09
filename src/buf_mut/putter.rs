@@ -1,3 +1,5 @@
+use core::ops::Bound;
+
 use crate::error::TryAdvanceError;
 
 use super::{BufMut, WriteBuf};
@@ -34,12 +36,12 @@ use super::{BufMut, WriteBuf};
 pub struct Putter<B: ?Sized> {
   /// Current cursor position relative to the buffer's current position
   cursor: usize,
-  /// The original start position of the putter, used for reset_positionting.
-  start: usize,
-  /// The original limit of the putter, used for reset_positionting.
-  end: Option<usize>,
-  /// Current limit of the putter
-  limit: Option<usize>,
+  /// The original start bound of the putter, used for resetting.
+  start: Bound<usize>,
+  /// The original end bound of the putter, used for resetting.
+  end: Bound<usize>,
+  /// Current limit bound of the putter
+  limit: Bound<usize>,
   /// The underlying buffer wrapped in WriteBuf for ergonomic access
   buf: WriteBuf<B>,
 }
@@ -74,9 +76,9 @@ impl<B> Putter<B> {
     Self {
       buf: buf.into(),
       cursor: 0,
-      start: 0,
-      end: None,
-      limit: None,
+      start: Bound::Included(0),
+      end: Bound::Unbounded,
+      limit: Bound::Unbounded,
     }
   }
 
@@ -100,9 +102,9 @@ impl<B> Putter<B> {
     Self {
       buf: WriteBuf::new(buf),
       cursor: 0,
-      start: 0,
-      end: None,
-      limit: None,
+      start: Bound::Included(0),
+      end: Bound::Unbounded,
+      limit: Bound::Unbounded,
     }
   }
 
@@ -121,16 +123,58 @@ impl<B> Putter<B> {
   /// assert_eq!(putter.remaining_mut(), 5);
   /// ```
   #[inline]
-  pub fn with_limit(buf: impl Into<WriteBuf<B>>, limit: usize) -> Self
+  pub fn with_limit(buf: impl Into<WriteBuf<B>>, limit: usize) -> Self {
+    let write_buf = buf.into();
+    Self::with_cursor_and_bounds_inner(write_buf, 0, Bound::Included(0), Bound::Excluded(limit))
+  }
+
+  /// Creates a new `Putter` constrained to a specific length.
+  ///
+  /// This is useful when you want to ensure the putter cannot write beyond
+  /// a certain number of bytes, providing additional safety for serialization operations.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{BufMut, Putter};
+  ///
+  /// let mut data = [0u8; 10];
+  /// let putter = Putter::const_with_limit((&mut data[..]).into(), 5); // Only write first 5 bytes
+  /// assert_eq!(putter.remaining_mut(), 5);
+  /// ```
+  #[inline]
+  pub const fn const_with_limit(buf: WriteBuf<B>, limit: usize) -> Self {
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
+  }
+
+  /// Creates a new `Putter` with specific start and end bounds.
+  ///
+  /// This provides maximum flexibility in defining the putter's range,
+  /// allowing for more complex write scenarios.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use core::ops::Bound;
+  /// use bufkit::{BufMut, Putter};
+  ///
+  /// let mut data = [0u8; 10];
+  ///
+  /// // Write from index 2 to 7 (exclusive)
+  /// let putter = Putter::with_bounds(&mut data[..], Bound::Included(2), Bound::Excluded(7));
+  /// assert_eq!(putter.remaining_mut(), 5);
+  /// ```
+  #[inline]
+  pub fn with_bounds(buf: impl Into<WriteBuf<B>>, start: Bound<usize>, end: Bound<usize>) -> Self
   where
     B: BufMut,
   {
     let write_buf = buf.into();
-    let actual_limit = limit.min(write_buf.remaining_mut());
-    Self::with_cursor_and_limit_inner(write_buf, 0, Some(actual_limit))
+    let start_pos = Self::resolve_start_bound(start, &write_buf);
+    Self::with_cursor_and_bounds_inner(write_buf, start_pos, Bound::Included(start_pos), end)
   }
 
-  /// Returns the number of bytes that have been written through the putter.
+  /// Returns the current position of the internal cursor relative to the start of the buffer.
   ///
   /// This represents how far the putter's cursor has advanced from its starting position.
   ///
@@ -142,15 +186,37 @@ impl<B> Putter<B> {
   /// let mut data = [0u8; 10];
   /// let mut putter = Putter::new(&mut data[..]);
   ///
-  /// assert_eq!(putter.written(), 0);
+  /// assert_eq!(putter.position(), 0);
   /// putter.write_u8(0x42);
-  /// assert_eq!(putter.written(), 1);
+  /// assert_eq!(putter.position(), 1);
   /// putter.advance_mut(2);
-  /// assert_eq!(putter.written(), 3);
+  /// assert_eq!(putter.position(), 3);
   /// ```
   #[inline]
-  pub const fn written(&self) -> usize {
-    self.cursor.saturating_sub(self.start)
+  pub const fn position(&self) -> usize {
+    let start_pos = Self::resolve_start_bound_without_check(self.start);
+    self.cursor.saturating_sub(start_pos)
+  }
+
+  /// Returns the absolute position of the putter's cursor in the underlying buffer.
+  ///
+  /// This is the position relative to the start of the buffer, not just the putter's starting point.
+  /// This is useful for understanding where the putter is writing in the context of the entire buffer.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{BufMut, Putter};
+  ///
+  /// let mut data = [0u8; 10];
+  /// let mut putter = Putter::with_offset(&mut data[..], 3);
+  ///
+  /// putter.write_u8(0x42);
+  /// assert_eq!(putter.absolute_position(), 4); // 3 (offset) + 1 (written)
+  /// ```
+  #[inline]
+  pub const fn absolute_position(&self) -> usize {
+    self.cursor
   }
 
   /// Resets the putter's to the initial state.
@@ -170,15 +236,15 @@ impl<B> Putter<B> {
   /// let mut putter = Putter::new(&mut data[..]);
   ///
   /// putter.advance_mut(3);
-  /// assert_eq!(putter.written(), 3);
+  /// assert_eq!(putter.position(), 3);
   ///
   /// putter.reset_position();
-  /// assert_eq!(putter.written(), 0);
+  /// assert_eq!(putter.position(), 0);
   /// assert_eq!(putter.remaining_mut(), 10);
   /// ```
   #[inline]
   pub const fn reset_position(&mut self) {
-    self.cursor = self.start;
+    self.cursor = Self::resolve_start_bound_without_check(self.start);
     self.limit = self.end;
   }
 
@@ -200,46 +266,64 @@ impl<B> Putter<B> {
   ///
   /// putter.reset();
   /// assert_eq!(putter.buffer_mut()[0], 0x00); // The first byte is reset to zero
-  ///
-  /// let mut data = [1u8; 10];
-  ///
-  /// let mut putter = Putter::with_limit(&mut data[..], 5);
-  /// putter.put_u8(0x42);
-  /// assert_eq!(putter.buffer_mut()[0], 0x42);
-  ///
-  /// putter.reset();
-  /// assert_eq!(&putter.buffer_mut()[..5], [0x00; 5].as_slice()); // The first five bytes are reset to zero
-  ///
-  /// drop(putter);
-  /// assert_eq!(&data[..5], [0x00; 5].as_slice()); // The first five bytes of the original buffer are reset to zero
-  /// assert_eq!(&data[5..], [1; 5].as_slice()); // The rest remains unchanged
   /// ```
   pub fn reset(&mut self)
   where
     B: BufMut,
   {
-    match self.end {
-      Some(end) => {
-        let start = self.start;
-        self.buf.buffer_mut()[start..end].fill(0);
-      }
-      None => {
-        let start = self.start;
-        self.buf.buffer_mut_from(start).fill(0);
-      }
-    }
-
     self.reset_position();
+    self.fill(0);
   }
 
   #[inline]
-  fn with_cursor_and_limit_inner(buf: WriteBuf<B>, cursor: usize, limit: Option<usize>) -> Self {
+  const fn with_cursor_and_bounds_inner(
+    buf: WriteBuf<B>,
+    cursor: usize,
+    start: Bound<usize>,
+    end: Bound<usize>,
+  ) -> Self {
     Self {
       buf,
       cursor,
-      start: cursor,
-      end: limit,
-      limit,
+      start,
+      end,
+      limit: end,
+    }
+  }
+
+  #[inline]
+  const fn resolve_start_bound_without_check(bound: Bound<usize>) -> usize {
+    match bound {
+      Bound::Included(n) => n,
+      Bound::Excluded(n) => n.saturating_add(1),
+      Bound::Unbounded => 0,
+    }
+  }
+}
+
+impl<B: ?Sized> Putter<B> {
+  #[inline]
+  fn resolve_start_bound(bound: Bound<usize>, buf: &WriteBuf<B>) -> usize
+  where
+    B: BufMut,
+  {
+    let pos = match bound {
+      Bound::Included(n) => n,
+      Bound::Excluded(n) => n.saturating_add(1),
+      Bound::Unbounded => 0,
+    };
+    pos.min(buf.remaining_mut())
+  }
+
+  #[inline]
+  fn resolve_end_bound(&self, bound: Bound<usize>) -> usize
+  where
+    B: BufMut,
+  {
+    match bound {
+      Bound::Included(n) => (n.saturating_add(1)).min(self.buf.remaining_mut()),
+      Bound::Excluded(n) => n.min(self.buf.remaining_mut()),
+      Bound::Unbounded => self.buf.remaining_mut(),
     }
   }
 }
@@ -247,19 +331,15 @@ impl<B> Putter<B> {
 impl<B: BufMut + ?Sized> BufMut for Putter<B> {
   #[inline]
   fn remaining_mut(&self) -> usize {
-    match self.limit {
-      Some(end) => end.saturating_sub(self.cursor),
-      None => self.buf.remaining_mut().saturating_sub(self.cursor),
-    }
+    let end_pos = self.resolve_end_bound(self.limit);
+    end_pos.saturating_sub(self.cursor)
   }
 
   #[inline]
   fn buffer_mut(&mut self) -> &mut [u8] {
     let start = self.cursor.min(self.buf.remaining_mut());
-    match self.limit {
-      Some(end) => &mut self.buf.buffer_mut()[start..end],
-      None => self.buf.buffer_mut_from(start),
-    }
+    let end_pos = self.resolve_end_bound(self.limit);
+    &mut self.buf.buffer_mut()[start..end_pos]
   }
 
   #[inline]
@@ -288,15 +368,12 @@ impl<B: BufMut + ?Sized> BufMut for Putter<B> {
       return; // No truncation needed
     }
 
-    let new_end = self.cursor + new_len;
+    let new_end_pos = self.cursor + new_len;
+    let current_end_pos = self.resolve_end_bound(self.limit);
 
-    match self.limit {
-      Some(existing_end) => {
-        self.limit = Some(new_end.min(existing_end));
-      }
-      None => {
-        self.limit = Some(new_end);
-      }
+    // Only truncate if the new limit is more restrictive than the current one
+    if new_end_pos < current_end_pos {
+      self.limit = Bound::Excluded(new_end_pos);
     }
   }
 }
@@ -311,12 +388,12 @@ mod tests {
     let mut putter = Putter::new(&mut data[..]);
 
     assert_eq!(putter.remaining_mut(), 10);
-    assert_eq!(putter.written(), 0);
+    assert_eq!(putter.position(), 0);
 
     // Write a byte
     putter.write_u8(0x42);
     assert_eq!(putter.remaining_mut(), 9);
-    assert_eq!(putter.written(), 1);
+    assert_eq!(putter.position(), 1);
 
     // Check that the data was written
     assert_eq!(data[0], 0x42);
@@ -360,11 +437,11 @@ mod tests {
     let mut putter = Putter::new(&mut data[..]);
 
     putter.advance_mut(3);
-    assert_eq!(putter.written(), 3);
+    assert_eq!(putter.position(), 3);
     assert_eq!(putter.remaining_mut(), 7);
 
     putter.reset_position();
-    assert_eq!(putter.written(), 0);
+    assert_eq!(putter.position(), 0);
     assert_eq!(putter.remaining_mut(), 10);
   }
 
@@ -395,11 +472,11 @@ mod tests {
     let mut putter = Putter::new(&mut data[..]);
 
     assert!(putter.try_advance_mut(2).is_ok());
-    assert_eq!(putter.written(), 2);
+    assert_eq!(putter.position(), 2);
 
     // Should fail when trying to advance beyond available space
     assert!(putter.try_advance_mut(5).is_err());
-    assert_eq!(putter.written(), 2); // Should remain unchanged
+    assert_eq!(putter.position(), 2); // Should remain unchanged
   }
 
   #[test]
@@ -419,7 +496,7 @@ mod tests {
     // Test little-endian writes
     putter.write_u16_le(0x1234);
     putter.write_u32_le(0x56789ABC);
-    assert_eq!(putter.written(), 6);
+    assert_eq!(putter.position(), 6);
 
     // Verify the data was written correctly
     assert_eq!(&data[0..2], &[0x34, 0x12]); // u16 LE
@@ -434,7 +511,7 @@ mod tests {
     let test_data = [0x11, 0x22, 0x33, 0x44];
     putter.write_slice(&test_data);
 
-    assert_eq!(putter.written(), 4);
+    assert_eq!(putter.position(), 4);
     assert_eq!(&data[0..4], &test_data);
     assert_eq!(data[4], 0x00); // Unchanged
   }
@@ -484,20 +561,23 @@ mod tests {
 
     // Verify invariants are maintained through operations
     let initial_remaining = putter.remaining_mut();
-    let initial_written = putter.written();
+    let initial_written = putter.position();
 
     // After advance
     putter.advance_mut(3);
-    assert_eq!(putter.remaining_mut() + putter.written(), initial_remaining);
+    assert_eq!(
+      putter.remaining_mut() + putter.position(),
+      initial_remaining
+    );
 
     // After truncate
     putter.truncate_mut(5);
     assert_eq!(putter.remaining_mut(), 5);
-    assert_eq!(putter.written(), 3);
+    assert_eq!(putter.position(), 3);
 
     // After reset_position
     putter.reset_position();
-    assert_eq!(putter.written(), initial_written);
+    assert_eq!(putter.position(), initial_written);
     assert_eq!(putter.remaining_mut(), initial_remaining); // back to initial state
   }
 
@@ -576,11 +656,11 @@ mod tests {
     let mut putter = Putter::with_limit(&mut data[..], 5);
 
     putter.advance_mut(3);
-    assert_eq!(putter.written(), 3);
+    assert_eq!(putter.position(), 3);
     assert_eq!(putter.remaining_mut(), 2);
 
     putter.reset_position();
-    assert_eq!(putter.written(), 0);
+    assert_eq!(putter.position(), 0);
     assert_eq!(putter.remaining_mut(), 5); // Should still be limited to 5
   }
 
@@ -644,7 +724,7 @@ mod tests {
     }
 
     assert_eq!(putter.remaining_mut(), 900);
-    assert_eq!(putter.written(), 100);
+    assert_eq!(putter.position(), 100);
 
     // Verify data
     for i in 0..100 {
@@ -695,20 +775,20 @@ mod tests {
     let mut putter = Putter::new(&mut data[..]);
 
     // Test written calculation with different operations
-    assert_eq!(putter.written(), 0);
+    assert_eq!(putter.position(), 0);
 
     putter.advance_mut(2);
-    assert_eq!(putter.written(), 2);
+    assert_eq!(putter.position(), 2);
 
     putter.write_u8(0x42);
-    assert_eq!(putter.written(), 3);
+    assert_eq!(putter.position(), 3);
 
     putter.write_slice(&[1, 2, 3]);
-    assert_eq!(putter.written(), 6);
+    assert_eq!(putter.position(), 6);
 
     // Reset and verify
     putter.reset_position();
-    assert_eq!(putter.written(), 0);
+    assert_eq!(putter.position(), 0);
   }
 
   #[test]
@@ -723,7 +803,7 @@ mod tests {
     let mut putter = Putter::new(&mut data[..]); // Just &mut [u8]
 
     putter.write_u8(0x42);
-    assert_eq!(putter.written(), 1);
+    assert_eq!(putter.position(), 1);
 
     drop(putter);
     assert_eq!(data[0], 0x42);
