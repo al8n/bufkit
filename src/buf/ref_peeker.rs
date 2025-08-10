@@ -337,14 +337,7 @@ impl<'a, B: 'a + Buf + ?Sized> Buf for RefPeeker<'a, B> {
       Bound::Unbounded => current_remaining,
     };
 
-    assert!(
-      begin <= end,
-      "range start must not be greater than end: {begin} <= {end}",
-    );
-    assert!(
-      end <= current_remaining,
-      "range end out of bounds: {end} <= {current_remaining}",
-    );
+    super::check_segment_range_bounds(begin, end, current_remaining);
 
     let start = self.cursor + begin;
     let start_bound = Bound::Included(start);

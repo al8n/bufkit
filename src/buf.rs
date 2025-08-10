@@ -2712,6 +2712,18 @@ fn check_out_of_bounds(method_name: &'static str, at: usize, remaining: usize) {
   );
 }
 
+#[inline]
+fn check_segment_range_bounds(begin: usize, end: usize, current_remaining: usize) {
+  assert!(
+    begin <= end,
+    "range start must not be greater than end: {begin} <= {end}",
+  );
+  assert!(
+    end <= current_remaining,
+    "range end out of bounds: {end} <= {current_remaining}",
+  );
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
