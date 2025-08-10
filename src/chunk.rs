@@ -2451,7 +2451,7 @@ impl Chunk for &[u8] {
 
 #[cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc")))]
 const _: () = {
-  use bytes_1::{Chunk as _, Bytes};
+  use bytes_1::{Buf as _, Bytes};
 
   macro_rules! read_fixed_specification {
     ($($ty:ident), +$(,)?) => {
@@ -2497,7 +2497,10 @@ const _: () = {
     };
   }
 
-  #[cfg_attr(docsrs, doc(cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc")))))]
+  #[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc"))))
+  )]
   impl Chunk for Bytes {
     #[inline]
     fn remaining(&self) -> usize {

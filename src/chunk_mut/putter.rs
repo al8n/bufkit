@@ -93,7 +93,8 @@ impl<B> Putter<B> {
   /// ```
   #[inline]
   pub const fn const_new(buf: B) -> Self {
-    Self::with_cursor_and_bounds_inner(ChunkWriter::new(buf), 0, Bound::Included(0), Bound::Unbounded)
+    let buf = ChunkWriter::new(buf);
+    Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Unbounded)
   }
 
   /// Creates a new `Putter` constrained to a specific length.
