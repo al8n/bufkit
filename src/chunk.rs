@@ -2532,7 +2532,7 @@ const _: () = {
 
     #[inline]
     fn advance(&mut self, cnt: usize) {
-      bytes_1::Chunk::advance(self, cnt);
+      bytes_1::Buf::advance(self, cnt);
     }
 
     #[inline]
