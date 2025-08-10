@@ -2,7 +2,7 @@ use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
-use super::{BufMut, WriteBuf};
+use super::{ChunkMut, ChunkWriter};
 
 /// A putter for writing to a buffer without modifying the original buffer's cursor.
 ///
@@ -20,7 +20,7 @@ use super::{BufMut, WriteBuf};
 /// # Examples
 ///
 /// ```rust
-/// use bufkit::{BufMut, Putter};
+/// use bufkit::{ChunkMut, Putter};
 ///
 /// let mut data = [0u8; 10];
 /// let mut putter = Putter::new(&mut data[..]);  // No need for &mut &mut
@@ -42,11 +42,11 @@ pub struct Putter<B: ?Sized> {
   end: Bound<usize>,
   /// Current limit bound of the putter
   limit: Bound<usize>,
-  /// The underlying buffer wrapped in WriteBuf for ergonomic access
-  buf: WriteBuf<B>,
+  /// The underlying buffer wrapped in ChunkWriter for ergonomic access
+  buf: ChunkWriter<B>,
 }
 
-impl<B: BufMut> From<B> for Putter<B> {
+impl<B: ChunkMut> From<B> for Putter<B> {
   #[inline]
   fn from(buf: B) -> Self {
     Self::new(buf)
@@ -62,16 +62,16 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let putter = Putter::new(&mut data[..]);
   /// assert_eq!(putter.remaining_mut(), 10);
   /// ```
   #[inline]
-  pub fn new(buf: impl Into<WriteBuf<B>>) -> Self
+  pub fn new(buf: impl Into<ChunkWriter<B>>) -> Self
   where
-    B: BufMut,
+    B: ChunkMut,
   {
     Self::with_cursor_and_bounds_inner(buf.into(), 0, Bound::Included(0), Bound::Unbounded)
   }
@@ -84,7 +84,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let mut slice: &mut [u8] = &mut data[..];
@@ -93,7 +93,7 @@ impl<B> Putter<B> {
   /// ```
   #[inline]
   pub const fn const_new(buf: B) -> Self {
-    Self::with_cursor_and_bounds_inner(WriteBuf::new(buf), 0, Bound::Included(0), Bound::Unbounded)
+    Self::with_cursor_and_bounds_inner(ChunkWriter::new(buf), 0, Bound::Included(0), Bound::Unbounded)
   }
 
   /// Creates a new `Putter` constrained to a specific length.
@@ -104,14 +104,14 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let putter = Putter::with_limit(&mut data[..], 5); // Only write first 5 bytes
   /// assert_eq!(putter.remaining_mut(), 5);
   /// ```
   #[inline]
-  pub fn with_limit(buf: impl Into<WriteBuf<B>>, limit: usize) -> Self {
+  pub fn with_limit(buf: impl Into<ChunkWriter<B>>, limit: usize) -> Self {
     let write_buf = buf.into();
     Self::with_cursor_and_bounds_inner(write_buf, 0, Bound::Included(0), Bound::Excluded(limit))
   }
@@ -124,14 +124,14 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let putter = Putter::const_with_limit((&mut data[..]).into(), 5); // Only write first 5 bytes
   /// assert_eq!(putter.remaining_mut(), 5);
   /// ```
   #[inline]
-  pub const fn const_with_limit(buf: WriteBuf<B>, limit: usize) -> Self {
+  pub const fn const_with_limit(buf: ChunkWriter<B>, limit: usize) -> Self {
     Self::with_cursor_and_bounds_inner(buf, 0, Bound::Included(0), Bound::Excluded(limit))
   }
 
@@ -144,7 +144,7 @@ impl<B> Putter<B> {
   ///
   /// ```rust
   /// use core::ops::Bound;
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   ///
@@ -153,9 +153,9 @@ impl<B> Putter<B> {
   /// assert_eq!(putter.remaining_mut(), 5);
   /// ```
   #[inline]
-  pub fn with_range(buf: impl Into<WriteBuf<B>>, range: impl RangeBounds<usize>) -> Self
+  pub fn with_range(buf: impl Into<ChunkWriter<B>>, range: impl RangeBounds<usize>) -> Self
   where
-    B: BufMut,
+    B: ChunkMut,
   {
     let start = range.start_bound().cloned();
     let end = range.end_bound().cloned();
@@ -171,7 +171,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let mut putter = Putter::new(&mut data[..]);
@@ -196,7 +196,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   /// use core::ops::Bound;
   ///
   /// let mut data = [0u8; 10];
@@ -221,7 +221,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let mut putter = Putter::new(&mut data[..]);
@@ -247,7 +247,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let mut putter = Putter::new(&mut data[..]);
@@ -260,7 +260,7 @@ impl<B> Putter<B> {
   /// ```
   pub fn reset(&mut self)
   where
-    B: BufMut,
+    B: ChunkMut,
   {
     self.reset_position();
     self.fill(0);
@@ -274,7 +274,7 @@ impl<B> Putter<B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, Putter};
+  /// use bufkit::{ChunkMut, Putter};
   ///
   /// let mut data = [0u8; 10];
   /// let mut putter = Putter::new(&mut data[..]);
@@ -289,7 +289,7 @@ impl<B> Putter<B> {
 
   #[inline]
   const fn with_cursor_and_bounds_inner(
-    buf: WriteBuf<B>,
+    buf: ChunkWriter<B>,
     cursor: usize,
     start: Bound<usize>,
     end: Bound<usize>,
@@ -315,9 +315,9 @@ impl<B> Putter<B> {
 
 impl<B: ?Sized> Putter<B> {
   #[inline]
-  fn resolve_start_bound(bound: Bound<usize>, buf: &WriteBuf<B>) -> usize
+  fn resolve_start_bound(bound: Bound<usize>, buf: &ChunkWriter<B>) -> usize
   where
-    B: BufMut,
+    B: ChunkMut,
   {
     let pos = match bound {
       Bound::Included(n) => n,
@@ -330,7 +330,7 @@ impl<B: ?Sized> Putter<B> {
   #[inline]
   fn resolve_end_bound(&self, bound: Bound<usize>) -> usize
   where
-    B: BufMut,
+    B: ChunkMut,
   {
     match bound {
       Bound::Included(n) => (n.saturating_add(1)).min(self.buf.remaining_mut()),
@@ -340,7 +340,7 @@ impl<B: ?Sized> Putter<B> {
   }
 }
 
-impl<B: BufMut + ?Sized> BufMut for Putter<B> {
+impl<B: ChunkMut + ?Sized> ChunkMut for Putter<B> {
   #[inline]
   fn remaining_mut(&self) -> usize {
     let end_pos = self.resolve_end_bound(self.limit);

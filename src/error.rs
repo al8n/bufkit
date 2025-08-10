@@ -145,7 +145,7 @@ This error is particularly useful for Sans-I/O designs as it provides exact info
 about space requirements, allowing the caller to allocate a larger buffer and retry:
 
 ```rust
-# use bufkit::BufMut;
+# use bufkit::ChunkMut;
 let mut small_buf = [0u8; 4];
 let mut writer = &mut small_buf[..];
 
@@ -182,7 +182,7 @@ This error is particularly useful for Sans-I/O designs as it provides exact info
 about space requirements, allowing the caller to allocate a larger buffer and retry:
 
 ```rust
-# use bufkit::BufMut;
+# use bufkit::ChunkMut;
 let mut small_buf = [0u8; 4];
 let mut writer = &mut small_buf[..];
 
@@ -217,7 +217,7 @@ impl From<TryWriteError> for std::io::Error {
 /// # Examples
 ///
 /// ```rust
-/// # use bufkit::Buf;
+/// # use bufkit::Chunk;
 /// let data = b"Hello";
 /// let buf = &data[..];
 ///
@@ -319,7 +319,7 @@ impl From<TrySegmentError> for std::io::Error {
 /// # Example
 ///
 /// ```rust
-/// # use bufkit::BufMut;
+/// # use bufkit::ChunkMut;
 /// let mut buf = [0u8; 10];
 /// let mut writer = &mut buf[..];
 ///

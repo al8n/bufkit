@@ -3,7 +3,8 @@
 </div>
 <div align="center">
 
-Providing `Buf` and `BufMut` for working with byte buffers. `bufkit` focuses on predictable memory usage and comprehensive error handling.
+`no_std`-friendly, memory-backed buffer toolkit designed for **Sans-I/O style** encoding and decoding.
+Provides `Chunk` (read-only view), `ChunkMut` (mutable view), and helpers for explicit, convenient bounds-checked access.
 
 [<img alt="github" src="https://img.shields.io/badge/github-al8n/bufkit-8da0cb?style=for-the-badge&logo=Github" height="22">][Github-url]
 <img alt="LoC" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fal8n%2F327b2a8aef9003246e45c6e47fe63937%2Fraw%2Fbufkit" height="22">
@@ -17,17 +18,19 @@ Providing `Buf` and `BufMut` for working with byte buffers. `bufkit` focuses on 
 
 </div>
 
+## Overview
+
+**bufkit** is a small, focused toolkit for working with in-memory buffers in a predictable, controlled way.  
+It’s Sans-I/O friendly — meaning it’s easy to integrate into network protocol parsers, database engines, binary file format decoders/encoders, and embedded systems that follow the Sans-I/O design pattern — but it doesn’t implement any I/O itself.
+
 ## Features
 
-`bufkit` prioritizes explicit control and detailed error reporting, making it suitable for applications where memory behavior must be predictable and errors need comprehensive handling.
-
-- **Multiple error handling strategies** - Choose between panicking, `Option`, or detailed `Result` types
-- **Buffer segmentation** - Create independent views of buffer data
-- **Offset operations** - Built-in methods for writing/reading at specific positions
-- **Embedded friendly** - Support both `no-alloc` and `no-std`.
-- **Sans-I/O friendly** - Works purely on memory buffers without hidden allocations or I/O operations, providing predictable behavior and detailed error information that helps with protocol state management and partial data handling
-  - **No hidden allocations** - Write operations work directly on provided memory
-  - **Retry-friendly** - `try_*` methods provide detailed error information (requested vs available bytes) enabling robust retry logic and graceful error recovery
+- **Predictable memory usage** – operates directly on memory you provide, no hidden allocations.
+- **Explicit error handling** – choose panicking, `Option`, or detailed `Result` with requested vs. available byte counts.
+- **Segmented views** – create independent `Chunk`/`ChunkMut` views into the same buffer.
+- **Offset reads/writes** – operate at arbitrary positions without unsafe pointer math.
+- **Embedded friendly** - **`no_std` & `no_alloc` ready** – works in embedded and constrained environments.
+- **Retry-friendly** – `try_*` methods enable robust partial read/write handling.
 
 ## Installation
 
@@ -36,17 +39,26 @@ Providing `Buf` and `BufMut` for working with byte buffers. `bufkit` focuses on 
 bufkit = "0.3"
 ```
 
-- Enable LEB128 encoding/decoding methods
+### Feature Flags
 
-  ```toml
-  [dependencies]
-  bufkit = { version = "0.3", features = ["varing"] }
-  ```
+| Feature   | Default? | Description                                 |
+| --------- | -------- | ------------------------------------------- |
+| `std`     | Yes      | Enables `std` integration                   |
+| `alloc`   | No       | Enables heap-allocated buffer support       |
+| `varing`  | No       | LEB128 encoding & decoding                  |
+| `bytes_1` | No       | Enable integration with `bytes` 1.x         |
 
 ## Alternatives
 
-- [`bytes::{Buf, BufMut}`]: Buffer traits for the bytes may or may not be stored in contiguous memory.
+- [`bytes::{Buf, BufMut}`]: Chunkfer traits for the bytes may or may not be stored in contiguous memory.
 - [`buffer-trait`](https://crates.io/crates/buffer-trait): A `Buffer` trait for reading into uninitialized buffers.
+
+**bufkit** focuses on:
+
+- Fully predictable memory access patterns
+- Segmented buffer views
+- Explicit and retry-friendly error handling
+- `no-std` + `no-alloc` support
 
 #### License
 

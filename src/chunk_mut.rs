@@ -28,7 +28,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -43,7 +43,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in little-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](BufMut::put_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](ChunkMut::put_" $ty "_le_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -51,7 +51,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -65,7 +65,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in little-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](BufMut::put_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le_at`](ChunkMut::put_" $ty "_le_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryPutAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -73,7 +73,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -99,7 +99,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -114,7 +114,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in big-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](BufMut::put_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](ChunkMut::put_" $ty "_be_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -122,7 +122,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -136,7 +136,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in big-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](BufMut::put_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be_at`](ChunkMut::put_" $ty "_be_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryPutAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -144,7 +144,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -173,7 +173,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -189,7 +189,7 @@ macro_rules! put_fixed {
         #[doc = "Tries to put `" $ty "` value in native-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](BufMut::put_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](ChunkMut::put_" $ty "_ne_at)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if the offset is out of bounds
         /// or there's insufficient space for the value.
@@ -197,7 +197,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -212,7 +212,7 @@ macro_rules! put_fixed {
         #[doc = "Tries to put `" $ty "` value in native-endian byte order to the buffer at the specified offset without advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](BufMut::put_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne_at`](ChunkMut::put_" $ty "_ne_at)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryPutAtError)` with detailed
         /// error information if the offset is out of bounds or there's insufficient space.
@@ -220,7 +220,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -246,7 +246,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -263,14 +263,14 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in little-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](BufMut::put_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](ChunkMut::put_" $ty "_le)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -288,7 +288,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in little-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](BufMut::put_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_le`](ChunkMut::put_" $ty "_le)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -296,7 +296,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -325,7 +325,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -342,14 +342,14 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in big-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](BufMut::put_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](ChunkMut::put_" $ty "_be)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -367,7 +367,7 @@ macro_rules! put_fixed {
 
         #[doc = "Tries to put `" $ty "` value in big-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](BufMut::put_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_be`](ChunkMut::put_" $ty "_be)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -375,7 +375,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -407,7 +407,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -425,14 +425,14 @@ macro_rules! put_fixed {
         #[doc = "Tries to put `" $ty "` value in native-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](BufMut::put_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](ChunkMut::put_" $ty "_ne)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -451,7 +451,7 @@ macro_rules! put_fixed {
         #[doc = "Tries to put `" $ty "` value in native-endian byte order to the beginning of the buffer without advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](BufMut::put_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](ChunkMut::put_" $ty "_ne)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -459,7 +459,7 @@ macro_rules! put_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -591,7 +591,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -607,14 +607,14 @@ macro_rules! write_fixed {
 
         #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](BufMut::write_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](ChunkMut::write_" $ty "_le)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -632,7 +632,7 @@ macro_rules! write_fixed {
 
         #[doc = "Tries to write `" $ty "` value in little-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](BufMut::write_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_le`](ChunkMut::write_" $ty "_le)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -640,7 +640,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -669,7 +669,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -685,14 +685,14 @@ macro_rules! write_fixed {
 
         #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](BufMut::write_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](ChunkMut::write_" $ty "_be)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -710,7 +710,7 @@ macro_rules! write_fixed {
 
         #[doc = "Tries to write `" $ty "` value in big-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](BufMut::write_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_be`](ChunkMut::write_" $ty "_be)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -718,7 +718,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -750,7 +750,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -767,14 +767,14 @@ macro_rules! write_fixed {
         #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](BufMut::write_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](ChunkMut::write_" $ty "_ne)."]
         ///
         /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -793,7 +793,7 @@ macro_rules! write_fixed {
         #[doc = "Tries to write `" $ty "` value in native-endian byte order to the beginning of the buffer, advancing the internal cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](BufMut::write_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](ChunkMut::write_" $ty "_ne)."]
         ///
         /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
         /// error information if there's insufficient space.
@@ -801,7 +801,7 @@ macro_rules! write_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::BufMut;
+        /// use bufkit::ChunkMut;
         ///
         /// let mut buf = [0u8; 24];
         /// let mut slice = &mut buf[..];
@@ -884,12 +884,12 @@ macro_rules! write_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Buffer inspection**: `remaining_mut()`, `has_remaining_mut()`, `buffer()`, `buffer_mut()`
-/// - **Buffer manipulation**: `resize()`, `truncate_mut()`, `fill()`
+/// - **Chunkfer inspection**: `remaining_mut()`, `has_remaining_mut()`, `buffer()`, `buffer_mut()`
+/// - **Chunkfer manipulation**: `resize()`, `truncate_mut()`, `fill()`
 /// - **Slice operations**: `prefix_mut()`, `suffix_mut()`, `split_at_mut()`
 /// - **Writing data**: `put_slice()`, `put_u8()`, `put_u16_le()`, etc.
 /// - **Writing at offset**: `put_slice_at()`, `put_u8_at()`, `put_u16_le_at()`, etc.
-pub trait BufMut {
+pub trait ChunkMut {
   /// Returns `true` if the buffer has available space for writing.
   ///
   /// This is equivalent to `self.remaining_mut() == 0`.
@@ -897,14 +897,14 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
-  /// assert!(BufMut::has_remaining_mut(&slice));
+  /// assert!(ChunkMut::has_remaining_mut(&slice));
   ///
   /// let mut empty: &mut [u8] = &mut [];
-  /// assert!(!BufMut::has_remaining_mut(&empty));
+  /// assert!(!ChunkMut::has_remaining_mut(&empty));
   /// ```
   fn has_remaining_mut(&self) -> bool {
     self.remaining_mut() > 0
@@ -918,7 +918,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -934,16 +934,16 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   ///
   /// let mut slice = &mut buf[..];
-  /// BufMut::truncate_mut(&mut slice, 3);
+  /// ChunkMut::truncate_mut(&mut slice, 3);
   /// assert_eq!(slice, [1, 2, 3].as_slice());
   ///
   /// // Truncating to a length >= current length has no effect
-  /// BufMut::truncate_mut(&mut slice, 10);
+  /// ChunkMut::truncate_mut(&mut slice, 10);
   /// assert_eq!(slice, [1, 2, 3].as_slice());
   /// ```
   fn truncate_mut(&mut self, new_len: usize);
@@ -956,7 +956,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4];
   /// let mut slice = &mut buf[..];
@@ -968,18 +968,18 @@ pub trait BufMut {
 
   /// Returns a remaining_mut slice of the buffer starting from the specified offset.
   ///
-  /// This is similar to [`buffer_mut`](BufMut::buffer_mut) but starts from the given offset
+  /// This is similar to [`buffer_mut`](ChunkMut::buffer_mut) but starts from the given offset
   /// rather than the current cursor position.
   ///
   /// # Panics
   ///
   /// Panics if `offset > self.remaining()`.
-  /// Use [`buffer_mut_from_checked`](BufMut::buffer_mut_from_checked) for non-panicking access.
+  /// Use [`buffer_mut_from_checked`](ChunkMut::buffer_mut_from_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut data = [1u8, 2, 3, 4, 5];
   /// let mut buf = &mut data[..];
@@ -995,13 +995,13 @@ pub trait BufMut {
 
   /// Returns a remaining_mut slice of the buffer starting from the specified offset.
   ///
-  /// This is the non-panicking version of [`buffer_mut_from`](BufMut::buffer_mut_from).
+  /// This is the non-panicking version of [`buffer_mut_from`](ChunkMut::buffer_mut_from).
   /// Returns `Some(slice)` if `offset <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut data = [1u8, 2, 3, 4, 5];
   /// let mut buf = &mut data[..];
@@ -1030,12 +1030,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `cnt > self.remaining_mut()`.
-  /// Use [`try_advance_mut`](BufMut::try_advance_mut) for non-panicking advancement.
+  /// Use [`try_advance_mut`](ChunkMut::try_advance_mut) for non-panicking advancement.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut data = [1, 2, 3, 4, 5];
   /// let mut buf = &mut data[..];
@@ -1048,14 +1048,14 @@ pub trait BufMut {
 
   /// Attempts to advance the internal cursor by the specified number of bytes.
   ///
-  /// This is the non-panicking version of [`advance_mut`](BufMut::advance_mut).
+  /// This is the non-panicking version of [`advance_mut`](ChunkMut::advance_mut).
   /// Returns `Ok(())` if the advancement was successful, or `Err(TryAdvanceError)`
   /// with details about requested vs available bytes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut data = [1, 2, 3, 4, 5];
   /// let mut buf = &mut data[..];
@@ -1083,7 +1083,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4];
   /// let mut slice = &mut buf[..];
@@ -1102,12 +1102,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `len > self.remaining_mut()`.
-  /// Use [`prefix_mut_checked`](BufMut::prefix_mut_checked) for non-panicking access.
+  /// Use [`prefix_mut_checked`](ChunkMut::prefix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1121,13 +1121,13 @@ pub trait BufMut {
 
   /// Returns a remaining_mut slice containing the first `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`prefix_mut`](BufMut::prefix_mut).
+  /// This is the non-panicking version of [`prefix_mut`](ChunkMut::prefix_mut).
   /// Returns `Some(slice)` if `len <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1152,12 +1152,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `len > self.remaining_mut()`.
-  /// Use [`suffix_mut_checked`](BufMut::suffix_mut_checked) for non-panicking access.
+  /// Use [`suffix_mut_checked`](ChunkMut::suffix_mut_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1172,13 +1172,13 @@ pub trait BufMut {
 
   /// Returns a remaining_mut slice containing the last `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`suffix_mut`](BufMut::suffix_mut).
+  /// This is the non-panicking version of [`suffix_mut`](ChunkMut::suffix_mut).
   /// Returns `Some(slice)` if `len <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1202,12 +1202,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `mid > self.remaining_mut()`.
-  /// Use [`split_at_mut_checked`](BufMut::split_at_mut_checked) for non-panicking splitting.
+  /// Use [`split_at_mut_checked`](ChunkMut::split_at_mut_checked) for non-panicking splitting.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1221,13 +1221,13 @@ pub trait BufMut {
 
   /// Divides the buffer into two remaining_mut slices at the given index.
   ///
-  /// This is the non-panicking version of [`split_at_mut`](BufMut::split_at_mut).
+  /// This is the non-panicking version of [`split_at_mut`](ChunkMut::split_at_mut).
   /// Returns `Some((left, right))` if `mid <= self.remaining_mut()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [1, 2, 3, 4, 5];
   /// let mut slice = &mut buf[..];
@@ -1247,13 +1247,13 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `slice.len() > self.remaining_mut()`.
-  /// Use [`put_slice_checked`](BufMut::put_slice_checked) or
-  /// [`try_put_slice`](BufMut::try_put_slice) for non-panicking writes.
+  /// Use [`put_slice_checked`](ChunkMut::put_slice_checked) or
+  /// [`try_put_slice`](ChunkMut::try_put_slice) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1270,13 +1270,13 @@ pub trait BufMut {
 
   /// Tries to write slice of bytes to the beginning of the buffer and advance the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice).
+  /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice).
   /// Returns `Some(bytes_written)` on success, or `None` if the buffer is too small.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1297,7 +1297,7 @@ pub trait BufMut {
 
   /// Tries to write slice of bytes to the beginning of the buffer and advance the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice) that
+  /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice) that
   /// returns detailed error information on failure.
   /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with details about
   /// the attempted write size and available space.
@@ -1305,7 +1305,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1336,12 +1336,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`write_u8_checked`](BufMut::write_u8_checked) for non-panicking writes.
+  /// Use [`write_u8_checked`](ChunkMut::write_u8_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1356,13 +1356,13 @@ pub trait BufMut {
 
   /// Tries to write `u8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`write_u8`](BufMut::write_u8).
+  /// This is the non-panicking version of [`write_u8`](ChunkMut::write_u8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 1];
   /// let mut slice = &mut buf[..];
@@ -1384,12 +1384,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`write_i8_checked`](BufMut::write_i8_checked) for non-panicking writes.
+  /// Use [`write_i8_checked`](ChunkMut::write_i8_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1404,13 +1404,13 @@ pub trait BufMut {
 
   /// Tries to write `i8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`write_i8`](BufMut::write_i8).
+  /// This is the non-panicking version of [`write_i8`](ChunkMut::write_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 1];
   ///
@@ -1426,7 +1426,7 @@ pub trait BufMut {
 
   /// Tries to write `u8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`write_u8`](BufMut::write_u8) that
+  /// This is the non-panicking version of [`write_u8`](ChunkMut::write_u8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1434,7 +1434,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1452,7 +1452,7 @@ pub trait BufMut {
 
   /// Tries to write `i8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`write_i8`](BufMut::write_i8) that
+  /// This is the non-panicking version of [`write_i8`](ChunkMut::write_i8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1460,7 +1460,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1484,13 +1484,13 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `slice.len() > self.remaining_mut()`.
-  /// Use [`put_slice_checked`](BufMut::put_slice_checked) or
-  /// [`try_put_slice`](BufMut::try_put_slice) for non-panicking writes.
+  /// Use [`put_slice_checked`](ChunkMut::put_slice_checked) or
+  /// [`try_put_slice`](ChunkMut::try_put_slice) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1506,13 +1506,13 @@ pub trait BufMut {
 
   /// Tries to put slice of bytes to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice).
+  /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice).
   /// Returns `Some(bytes_written)` on success, or `None` if the buffer is too small.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1532,7 +1532,7 @@ pub trait BufMut {
 
   /// Tries to put slice of bytes to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice`](BufMut::put_slice) that
+  /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice) that
   /// returns detailed error information on failure.
   /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with details about
   /// the attempted write size and available space.
@@ -1540,7 +1540,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1569,13 +1569,13 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `offset + slice.len() > self.remaining_mut()` or if `offset >= self.remaining_mut()`.
-  /// Use [`put_slice_at_checked`](BufMut::put_slice_at_checked) or
-  /// [`try_put_slice_at`](BufMut::try_put_slice_at) for non-panicking writes.
+  /// Use [`put_slice_at_checked`](ChunkMut::put_slice_at_checked) or
+  /// [`try_put_slice_at`](ChunkMut::try_put_slice_at) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1591,14 +1591,14 @@ pub trait BufMut {
 
   /// Tries to put slice of bytes to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice_at`](BufMut::put_slice_at).
+  /// This is the non-panicking version of [`put_slice_at`](ChunkMut::put_slice_at).
   /// Returns `Some(bytes_written)` on success, or `None` if there's insufficient space
   /// or the offset is out of bounds.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1619,7 +1619,7 @@ pub trait BufMut {
 
   /// Tries to put slice of bytes to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_slice_at`](BufMut::put_slice_at) that
+  /// This is the non-panicking version of [`put_slice_at`](ChunkMut::put_slice_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(bytes_written)` on success, or `Err(TryPutAtError)` with details about
   /// what went wrong (out of bounds offset, insufficient space, etc.).
@@ -1627,7 +1627,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1666,12 +1666,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`put_u8_checked`](BufMut::put_u8_checked) for non-panicking writes.
+  /// Use [`put_u8_checked`](ChunkMut::put_u8_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1686,13 +1686,13 @@ pub trait BufMut {
 
   /// Tries to put `u8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_u8`](BufMut::put_u8).
+  /// This is the non-panicking version of [`put_u8`](ChunkMut::put_u8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 1];
   /// let mut slice = &mut buf[..];
@@ -1714,12 +1714,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if the buffer has no space available.
-  /// Use [`put_i8_checked`](BufMut::put_i8_checked) for non-panicking writes.
+  /// Use [`put_i8_checked`](ChunkMut::put_i8_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1734,13 +1734,13 @@ pub trait BufMut {
 
   /// Tries to put `i8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_i8`](BufMut::put_i8).
+  /// This is the non-panicking version of [`put_i8`](ChunkMut::put_i8).
   /// Returns `Some(1)` on success, or `None` if the buffer has no space.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 1];
   ///
@@ -1761,12 +1761,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `offset >= self.remaining_mut()`.
-  /// Use [`put_u8_at_checked`](BufMut::put_u8_at_checked) for non-panicking writes.
+  /// Use [`put_u8_at_checked`](ChunkMut::put_u8_at_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1781,13 +1781,13 @@ pub trait BufMut {
 
   /// Tries to put `u8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at).
+  /// This is the non-panicking version of [`put_u8_at`](ChunkMut::put_u8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1807,12 +1807,12 @@ pub trait BufMut {
   /// # Panics
   ///
   /// Panics if `offset >= self.remaining_mut()`.
-  /// Use [`put_i8_at_checked`](BufMut::put_i8_at_checked) for non-panicking writes.
+  /// Use [`put_i8_at_checked`](ChunkMut::put_i8_at_checked) for non-panicking writes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1827,13 +1827,13 @@ pub trait BufMut {
 
   /// Tries to put `i8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at).
+  /// This is the non-panicking version of [`put_i8_at`](ChunkMut::put_i8_at).
   /// Returns `Some(1)` on success, or `None` if the offset is out of bounds.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1848,7 +1848,7 @@ pub trait BufMut {
 
   /// Tries to put `u8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_u8`](BufMut::put_u8) that
+  /// This is the non-panicking version of [`put_u8`](ChunkMut::put_u8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1856,7 +1856,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1874,7 +1874,7 @@ pub trait BufMut {
 
   /// Tries to put `i8` value to the beginning of the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_i8`](BufMut::put_i8) that
+  /// This is the non-panicking version of [`put_i8`](ChunkMut::put_i8) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
   /// the available space if the buffer is full.
@@ -1882,7 +1882,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 5];
   /// let mut slice = &mut buf[..];
@@ -1900,7 +1900,7 @@ pub trait BufMut {
 
   /// Tries to put `u8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_u8_at`](BufMut::put_u8_at) that
+  /// This is the non-panicking version of [`put_u8_at`](ChunkMut::put_u8_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryPutAtError)` with details about
   /// what went wrong (out of bounds offset, etc.).
@@ -1908,7 +1908,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1925,7 +1925,7 @@ pub trait BufMut {
 
   /// Tries to put `i8` value to the buffer at the specified offset without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`put_i8_at`](BufMut::put_i8_at) that
+  /// This is the non-panicking version of [`put_i8_at`](ChunkMut::put_i8_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(1)` on success, or `Err(TryPutAtError)` with details about
   /// what went wrong (out of bounds offset, etc.).
@@ -1933,7 +1933,7 @@ pub trait BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::BufMut;
+  /// use bufkit::ChunkMut;
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1949,8 +1949,8 @@ pub trait BufMut {
   }
 }
 
-/// A trait that extends `BufMut` with additional methods.
-pub trait BufMutExt: BufMut {
+/// A trait that extends `ChunkMut` with additional methods.
+pub trait ChunkMutExt: ChunkMut {
   /// Puts type in LEB128 format to the buffer without advancing the internal cursor.
   ///
   /// Uses the LEB128 encoding format. The number of bytes written depends
@@ -1962,7 +1962,7 @@ pub trait BufMutExt: BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, BufMutExt};
+  /// use bufkit::{ChunkMut, ChunkMutExt};
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -1990,7 +1990,7 @@ pub trait BufMutExt: BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, BufMutExt};
+  /// use bufkit::{ChunkMut, ChunkMutExt};
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -2032,7 +2032,7 @@ pub trait BufMutExt: BufMut {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, BufMutExt};
+  /// use bufkit::{ChunkMut, ChunkMutExt};
   ///
   /// let mut buf = [0u8; 24];
   /// let mut slice = &mut buf[..];
@@ -2054,7 +2054,7 @@ pub trait BufMutExt: BufMut {
   }
 }
 
-impl<T: BufMut> BufMutExt for T {}
+impl<T: ChunkMut> ChunkMutExt for T {}
 
 macro_rules! deref_forward_buf_mut {
   () => {
@@ -2274,16 +2274,16 @@ macro_rules! deref_forward_buf_mut {
   };
 }
 
-impl<T: BufMut + ?Sized> BufMut for &mut T {
+impl<T: ChunkMut + ?Sized> ChunkMut for &mut T {
   deref_forward_buf_mut!();
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-impl<T: BufMut + ?Sized> BufMut for std::boxed::Box<T> {
+impl<T: ChunkMut + ?Sized> ChunkMut for std::boxed::Box<T> {
   deref_forward_buf_mut!();
 }
 
-impl BufMut for &mut [u8] {
+impl ChunkMut for &mut [u8] {
   #[inline]
   fn advance_mut(&mut self, cnt: usize) {
     if self.len() < cnt {
@@ -2322,31 +2322,31 @@ impl BufMut for &mut [u8] {
   }
 }
 
-/// A wrapper around any type that implements `BufMut` for improved ergonomics in generic code.
+/// A wrapper around any type that implements `ChunkMut` for improved ergonomics in generic code.
 ///
-/// `WriteBuf` provides a unified interface over different buffer types, making it easier to write
+/// `ChunkWriter` provides a unified interface over different buffer types, making it easier to write
 /// generic functions that accept various writable buffer types without requiring complex type
 /// signatures or awkward reference patterns.
 ///
 /// # Problem Solved
 ///
-/// When writing generic functions that accept `BufMut` implementors, you often run into ergonomic
+/// When writing generic functions that accept `ChunkMut` implementors, you often run into ergonomic
 /// issues with reference types. For example, with `&mut [u8]`, callers would need to pass
 /// `&mut &mut [u8]` which is awkward and unintuitive.
 ///
 /// # Solution
 ///
-/// By using `impl Into<WriteBuf<B>>` in your function signatures, callers can pass buffer types
+/// By using `impl Into<ChunkWriter<B>>` in your function signatures, callers can pass buffer types
 /// naturally without extra reference wrapping:
 ///
 /// ```rust,ignore
-/// use bufkit::{BufMut, WriteBuf};
+/// use bufkit::{ChunkMut, ChunkWriter};
 ///
 /// // Instead of this awkward signature:
-/// fn encode_bad<B: BufMut>(buf: &mut B) { /* ... */ }
+/// fn encode_bad<B: ChunkMut>(buf: &mut B) { /* ... */ }
 ///
 /// // Use this ergonomic signature:
-/// fn encode_good<B: BufMut>(buf: impl Into<WriteBuf<B>>) { /* ... */ }
+/// fn encode_good<B: ChunkMut>(buf: impl Into<ChunkWriter<B>>) { /* ... */ }
 ///
 /// // Now callers can write:
 /// let mut buffer = [0u8; 64];
@@ -2360,14 +2360,14 @@ impl BufMut for &mut [u8] {
 /// various buffer types:
 ///
 /// ```rust,ignore
-/// use bufkit::{BufMut, WriteBuf};
+/// use bufkit::{ChunkMut, ChunkWriter};
 ///
 /// pub trait Encode {
-///     fn encode<B: BufMut>(&self, buf: impl Into<WriteBuf<B>>) -> Result<usize, Error>;
+///     fn encode<B: ChunkMut>(&self, buf: impl Into<ChunkWriter<B>>) -> Result<usize, Error>;
 /// }
 ///
 /// impl Encode for MyStruct {
-///     fn encode<B: BufMut>(&self, buf: impl Into<WriteBuf<B>>) -> Result<usize, Error> {
+///     fn encode<B: ChunkMut>(&self, buf: impl Into<ChunkWriter<B>>) -> Result<usize, Error> {
 ///         let mut buf = buf.into();
 ///         // Write to buf...
 ///         Ok(bytes_written)
@@ -2383,21 +2383,20 @@ impl BufMut for &mut [u8] {
 ///
 /// # Type Flexibility
 ///
-/// `WriteBuf` can wrap any type that implements `BufMut`, including:
+/// `ChunkWriter` can wrap any type that implements `ChunkMut`, including:
 /// - `&mut [u8]` - Fixed-size byte arrays
-/// - Custom buffer implementations
-/// - Other `BufMut` implementors
+/// - Other `ChunkMut` implementors
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct WriteBuf<B: ?Sized>(B);
+pub struct ChunkWriter<B: ?Sized>(B);
 
-impl<B> From<B> for WriteBuf<B> {
+impl<B> From<B> for ChunkWriter<B> {
   #[inline]
   fn from(value: B) -> Self {
     Self(value)
   }
 }
 
-impl<B: ?Sized> core::ops::Deref for WriteBuf<B> {
+impl<B: ?Sized> core::ops::Deref for ChunkWriter<B> {
   type Target = B;
 
   #[inline]
@@ -2406,67 +2405,67 @@ impl<B: ?Sized> core::ops::Deref for WriteBuf<B> {
   }
 }
 
-impl<B: ?Sized> core::ops::DerefMut for WriteBuf<B> {
+impl<B: ?Sized> core::ops::DerefMut for ChunkWriter<B> {
   #[inline]
   fn deref_mut(&mut self) -> &mut Self::Target {
     &mut self.0
   }
 }
 
-impl<B: ?Sized + BufMut> BufMut for WriteBuf<B> {
+impl<B: ?Sized + ChunkMut> ChunkMut for ChunkWriter<B> {
   deref_forward_buf_mut!();
 }
 
-impl<B: ?Sized> WriteBuf<B> {
-  /// Similar to `Option::as_mut`, converts `&mut WriteBuf<B>` to `WriteBuf<&mut B>`.
+impl<B: ?Sized> ChunkWriter<B> {
+  /// Similar to `Option::as_mut`, converts `&mut ChunkWriter<B>` to `ChunkWriter<&mut B>`.
   ///
   /// # Example
   ///
   /// ```rust
-  /// use bufkit::{BufMut, WriteBuf};
+  /// use bufkit::{ChunkMut, ChunkWriter};
   ///
   /// let mut buf = [0u8; 24];
-  /// let mut write_buf = WriteBuf::from(&mut buf[..]);
+  /// let mut write_buf = ChunkWriter::from(&mut buf[..]);
   /// let _ = write_buf.as_mut();
   /// ```
   #[inline]
-  pub const fn as_mut(&mut self) -> WriteBuf<&mut B> {
-    WriteBuf(&mut self.0)
+  pub const fn as_mut(&mut self) -> ChunkWriter<&mut B> {
+    ChunkWriter(&mut self.0)
   }
 
-  /// Similar to `Option::as_ref`, converts `&WriteBuf<B>` to `WriteBuf<&B>`.
+  /// Similar to `Option::as_ref`, converts `&ChunkWriter<B>` to `ChunkWriter<&B>`.
   ///
   /// # Example
   ///
   /// ```rust
-  /// use bufkit::{BufMut, WriteBuf};
+  /// use bufkit::{ChunkMut, ChunkWriter};
   ///
   /// let mut buf = [0u8; 24];
-  /// let write_buf = WriteBuf::from(&mut buf[..]);
+  /// let write_buf = ChunkWriter::from(&mut buf[..]);
   /// let _ = write_buf.as_ref();
   /// ```
   #[inline]
-  pub const fn as_ref(&self) -> WriteBuf<&B> {
-    WriteBuf(&self.0)
+  pub const fn as_ref(&self) -> ChunkWriter<&B> {
+    ChunkWriter(&self.0)
   }
 }
 
-impl<B> WriteBuf<B> {
-  /// Creates a new `WriteBuf` from the given `BufMut`.
+impl<B> ChunkWriter<B> {
+  /// Creates a new `ChunkWriter` from the given `ChunkMut`.
   #[inline]
   pub const fn new(buf: B) -> Self {
-    WriteBuf(buf)
+    ChunkWriter(buf)
   }
 
-  /// Consumes the `WriteBuf` and returns the underlying `BufMut`.
+  /// Consumes the `ChunkWriter` and returns the underlying `ChunkMut`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{BufMut, WriteBuf};
+  /// use bufkit::{ChunkMut, ChunkWriter};
   ///
   /// let mut buf = [0u8; 24];
-  /// let mut write_buf = WriteBuf::from(&mut buf[..]);
+  /// let mut write_buf = ChunkWriter::from(&mut buf[..]);
   /// let _ = write_buf.into_inner();
   /// ```
   #[inline]
@@ -2476,9 +2475,9 @@ impl<B> WriteBuf<B> {
 }
 
 const _: () = {
-  // The existence of this function makes the compiler catch if the BufMut
+  // The existence of this function makes the compiler catch if the ChunkMut
   // trait is "object-safe" or not.
-  fn _assert_trait_object(_b: &dyn BufMut) {}
+  fn _assert_trait_object(_b: &dyn ChunkMut) {}
 };
 
 #[cfg(test)]
@@ -2487,7 +2486,7 @@ mod tests {
 
   struct Wrapper<'a>(&'a mut [u8]);
 
-  impl BufMut for Wrapper<'_> {
+  impl ChunkMut for Wrapper<'_> {
     fn remaining_mut(&self) -> usize {
       self.0.len()
     }
@@ -2517,10 +2516,10 @@ mod tests {
   fn test_blanket_has_remaining_mut() {
     let mut buf = [0u8; 5];
     let slice = Wrapper(&mut buf[..]);
-    assert!(BufMut::has_remaining_mut(&slice));
+    assert!(ChunkMut::has_remaining_mut(&slice));
 
     let empty_slice = Wrapper(&mut []);
-    assert!(!BufMut::has_remaining_mut(&empty_slice));
+    assert!(!ChunkMut::has_remaining_mut(&empty_slice));
   }
 
   #[test]
@@ -2546,7 +2545,7 @@ mod tests {
   #[test]
   fn test_deref_write_buf() {
     let mut buf = [0u8; 10];
-    let write_buf = WriteBuf::from(&mut buf[..]);
+    let write_buf = ChunkWriter::from(&mut buf[..]);
     let val = core::ops::Deref::deref(&write_buf);
     assert_eq!(val[0], 0); // Check deref gives the underlying buffer
   }
@@ -2554,7 +2553,7 @@ mod tests {
   #[test]
   fn test_deref_mut_write_buf() {
     let mut buf = [0u8; 10];
-    let mut write_buf = WriteBuf::from(&mut buf[..]);
+    let mut write_buf = ChunkWriter::from(&mut buf[..]);
     let val = core::ops::DerefMut::deref_mut(&mut write_buf);
     val[0] = 42; // Modify through deref_mut
     assert_eq!(buf[0], 42);
@@ -2563,17 +2562,17 @@ mod tests {
   #[test]
   fn test_deref_forward_has_remaining_mut() {
     let mut buf = [0u8; 5];
-    let slice = WriteBuf::from(&mut buf[..]);
+    let slice = ChunkWriter::from(&mut buf[..]);
     assert!(slice.has_remaining_mut());
 
-    let empty_slice: WriteBuf<&mut [u8]> = WriteBuf::from([].as_mut_slice());
+    let empty_slice: ChunkWriter<&mut [u8]> = ChunkWriter::from([].as_mut_slice());
     assert!(!empty_slice.has_remaining_mut());
   }
 
   #[test]
   fn test_deref_forward_advance_mut() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     slice.advance_mut(3);
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after advancing
@@ -2582,7 +2581,7 @@ mod tests {
   #[test]
   fn test_deref_forward_try_advance_mut() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert!(slice.try_advance_mut(3).is_ok());
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after advancing
@@ -2594,7 +2593,7 @@ mod tests {
   #[test]
   fn test_deref_forward_truncate_mut() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     slice.truncate_mut(3);
     assert_eq!(slice.buffer_mut(), &[0, 0, 0]);
     assert_eq!(slice.remaining_mut(), 3); // Remaining space after truncation
@@ -2603,7 +2602,7 @@ mod tests {
   #[test]
   fn test_deref_forward_buffer_mut() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let buffer = slice.buffer_mut();
     assert_eq!(buffer, &mut [0u8; 5]);
     buffer[0] = 42; // Modify through buffer_mut
@@ -2613,15 +2612,15 @@ mod tests {
   #[test]
   fn test_deref_forward_fill() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
-    BufMut::fill(&mut slice, 0xFF); // Call fill via BufMut trait
+    let mut slice = ChunkWriter::from(&mut buf[..]);
+    ChunkMut::fill(&mut slice, 0xFF); // Call fill via ChunkMut trait
     assert_eq!(slice.buffer_mut(), &[0xFF; 5]);
   }
 
   #[test]
   fn test_deref_forward_prefix_mut() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let prefix = slice.prefix_mut(3);
     assert_eq!(prefix, &mut [1, 2, 3]);
     prefix[0] = 10; // Modify prefix
@@ -2631,7 +2630,7 @@ mod tests {
   #[test]
   fn test_deref_forward_prefix_mut_checked() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert!(slice.prefix_mut_checked(3).is_some());
     assert!(slice.prefix_mut_checked(10).is_none()); // Out of bounds
   }
@@ -2639,7 +2638,7 @@ mod tests {
   #[test]
   fn test_deref_forward_suffix_mut() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let suffix = slice.suffix_mut(2);
     assert_eq!(suffix, &mut [4, 5]);
   }
@@ -2647,7 +2646,7 @@ mod tests {
   #[test]
   fn test_deref_forward_suffix_mut_checked() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert!(slice.suffix_mut_checked(2).is_some());
     assert!(slice.suffix_mut_checked(10).is_none()); // Out of bounds
   }
@@ -2655,7 +2654,7 @@ mod tests {
   #[test]
   fn test_deref_forward_split_at_mut() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let (left, right) = slice.split_at_mut(2);
     assert_eq!(left, &[1, 2]);
     assert_eq!(right, &[3, 4, 5]);
@@ -2664,7 +2663,7 @@ mod tests {
   #[test]
   fn test_deref_forward_split_at_mut_checked() {
     let mut buf = [1, 2, 3, 4, 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert!(slice.split_at_mut_checked(2).is_some());
     assert!(slice.split_at_mut_checked(10).is_none()); // Out of bounds
   }
@@ -2672,7 +2671,7 @@ mod tests {
   #[test]
   fn test_deref_forward_put_slice() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let written = slice.put_slice(&[1, 2, 3]);
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
@@ -2681,7 +2680,7 @@ mod tests {
   #[test]
   fn test_deref_forward_put_slice_checked() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.put_slice_checked(&[1, 2, 3]), Some(3));
     assert_eq!(slice.put_slice_checked(&[1, 2, 3, 4, 5, 6]), None); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
@@ -2690,7 +2689,7 @@ mod tests {
   #[test]
   fn test_deref_forward_try_put_slice() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.try_put_slice(&[1, 2, 3]), Ok(3));
     assert_eq!(
       slice.try_put_slice(&[1, 2, 3, 4, 5, 6]),
@@ -2702,7 +2701,7 @@ mod tests {
   #[test]
   fn test_deref_forward_put_slice_at() {
     let mut buf = [0u8; 10];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let written = slice.put_slice_at(&[1, 2, 3], 2);
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
@@ -2712,7 +2711,7 @@ mod tests {
   #[test]
   fn test_deref_forward_put_slice_at_checked() {
     let mut buf = [0u8; 10];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 2), Some(3));
     assert_eq!(slice.put_slice_at_checked(&[1, 2, 3], 8), None); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
@@ -2722,7 +2721,7 @@ mod tests {
   #[test]
   fn test_deref_forward_try_put_slice_at() {
     let mut buf = [0u8; 10];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.try_put_slice_at(&[1, 2, 3], 2), Ok(3));
     assert_eq!(
       slice.try_put_slice_at(&[1, 2, 3], 8),
@@ -2739,7 +2738,7 @@ mod tests {
           #[test]
           fn [< test_deref_forward_put_ $ty >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             let written = slice.[< put_ $ty >](42);
             assert_eq!(written, 1);
             assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
@@ -2748,11 +2747,11 @@ mod tests {
           #[test]
           fn [< test_deref_forward_put_ $ty _checked >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< put_ $ty _checked >](42), Some(1));
             assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
 
-            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
             assert_eq!(empty.[< put_ $ty _checked >](42), None); // Out of bounds,
             assert_eq!(empty.buffer_mut(), &[]);
           }
@@ -2760,11 +2759,11 @@ mod tests {
           #[test]
           fn [< test_deref_forward_try_put_ $ty >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< try_put_ $ty >](42), Ok(1));
             assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
 
-            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
             assert_eq!(empty.[< try_put_ $ty >](42), Err(TryPutError::new(1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
@@ -2772,7 +2771,7 @@ mod tests {
           #[test]
           fn [< test_deref_forward_put_ $ty _at >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< put_ $ty _at >](42, 1), 1);
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
             assert_eq!(slice.remaining_mut(), 5);
@@ -2781,7 +2780,7 @@ mod tests {
           #[test]
           fn [< test_deref_forward_put_ $ty _at_checked >] () {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< put_ $ty _at_checked >](42, 1), Some(1));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
             assert_eq!(slice.remaining_mut(), 5);
@@ -2793,7 +2792,7 @@ mod tests {
           #[test]
           fn [< test_deref_forward_try_put_ $ty _at >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< try_put_ $ty _at >](42, 1), Ok(1));
             assert_eq!(slice.buffer_mut(), &[0, 42, 0, 0, 0]);
             assert_eq!(slice.remaining_mut(), 5);
@@ -2814,7 +2813,7 @@ mod tests {
         #[test]
         fn [< test_deref_forward_put_ $ty _ $endian >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           let written = slice.[< put_ $ty _ $endian >](42 as $ty);
           assert_eq!(written, size_of::<$ty>());
           assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
@@ -2823,21 +2822,21 @@ mod tests {
         #[test]
         fn [< test_deref_forward_put_ $ty _ $endian _checked >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< put_ $ty _ $endian _checked >](42 as $ty), Some(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< put_ $ty _ $endian _checked >](42 as $ty), None); // Out of bounds
         }
 
         #[test]
         fn [< test_deref_forward_try_put_ $ty _ $endian >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< try_put_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(TryPutError::new(size_of::<$ty>(), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
@@ -2845,7 +2844,7 @@ mod tests {
         #[test]
         fn [< test_deref_forward_put_ $ty _ $endian _at >]() {
           let mut buf = [0u8; { size_of::<$ty>() + 1 }];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           let written = slice.[< put_ $ty _ $endian _at >](42 as $ty, 1);
           assert_eq!(written, size_of::<$ty>());
           assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
@@ -2854,22 +2853,22 @@ mod tests {
         #[test]
         fn [< test_deref_forward_put_ $ty _ $endian _at_checked >]() {
           let mut buf = [0u8; { size_of::<$ty>() + 1 }];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< put_ $ty _ $endian _at_checked >](42 as $ty, 1), Some(size_of::<$ty>()));
           assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< put_ $ty _ $endian _at_checked >](42 as $ty, 0), None); // Out of bounds
         }
 
         #[test]
         fn [< test_deref_forward_try_put_ $ty _ $endian _at >]() {
           let mut buf = [0u8; { size_of::<$ty>() + 1 }];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< try_put_ $ty _ $endian _at >](42 as $ty, 1), Ok(size_of::<$ty>()));
           assert_eq!(&slice.buffer_mut()[1..], (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< try_put_ $ty _ $endian _at >](42 as $ty, 0), Err(TryPutAtError::out_of_bounds(0, 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
@@ -2890,7 +2889,7 @@ mod tests {
   #[test]
   fn test_deref_forward_write_slice() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     let written = slice.write_slice(&[1, 2, 3]);
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[0, 0]);
@@ -2902,7 +2901,7 @@ mod tests {
   #[test]
   fn test_deref_forward_write_slice_checked() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.write_slice_checked(&[1, 2, 3]), Some(3));
 
     assert_eq!(slice.write_slice_checked(&[1, 2, 3, 4, 5, 6]), None); // Out of bounds
@@ -2916,7 +2915,7 @@ mod tests {
   #[test]
   fn test_deref_forward_try_write_slice() {
     let mut buf = [0u8; 5];
-    let mut slice = WriteBuf::from(&mut buf[..]);
+    let mut slice = ChunkWriter::from(&mut buf[..]);
     assert_eq!(slice.try_write_slice(&[1, 2, 3]), Ok(3));
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
@@ -2938,7 +2937,7 @@ mod tests {
           #[test]
           fn [< test_deref_forward_write_ $ty >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             let written = slice.[< write_ $ty >](42);
             assert_eq!(written, 1);
             assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
@@ -2947,11 +2946,11 @@ mod tests {
           #[test]
           fn [< test_deref_forward_write_ $ty _checked >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< write_ $ty _checked >](42), Some(1));
             assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
 
-            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
             assert_eq!(empty.[< write_ $ty _checked >](42), None); // Out of bounds,
             assert_eq!(empty.buffer_mut(), &[]);
           }
@@ -2959,11 +2958,11 @@ mod tests {
           #[test]
           fn [< test_deref_forward_try_write_ $ty >]() {
             let mut buf = [0u8; 5];
-            let mut slice = WriteBuf::from(&mut buf[..]);
+            let mut slice = ChunkWriter::from(&mut buf[..]);
             assert_eq!(slice.[< try_write_ $ty >](42), Ok(1));
             assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
 
-            let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+            let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
             assert_eq!(empty.[< try_write_ $ty >](42), Err(TryWriteError::new(1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
@@ -2980,7 +2979,7 @@ mod tests {
         #[test]
         fn [< test_deref_forward_write_ $ty _ $endian >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           let written = slice.[< write_ $ty _ $endian >](42 as $ty);
           assert_eq!(written, size_of::<$ty>());
           assert_eq!(slice.buffer_mut(), &[]);
@@ -2992,14 +2991,14 @@ mod tests {
         #[test]
         fn [< test_deref_forward_write_ $ty _ $endian _checked >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< write_ $ty _ $endian _checked >](42 as $ty), Some(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), &[]);
 
           drop(slice);
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< write_ $ty _ $endian _checked >](42 as $ty), None); // Out of bounds
           assert_eq!(empty.buffer_mut(), &[]);
         }
@@ -3007,13 +3006,13 @@ mod tests {
         #[test]
         fn [< test_deref_forward_try_write_ $ty _ $endian >]() {
           let mut buf = [0u8; size_of::<$ty>()];
-          let mut slice = WriteBuf::from(&mut buf[..]);
+          let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< try_write_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), &[]);
           drop(slice);
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
-          let mut empty: WriteBuf<&mut [u8]> = WriteBuf::from(&mut [][..]);
+          let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
           assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(size_of::<$ty>(), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }

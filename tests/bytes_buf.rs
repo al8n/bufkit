@@ -3,7 +3,7 @@
 #[cfg(test)]
 #[cfg(all(feature = "bytes_1", feature = "std"))]
 mod bytes_buf_tests {
-  use bufkit::{Buf, BufExt};
+  use bufkit::{Chunk, ChunkExt};
   use bytes_1::Bytes;
 
   #[test]
@@ -134,7 +134,7 @@ mod bytes_buf_tests {
     assert_eq!(buf.peek_u32_le(), 0x78563412);
     assert_eq!(buf.peek_u32_be(), 0x12345678);
 
-    // Buffer unchanged
+    // Chunkfer unchanged
     assert_eq!(buf.remaining(), 8);
   }
 
