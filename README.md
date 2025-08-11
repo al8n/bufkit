@@ -36,7 +36,7 @@ It’s Sans-I/O friendly — meaning it’s easy to integrate into network proto
 
 ```toml
 [dependencies]
-bufkit = "0.3"
+bufkit = "0.4"
 ```
 
 ### Feature Flags
@@ -52,13 +52,6 @@ bufkit = "0.3"
 
 - [`bytes::{Buf, BufMut}`]: Chunkfer traits for the bytes may or may not be stored in contiguous memory.
 - [`buffer-trait`](https://crates.io/crates/buffer-trait): A `Buffer` trait for reading into uninitialized buffers.
-
-**bufkit** focuses on:
-
-- Fully predictable memory access patterns
-- Segmented buffer views
-- Explicit and retry-friendly error handling
-- `no-std` + `no-alloc` support
 
 #### License
 
