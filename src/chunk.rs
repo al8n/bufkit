@@ -34,7 +34,7 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -48,13 +48,13 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer in little-endian byte order without advancing the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_le`](Buf::peek_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le`](Chunk::peek_" $ty "_le)."]
         /// Returns `Some(value)` if sufficient data is available, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -70,14 +70,14 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer in little-endian byte order without advancing the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_le`](Buf::peek_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le`](Chunk::peek_" $ty "_le)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekError)` with details about
         /// requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -104,7 +104,7 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -118,13 +118,13 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer in big-endian byte order without advancing the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_be`](Buf::peek_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be`](Chunk::peek_" $ty "_be)."]
         /// Returns `Some(value)` if sufficient data is available, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -140,14 +140,14 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer in big-endian byte order without advancing the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_be`](Buf::peek_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be`](Chunk::peek_" $ty "_be)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekError)` with details about
         /// requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -177,7 +177,7 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -192,13 +192,13 @@ macro_rules! peek_fixed {
         #[doc = "Peeks a `" $ty "` value from the buffer in native-endian byte order without advancing the cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne`](Buf::peek_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne`](Chunk::peek_" $ty "_ne)."]
         /// Returns `Some(value)` if sufficient data is available, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -215,14 +215,14 @@ macro_rules! peek_fixed {
         #[doc = "Peeks a `" $ty "` value from the buffer in native-endian byte order without advancing the cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne`](Buf::peek_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne`](Chunk::peek_" $ty "_ne)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekError)` with details about
         /// requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -250,12 +250,12 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_le_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _le_at>](&self, offset: usize) -> $ty {
@@ -264,13 +264,13 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in little-endian byte order."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Buf::peek_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Chunk::peek_" $ty "_le_at)."]
         /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -284,14 +284,14 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in little-endian byte order."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Buf::peek_" $ty "_le_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_le_at`](Chunk::peek_" $ty "_le_at)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
         /// the error condition (out of bounds or insufficient data).
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -317,12 +317,12 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_be_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _be_at>](&self, offset: usize) -> $ty {
@@ -331,13 +331,13 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in big-endian byte order."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Buf::peek_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Chunk::peek_" $ty "_be_at)."]
         /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -351,14 +351,14 @@ macro_rules! peek_fixed {
 
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in big-endian byte order."]
         ///
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Buf::peek_" $ty "_be_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_be_at`](Chunk::peek_" $ty "_be_at)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
         /// the error condition (out of bounds or insufficient data).
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -385,12 +385,12 @@ macro_rules! peek_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_ne_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _ne_at>](&self, offset: usize) -> $ty {
@@ -400,13 +400,13 @@ macro_rules! peek_fixed {
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in native-endian byte order."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Buf::peek_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Chunk::peek_" $ty "_ne_at)."]
         /// Returns `Some(value)` if sufficient data is available at the offset, otherwise returns `None`.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -421,14 +421,14 @@ macro_rules! peek_fixed {
         #[doc = "Peeks a `" $ty "` value from the buffer at the specified offset in native-endian byte order."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Buf::peek_" $ty "_ne_at)."]
+        #[doc = "This is the non-panicking version of [`peek_" $ty "_ne_at`](Chunk::peek_" $ty "_ne_at)."]
         /// Returns `Ok(value)` on success, or `Err(TryPeekAtError)` with details about
         /// the error condition (out of bounds or insufficient data).
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
@@ -556,7 +556,7 @@ macro_rules! read_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -570,13 +570,13 @@ macro_rules! read_fixed {
 
         #[doc = "Reads a `" $ty "` value from the buffer in little-endian byte order and advances the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`read_" $ty "_le`](Buf::read_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_le`](Chunk::read_" $ty "_le)."]
         /// Returns `Some(value)` and advances the cursor on success, or `None` if insufficient data.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -593,14 +593,14 @@ macro_rules! read_fixed {
 
         #[doc = "Reads a `" $ty "` value from the buffer in little-endian byte order and advances the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`read_" $ty "_le`](Buf::read_" $ty "_le)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_le`](Chunk::read_" $ty "_le)."]
         /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -630,7 +630,7 @@ macro_rules! read_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -644,13 +644,13 @@ macro_rules! read_fixed {
 
         #[doc = "Reads a `" $ty "` value from the buffer in big-endian byte order and advances the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`read_" $ty "_be`](Buf::read_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_be`](Chunk::read_" $ty "_be)."]
         /// Returns `Some(value)` and advances the cursor on success, or `None` if insufficient data.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -667,14 +667,14 @@ macro_rules! read_fixed {
 
         #[doc = "Reads a `" $ty "` value from the buffer in big-endian byte order and advances the cursor."]
         ///
-        #[doc = "This is the non-panicking version of [`read_" $ty "_be`](Buf::read_" $ty "_be)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_be`](Chunk::read_" $ty "_be)."]
         /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -707,7 +707,7 @@ macro_rules! read_fixed {
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -722,13 +722,13 @@ macro_rules! read_fixed {
         #[doc = "Reads a `" $ty "` value from the buffer in native-endian byte order and advances the cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`read_" $ty "_ne`](Buf::read_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_ne`](Chunk::read_" $ty "_ne)."]
         /// Returns `Some(value)` and advances the cursor on success, or `None` if insufficient data.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -746,14 +746,14 @@ macro_rules! read_fixed {
         #[doc = "Reads a `" $ty "` value from the buffer in native-endian byte order and advances the cursor."]
         ///
         /// The byte order depends on the target platform's endianness.
-        #[doc = "This is the non-panicking version of [`read_" $ty "_ne`](Buf::read_" $ty "_ne)."]
+        #[doc = "This is the non-panicking version of [`read_" $ty "_ne`](Chunk::read_" $ty "_ne)."]
         /// Returns `Ok(value)` and advances the cursor on success, or `Err(TryReadError)`
         /// with details about requested vs available bytes.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use bufkit::Buf;
+        /// use bufkit::Chunk;
         ///
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let mut buf = &data[..];
@@ -835,12 +835,12 @@ macro_rules! read_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Buffer inspection**: `remaining()`, `has_remaining()`, `buffer()`
+/// - **Chunkfer inspection**: `remaining()`, `has_remaining()`, `buffer()`
 /// - **Navigation**: `advance()`, `try_advance()`
-/// - **Buffer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
+/// - **Chunkfer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
-pub trait Buf {
+pub trait Chunk {
   /// Returns the number of bytes available for reading in the buffer.
   ///
   /// This represents how many bytes can be read from the current cursor position
@@ -849,7 +849,7 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -868,7 +868,7 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -881,18 +881,18 @@ pub trait Buf {
 
   /// Returns a slice of the buffer starting from the specified offset.
   ///
-  /// This is similar to [`buffer`](Buf::buffer) but starts from the given offset
+  /// This is similar to [`buffer`](Chunk::buffer) but starts from the given offset
   /// rather than the current cursor position.
   ///
   /// # Panics
   ///
   /// Panics if `offset > self.remaining()`.
-  /// Use [`buffer_from_checked`](Buf::buffer_from_checked) for non-panicking access.
+  /// Use [`buffer_from_checked`](Chunk::buffer_from_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1u8, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -907,13 +907,13 @@ pub trait Buf {
 
   /// Returns a slice of the buffer starting from the specified offset.
   ///
-  /// This is the non-panicking version of [`buffer_from`](Buf::buffer_from).
+  /// This is the non-panicking version of [`buffer_from`](Chunk::buffer_from).
   /// Returns `Some(slice)` if `offset <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1u8, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -939,12 +939,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `cnt > self.remaining()`.
-  /// Use [`try_advance`](Buf::try_advance) for non-panicking advancement.
+  /// Use [`try_advance`](Chunk::try_advance) for non-panicking advancement.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -963,16 +963,16 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `len > self.remaining()`.
-  /// Use [`prefix_checked`](Buf::prefix_checked) for non-panicking access.
+  /// Use [`prefix_checked`](Chunk::prefix_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
-  /// let prefix = Buf::prefix(&slice, 3);
+  /// let prefix = Chunk::prefix(&slice, 3);
   /// assert_eq!(prefix, [1u8, 2, 3].as_slice());
   /// ```
   #[inline]
@@ -982,19 +982,19 @@ pub trait Buf {
 
   /// Returns a slice containing the first `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`prefix`](Buf::prefix).
+  /// This is the non-panicking version of [`prefix`](Chunk::prefix).
   /// Returns `Some(slice)` if `len <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
-  /// assert_eq!(Buf::prefix_checked(&&buf[..], 3).unwrap(), &[1, 2, 3]);
-  /// assert_eq!(Buf::prefix_checked(&&buf[..], 5).unwrap(), &[1, 2, 3, 4, 5]);
-  /// assert!(Buf::prefix_checked(&&buf[..], 10).is_none());
+  /// assert_eq!(Chunk::prefix_checked(&&buf[..], 3).unwrap(), &[1, 2, 3]);
+  /// assert_eq!(Chunk::prefix_checked(&&buf[..], 5).unwrap(), &[1, 2, 3, 4, 5]);
+  /// assert!(Chunk::prefix_checked(&&buf[..], 10).is_none());
   /// ```
   #[inline]
   fn prefix_checked(&self, len: usize) -> Option<&[u8]> {
@@ -1013,17 +1013,17 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `len > self.remaining()`.
-  /// Use [`suffix_checked`](Buf::suffix_checked) for non-panicking access.
+  /// Use [`suffix_checked`](Chunk::suffix_checked) for non-panicking access.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   ///
   /// let slice = &buf[..];
-  /// let suffix = Buf::suffix(&slice, 2);
+  /// let suffix = Chunk::suffix(&slice, 2);
   /// assert_eq!(suffix, &[4, 5]);
   /// ```
   #[inline]
@@ -1034,19 +1034,19 @@ pub trait Buf {
 
   /// Returns a slice containing the last `len` bytes of the buffer.
   ///
-  /// This is the non-panicking version of [`suffix`](Buf::suffix).
+  /// This is the non-panicking version of [`suffix`](Chunk::suffix).
   /// Returns `Some(slice)` if `len <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let mut buf = [1u8, 2, 3, 4, 5];
   /// let slice = &buf[..];
-  /// assert_eq!(Buf::suffix_checked(&slice, 2).unwrap(), &[4, 5]);
-  /// assert_eq!(Buf::suffix_checked(&slice, 5).unwrap(), &[1, 2, 3, 4, 5]);
-  /// assert!(Buf::suffix_checked(&slice, 10).is_none());
+  /// assert_eq!(Chunk::suffix_checked(&slice, 2).unwrap(), &[4, 5]);
+  /// assert_eq!(Chunk::suffix_checked(&slice, 5).unwrap(), &[1, 2, 3, 4, 5]);
+  /// assert!(Chunk::suffix_checked(&slice, 10).is_none());
   /// ```
   #[inline]
   fn suffix_checked(&self, len: usize) -> Option<&[u8]> {
@@ -1065,12 +1065,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if the range is out of bounds relative to the current buffer's available data.
-  /// Use [`try_segment`](Buf::try_segment) for non-panicking segmentation.
+  /// Use [`try_segment`](Chunk::try_segment) for non-panicking segmentation.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
@@ -1095,7 +1095,7 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -1120,45 +1120,45 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `at > self.remaining()`.
-  /// Use [`split_off_checked`](Buf::split_off_checked) or
-  /// [`try_split_off`](Buf::try_split_off) for non-panicking splits.
+  /// Use [`split_off_checked`](Chunk::split_off_checked) or
+  /// [`try_split_off`](Chunk::try_split_off) for non-panicking splits.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// let tail = Buf::split_off(&mut buf, 2);
+  /// let tail = Chunk::split_off(&mut buf, 2);
   /// assert_eq!(buf.buffer(), &[1, 2]);
   /// assert_eq!(tail.buffer(), &[3, 4, 5]);
   /// ```
-  #[must_use = "consider Buf::truncate if you don't need the other half"]
+  #[must_use = "consider Chunk::truncate if you don't need the other half"]
   fn split_off(&mut self, at: usize) -> Self
   where
     Self: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
-  /// This is the non-panicking version of [`split_off`](Buf::split_off).
+  /// This is the non-panicking version of [`split_off`](Chunk::split_off).
   /// Returns `Some((left, right))` if `at <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(Buf::split_off_checked(&mut buf, 2).is_some());
+  /// assert!(Chunk::split_off_checked(&mut buf, 2).is_some());
   ///
   /// let mut small_buf = &[1u8][..];
-  /// assert!(Buf::split_off_checked(&mut small_buf, 5).is_none());
+  /// assert!(Chunk::split_off_checked(&mut small_buf, 5).is_none());
   /// ```
-  #[must_use = "consider Buf::truncate if you don't need the other half"]
+  #[must_use = "consider Chunk::truncate if you don't need the other half"]
   fn split_off_checked(&mut self, at: usize) -> Option<Self>
   where
     Self: Sized,
@@ -1172,7 +1172,7 @@ pub trait Buf {
 
   /// Splits the buffer into two at the given index.
   ///
-  /// This is the non-panicking version of [`split_off`](Buf::split_off) that
+  /// This is the non-panicking version of [`split_off`](Chunk::split_off) that
   /// returns detailed error information on failure.
   /// Returns `Ok(right_half)` on success, or `Err(OutOfBounds)` with details about
   /// the attempted split position and available bytes.
@@ -1180,18 +1180,18 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(Buf::try_split_off(&mut buf, 2).is_ok());
+  /// assert!(Chunk::try_split_off(&mut buf, 2).is_ok());
   ///
   /// let mut small_buf = &[1u8][..];
-  /// let err = Buf::try_split_off(&mut small_buf, 5).unwrap_err();
+  /// let err = Chunk::try_split_off(&mut small_buf, 5).unwrap_err();
   /// // err contains details about requested vs available
   /// ```
-  #[must_use = "consider Buf::try_split_off if you don't need the other half"]
+  #[must_use = "consider Chunk::try_split_off if you don't need the other half"]
   fn try_split_off(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
     Self: Sized,
@@ -1213,13 +1213,13 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `at > self.remaining()`.
-  /// Use [`split_to_checked`](Buf::split_to_checked) or
-  /// [`try_split_to`](Buf::try_split_to) for non-panicking splits.
+  /// Use [`split_to_checked`](Chunk::split_to_checked) or
+  /// [`try_split_to`](Chunk::try_split_to) for non-panicking splits.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = b"hello world";
   /// let mut buf = &data[..];
@@ -1228,28 +1228,28 @@ pub trait Buf {
   /// assert_eq!(hello.buffer(), b"hello");
   /// assert_eq!(buf.buffer(), b" world");
   /// ```
-  #[must_use = "consider Buf::advance if you don't need the other half"]
+  #[must_use = "consider Chunk::advance if you don't need the other half"]
   fn split_to(&mut self, at: usize) -> Self
   where
     Self: Sized;
 
   /// Splits the buffer into two at the given index.
   ///
-  /// This is the non-panicking version of [`split_to`](Buf::split_to).
+  /// This is the non-panicking version of [`split_to`](Chunk::split_to).
   /// Returns `Some(left_half)` if `at <= self.remaining()`, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(Buf::split_to_checked(&mut buf, 3).is_some());
-  /// assert!(Buf::split_to_checked(&mut buf, 10).is_none());
+  /// assert!(Chunk::split_to_checked(&mut buf, 3).is_some());
+  /// assert!(Chunk::split_to_checked(&mut buf, 10).is_none());
   /// ```
-  #[must_use = "consider Buf::advance if you don't need the other half"]
+  #[must_use = "consider Chunk::advance if you don't need the other half"]
   fn split_to_checked(&mut self, at: usize) -> Option<Self>
   where
     Self: Sized,
@@ -1263,7 +1263,7 @@ pub trait Buf {
 
   /// Splits the buffer into two at the given index.
   ///
-  /// This is the non-panicking version of [`split_to`](Buf::split_to) that
+  /// This is the non-panicking version of [`split_to`](Chunk::split_to) that
   /// returns detailed error information on failure.
   /// Returns `Ok(left_half)` on success, or `Err(OutOfBounds)` with details about
   /// the attempted split position and available bytes.
@@ -1271,17 +1271,17 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
   ///
-  /// assert!(Buf::try_split_to(&mut buf, 3).is_ok());
+  /// assert!(Chunk::try_split_to(&mut buf, 3).is_ok());
   ///
-  /// let err = Buf::try_split_to(&mut buf, 10).unwrap_err();
+  /// let err = Chunk::try_split_to(&mut buf, 10).unwrap_err();
   /// // err contains detailed information about the failure
   /// ```
-  #[must_use = "consider Buf::try_split_to if you don't need the other half"]
+  #[must_use = "consider Chunk::try_split_to if you don't need the other half"]
   fn try_split_to(&mut self, at: usize) -> Result<Self, OutOfBounds>
   where
     Self: Sized,
@@ -1300,14 +1300,14 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3];
   /// let mut buf = &data[..];
-  /// assert!(Buf::has_remaining(&buf));
+  /// assert!(Chunk::has_remaining(&buf));
   ///
   /// buf.advance(3);
-  /// assert!(!Buf::has_remaining(&buf));
+  /// assert!(!Chunk::has_remaining(&buf));
   /// ```
   fn has_remaining(&self) -> bool {
     self.remaining() > 0
@@ -1315,14 +1315,14 @@ pub trait Buf {
 
   /// Attempts to advance the internal cursor by the specified number of bytes.
   ///
-  /// This is the non-panicking version of [`advance`](Buf::advance).
+  /// This is the non-panicking version of [`advance`](Chunk::advance).
   /// Returns `Ok(())` if the advancement was successful, or `Err(TryAdvanceError)`
   /// with details about requested vs available bytes.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -1347,7 +1347,7 @@ pub trait Buf {
   ///
   /// The returned buffer is independent with its own cursor starting at the beginning of the segment.
   /// The original buffer remains unchanged. This is the non-panicking version of
-  /// [`segment`](Buf::segment).
+  /// [`segment`](Chunk::segment).
   ///
   /// Returns `Ok(segment)` if the range is valid, or `Err(TrySegmentError)` if the range
   /// extends beyond the current buffer's available data.
@@ -1355,7 +1355,7 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
@@ -1385,12 +1385,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if the buffer is empty.
-  /// Use [`peek_u8_checked`](Buf::peek_u8_checked) for non-panicking peeks.
+  /// Use [`peek_u8_checked`](Chunk::peek_u8_checked) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42, 1, 2, 3];
   /// let buf = &data[..];
@@ -1405,13 +1405,13 @@ pub trait Buf {
 
   /// Peeks a `u8` value from the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`peek_u8`](Buf::peek_u8).
+  /// This is the non-panicking version of [`peek_u8`](Chunk::peek_u8).
   /// Returns `Some(byte)` if data is available, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42];
   /// let buf = &data[..];
@@ -1427,13 +1427,13 @@ pub trait Buf {
 
   /// Peeks a `u8` value from the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`peek_u8`](Buf::peek_u8).
+  /// This is the non-panicking version of [`peek_u8`](Chunk::peek_u8).
   /// Returns `Ok(byte)` if data is available, otherwise returns `Err`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42];
   /// let buf = &data[..];
@@ -1459,12 +1459,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `offset >= self.remaining()`.
-  /// Use [`peek_u8_at_checked`](Buf::peek_u8_at_checked) for non-panicking peeks.
+  /// Use [`peek_u8_at_checked`](Chunk::peek_u8_at_checked) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42, 1, 2, 3];
   /// let buf = &data[..];
@@ -1480,13 +1480,13 @@ pub trait Buf {
 
   /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_u8_at`](Buf::peek_u8_at).
+  /// This is the non-panicking version of [`peek_u8_at`](Chunk::peek_u8_at).
   /// Returns `Some(byte)` if the offset is valid, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42, 1, 2];
   /// let buf = &data[..];
@@ -1500,13 +1500,13 @@ pub trait Buf {
 
   /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_u8_at`](Buf::peek_u8_at).
+  /// This is the non-panicking version of [`peek_u8_at`](Chunk::peek_u8_at).
   /// Returns `Ok(byte)` if the offset is valid, otherwise returns `Err(TryPeekAtError)`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42, 1, 2];
   /// let buf = &data[..];
@@ -1534,12 +1534,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if `offset >= self.remaining()`.
-  /// Use [`peek_i8_at_checked`](Buf::peek_i8_at_checked) for non-panicking peeks.
+  /// Use [`peek_i8_at_checked`](Chunk::peek_i8_at_checked) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8, 1, 2, 3]; // 255 as i8 is -1
   /// let buf = &data[..];
@@ -1554,13 +1554,13 @@ pub trait Buf {
 
   /// Peeks an `i8` value from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_i8_at`](Buf::peek_i8_at).
+  /// This is the non-panicking version of [`peek_i8_at`](Chunk::peek_i8_at).
   /// Returns `Some(byte)` if the offset is valid, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8, 1, 2]; // 255 as i8 is -1
   /// let buf = &data[..];
@@ -1574,13 +1574,13 @@ pub trait Buf {
 
   /// Peeks an `i8` value from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_i8_at`](Buf::peek_i8_at).
+  /// This is the non-panicking version of [`peek_i8_at`](Chunk::peek_i8_at).
   /// Returns `Ok(byte)` if the offset is valid, otherwise returns `Err(TryPeekAtError)`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8, 1, 2]; // 255 as i8 is -1
   /// let buf = &data[..];
@@ -1601,12 +1601,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if the buffer is empty.
-  /// Use [`read_u8_checked`](Buf::read_u8_checked) for non-panicking reads.
+  /// Use [`read_u8_checked`](Chunk::read_u8_checked) for non-panicking reads.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42, 1, 2, 3];
   /// let mut buf = &data[..];
@@ -1623,13 +1623,13 @@ pub trait Buf {
 
   /// Reads a `u8` value from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_u8`](Buf::read_u8).
+  /// This is the non-panicking version of [`read_u8`](Chunk::read_u8).
   /// Returns `Some(byte)` and advances the cursor on success, or `None` if the buffer is empty.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42];
   /// let mut buf = &data[..];
@@ -1648,13 +1648,13 @@ pub trait Buf {
 
   /// Reads a `u8` value from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_u8`](Buf::read_u8).
+  /// This is the non-panicking version of [`read_u8`](Chunk::read_u8).
   /// Returns `Ok(byte)` and advances the cursor on success, or `Err` if the buffer is empty.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [42];
   /// let mut buf = &data[..];
@@ -1679,12 +1679,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if the buffer is empty.
-  /// Use [`peek_i8_checked`](Buf::peek_i8_checked) for non-panicking peeks.
+  /// Use [`peek_i8_checked`](Chunk::peek_i8_checked) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8, 1, 2, 3]; // 255 as i8 is -1
   /// let buf = &data[..];
@@ -1699,13 +1699,13 @@ pub trait Buf {
 
   /// Peeks an `i8` value from the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`peek_i8`](Buf::peek_i8).
+  /// This is the non-panicking version of [`peek_i8`](Chunk::peek_i8).
   /// Returns `Some(byte)` if data is available, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8]; // -1 as i8
   /// let buf = &data[..];
@@ -1721,13 +1721,13 @@ pub trait Buf {
 
   /// Peeks an `i8` value from the buffer without advancing the internal cursor.
   ///
-  /// This is the non-panicking version of [`peek_i8`](Buf::peek_i8).
+  /// This is the non-panicking version of [`peek_i8`](Chunk::peek_i8).
   /// Returns `Ok(byte)` if data is available, otherwise returns `Err`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8]; // -1 as i8
   /// let buf = &data[..];
@@ -1748,12 +1748,12 @@ pub trait Buf {
   /// # Panics
   ///
   /// Panics if the buffer is empty.
-  /// Use [`read_i8_checked`](Buf::read_i8_checked) for non-panicking reads.
+  /// Use [`read_i8_checked`](Chunk::read_i8_checked) for non-panicking reads.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8, 1, 2, 3]; // 255 as i8 is -1
   /// let mut buf = &data[..];
@@ -1768,13 +1768,13 @@ pub trait Buf {
 
   /// Reads an `i8` value from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_i8`](Buf::read_i8).
+  /// This is the non-panicking version of [`read_i8`](Chunk::read_i8).
   /// Returns `Some(byte)` and advances the cursor on success, or `None` if the buffer is empty.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8]; // -1 as i8
   /// let mut buf = &data[..];
@@ -1791,13 +1791,13 @@ pub trait Buf {
 
   /// Reads an `i8` value from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_i8`](Buf::read_i8).
+  /// This is the non-panicking version of [`read_i8`](Chunk::read_i8).
   /// Returns `Ok(byte)` and advances the cursor on success, or `Err(Try
   /// ReadError)` if the buffer is empty.
   ///
   /// # Examples
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [255u8]; // -1 as i8
   /// let mut buf = &data[..];
@@ -1818,7 +1818,7 @@ pub trait Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::Buf;
+  /// use bufkit::Chunk;
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -1860,8 +1860,8 @@ pub trait Buf {
   }
 }
 
-/// Extension trait for `Buf` that provides additional methods
-pub trait BufExt: Buf {
+/// Extension trait for `Chunk` that provides additional methods
+pub trait ChunkExt: Chunk {
   /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
   ///
   /// This method creates a copy of the first `N` bytes from the buffer without
@@ -1870,20 +1870,20 @@ pub trait BufExt: Buf {
   /// # Panics
   ///
   /// Panics if the buffer contains fewer than `N` bytes.
-  /// Use [`peek_array_checked`](Buf::peek_array_checked) or
-  /// [`try_peek_array`](Buf::try_peek_array) for non-panicking peeks.
+  /// Use [`peek_array_checked`](Chunk::peek_array_checked) or
+  /// [`try_peek_array`](Chunk::try_peek_array) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
   ///
   /// let first_three: [u8; 3] = buf.peek_array();
   /// assert_eq!(first_three, [1, 2, 3]);
-  /// // Buffer unchanged
+  /// // Chunkfer unchanged
   /// assert_eq!(buf.remaining(), 5);
   /// ```
   #[inline]
@@ -1893,13 +1893,13 @@ pub trait BufExt: Buf {
 
   /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_array`](Buf::peek_array).
+  /// This is the non-panicking version of [`peek_array`](Chunk::peek_array).
   /// Returns `Some(array)` if sufficient data is available, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3];
   /// let buf = &data[..];
@@ -1914,7 +1914,7 @@ pub trait BufExt: Buf {
 
   /// Peeks a fixed-size array from the beginning of the buffer without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_array`](Buf::peek_array) that
+  /// This is the non-panicking version of [`peek_array`](Chunk::peek_array) that
   /// returns detailed error information on failure.
   /// Returns `Ok(array)` on success, or `Err(TryPeekError)` with details about
   /// requested vs available bytes.
@@ -1922,7 +1922,7 @@ pub trait BufExt: Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3];
   /// let buf = &data[..];
@@ -1945,20 +1945,20 @@ pub trait BufExt: Buf {
   /// # Panics
   ///
   /// Panics if `offset + N > self.remaining()`.
-  /// Use [`peek_array_at_checked`](BufExt::peek_array_at_checked) or
-  /// [`try_peek_array_at`](BufExt::try_peek_array_at) for non-panicking peeks.
+  /// Use [`peek_array_at_checked`](ChunkExt::peek_array_at_checked) or
+  /// [`try_peek_array_at`](ChunkExt::try_peek_array_at) for non-panicking peeks.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3, 4, 5, 6, 7, 8];
   /// let buf = &data[..];
   ///
   /// let array_at_2: [u8; 3] = buf.peek_array_at(2);
   /// assert_eq!(array_at_2, [3, 4, 5]);
-  /// // Buffer unchanged
+  /// // Chunkfer unchanged
   /// assert_eq!(buf.remaining(), 8);
   /// ```
   #[inline]
@@ -1968,13 +1968,13 @@ pub trait BufExt: Buf {
 
   /// Peeks a fixed-size array from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_array_at`](BufExt::peek_array_at).
+  /// This is the non-panicking version of [`peek_array_at`](ChunkExt::peek_array_at).
   /// Returns `Some(array)` if sufficient data is available at the offset, otherwise returns `None`.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -1989,7 +1989,7 @@ pub trait BufExt: Buf {
 
   /// Peeks a fixed-size array from the buffer at the specified offset without advancing the cursor.
   ///
-  /// This is the non-panicking version of [`peek_array_at`](BufExt::peek_array_at) that
+  /// This is the non-panicking version of [`peek_array_at`](ChunkExt::peek_array_at) that
   /// returns detailed error information on failure.
   /// Returns `Ok(array)` on success, or `Err(TryPeekAtError)` with details about
   /// the error condition.
@@ -1997,7 +1997,7 @@ pub trait BufExt: Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -2021,13 +2021,13 @@ pub trait BufExt: Buf {
   /// # Panics
   ///
   /// Panics if the buffer contains fewer than `N` bytes.
-  /// Use [`read_array_checked`](Buf::read_array_checked) or
-  /// [`try_read_array`](Buf::try_read_array) for non-panicking reads.
+  /// Use [`read_array_checked`](Chunk::read_array_checked) or
+  /// [`try_read_array`](Chunk::try_read_array) for non-panicking reads.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let mut buf = &data[..];
@@ -2045,13 +2045,13 @@ pub trait BufExt: Buf {
 
   /// Reads a fixed-size array from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_array`](Buf::read_array).
+  /// This is the non-panicking version of [`read_array`](Chunk::read_array).
   /// Returns `Some(array)` and advances the cursor on success, or `None` if insufficient data.
   ///
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3];
   /// let mut buf = &data[..];
@@ -2071,7 +2071,7 @@ pub trait BufExt: Buf {
 
   /// Reads a fixed-size array from the buffer and advances the internal cursor.
   ///
-  /// This is the non-panicking version of [`read_array`](Buf::read_array) that
+  /// This is the non-panicking version of [`read_array`](Chunk::read_array) that
   /// returns detailed error information on failure.
   /// Returns `Ok(array)` and advances the cursor on success, or `Err(TryReadError)`
   /// with details about requested vs available bytes.
@@ -2079,7 +2079,7 @@ pub trait BufExt: Buf {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, BufExt};
+  /// use bufkit::{Chunk, ChunkExt};
   ///
   /// let data = [1, 2, 3];
   /// let mut buf = &data[..];
@@ -2124,7 +2124,7 @@ pub trait BufExt: Buf {
   }
 }
 
-impl<T: Buf> BufExt for T {}
+impl<T: Chunk> ChunkExt for T {}
 
 #[allow(unused)]
 macro_rules! deref_forward_buf {
@@ -2320,7 +2320,7 @@ macro_rules! deref_forward_buf {
   }
 }
 
-impl Buf for &[u8] {
+impl Chunk for &[u8] {
   #[inline]
   fn remaining(&self) -> usize {
     <[u8]>::len(self)
@@ -2449,7 +2449,7 @@ impl Buf for &[u8] {
   }
 }
 
-#[cfg(feature = "bytes_1")]
+#[cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc")))]
 const _: () = {
   use bytes_1::{Buf as _, Bytes};
 
@@ -2497,7 +2497,11 @@ const _: () = {
     };
   }
 
-  impl Buf for Bytes {
+  #[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc"))))
+  )]
+  impl Chunk for Bytes {
     #[inline]
     fn remaining(&self) -> usize {
       self.len()
@@ -2621,21 +2625,21 @@ fn check_segment<R: RangeBounds<usize>>(
 }
 
 #[inline]
-fn read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> [u8; N] {
+fn read_array<B: Chunk + ?Sized, const N: usize>(buf: &mut B) -> [u8; N] {
   let output = peek_array::<B, N>(buf);
   buf.advance(N);
   output
 }
 
 #[inline]
-fn read_array_checked<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Option<[u8; N]> {
+fn read_array_checked<B: Chunk + ?Sized, const N: usize>(buf: &mut B) -> Option<[u8; N]> {
   peek_array_checked::<B, N>(buf).inspect(|_| {
     buf.advance(N);
   })
 }
 
 #[inline]
-fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N], TryReadError> {
+fn try_read_array<B: Chunk + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N], TryReadError> {
   try_peek_array::<B, N>(buf)
     .inspect(|_| {
       buf.advance(N);
@@ -2644,12 +2648,12 @@ fn try_read_array<B: Buf + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8; N
 }
 
 #[inline]
-fn peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
+fn peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
   <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
 }
 
 #[inline]
-fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
+fn peek_array_checked<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
   if buf.remaining() < N {
     None
   } else {
@@ -2658,7 +2662,7 @@ fn peek_array_checked<B: Buf + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N
 }
 
 #[inline]
-fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
+fn try_peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
   if buf.remaining() < N {
     Err(TryPeekError::new(N, buf.remaining()))
   } else {
@@ -2667,12 +2671,12 @@ fn try_peek_array<B: Buf + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], T
 }
 
 #[inline]
-fn peek_array_at<B: Buf + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
+fn peek_array_at<B: Chunk + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
   buf.buffer_from(offset)[..N].try_into().unwrap()
 }
 
 #[inline]
-fn peek_array_at_checked<B: Buf + ?Sized, const N: usize>(
+fn peek_array_at_checked<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Option<[u8; N]> {
@@ -2683,7 +2687,7 @@ fn peek_array_at_checked<B: Buf + ?Sized, const N: usize>(
 }
 
 #[inline]
-fn try_peek_array_at<B: Buf + ?Sized, const N: usize>(
+fn try_peek_array_at<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Result<[u8; N], TryPeekAtError> {
@@ -2730,7 +2734,7 @@ mod tests {
 
   struct Wrapper<'a>(&'a [u8]);
 
-  impl Buf for Wrapper<'_> {
+  impl Chunk for Wrapper<'_> {
     fn remaining(&self) -> usize {
       self.0.len()
     }

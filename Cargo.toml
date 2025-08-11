@@ -1,15 +1,21 @@
 [package]
 name = "bufkit"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 repository = "https://github.com/al8n/bufkit"
 homepage = "https://github.com/al8n/bufkit"
 documentation = "https://docs.rs/bufkit"
-description = "Providing `Buf` and `BufMut` for working with byte buffers. `bufkit` focuses on predictable memory usage and comprehensive error handling."
+description = "Memory-backed buffer toolkit with Chunk/ChunkMut traits for predictable, explicit, and retry-friendly access; ideal for Sans-I/O style protocol parsers, database engines, and embedded systems."
 license = "MIT OR Apache-2.0"
 rust-version = "1.81.0"
-keywords = ["buf", "bufmut", "bufio"]
-categories = ["no-std", "no-std::no-alloc", "network-programming"]
+keywords = [
+  "buf",
+  "bufmut",
+  "bufio",
+  "buffer",
+  "bytes",
+]
+categories = ["no-std", "no-std::no-alloc", "network-programming", "data-structures", "encoding"]
 
 [features]
 default = ["std"]

@@ -1,5 +1,9 @@
 # RELEASED
 
+## 0.4.0 (Aug 11st, 2025)
+
+- Rename `bufkit::{Buf, BufMut}` to `bufkit::{Chunk, ChunkMut}` to avoid collisions with `bytes::{Buf, BufMut}`.
+
 ## 0.3.0 (Aug 8th, 2025)
 
 - Add `RefPeeker`, `Peeker` and `Putter`

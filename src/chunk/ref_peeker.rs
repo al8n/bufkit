@@ -2,7 +2,7 @@ use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
-use super::{check_out_of_bounds, Buf};
+use super::{check_out_of_bounds, Chunk};
 
 /// A peeker for reading from a buffer without advancing the original buffer's cursor.
 ///
@@ -19,7 +19,7 @@ use super::{check_out_of_bounds, Buf};
 /// # Examples
 ///
 /// ```rust
-/// use bufkit::{Buf, RefPeeker};
+/// use bufkit::{Chunk, RefPeeker};
 ///
 /// let data = b"Hello, World!";
 /// let buf = &data[..];
@@ -71,7 +71,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -91,7 +91,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
@@ -112,7 +112,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   ///
   /// ```rust
   /// use core::ops::Bound;
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = b"Hello, World!";
   /// let buf = &data[..];
@@ -124,7 +124,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   #[inline]
   pub fn with_range(buf: &'a B, range: impl RangeBounds<usize>) -> Self
   where
-    B: Buf,
+    B: Chunk,
   {
     let start = range.start_bound().cloned();
     let end = range.end_bound().cloned();
@@ -142,7 +142,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   ///
   /// ```rust
   /// use core::ops::Bound;
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -161,7 +161,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -188,7 +188,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -215,7 +215,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   /// # Examples
   ///
   /// ```rust
-  /// use bufkit::{Buf, RefPeeker};
+  /// use bufkit::{Chunk, RefPeeker};
   ///
   /// let data = [1, 2, 3, 4, 5];
   /// let buf = &data[..];
@@ -262,7 +262,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   #[inline]
   fn resolve_start_bound(bound: Bound<usize>, buf: &B) -> usize
   where
-    B: Buf,
+    B: Chunk,
   {
     let pos = match bound {
       Bound::Included(n) => n,
@@ -275,7 +275,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   #[inline]
   fn resolve_end_bound(&self, bound: Bound<usize>) -> usize
   where
-    B: Buf,
+    B: Chunk,
   {
     match bound {
       Bound::Included(n) => n.saturating_add(1),
@@ -285,7 +285,7 @@ impl<'a, B: 'a + ?Sized> RefPeeker<'a, B> {
   }
 }
 
-impl<'a, B: 'a + Buf + ?Sized> Buf for RefPeeker<'a, B> {
+impl<'a, B: 'a + Chunk + ?Sized> Chunk for RefPeeker<'a, B> {
   #[inline]
   fn remaining(&self) -> usize {
     let end_pos = self.resolve_end_bound(self.limit);

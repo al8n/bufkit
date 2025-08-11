@@ -14,14 +14,14 @@ extern crate std;
 #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
 pub use varing::Varint;
 
-pub use buf::*;
-pub use buf_mut::*;
+pub use chunk::*;
+pub use chunk_mut::*;
 
 /// Errors buffer I/O
 pub mod error;
 
-mod buf;
-mod buf_mut;
+mod chunk;
+mod chunk_mut;
 
 /// Panic with a nice error message.
 #[cold]

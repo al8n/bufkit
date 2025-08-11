@@ -1,4 +1,4 @@
-use bufkit::{Buf, BufMut};
+use bufkit::{Chunk, ChunkMut};
 
 #[derive(Debug)]
 pub enum Error {}
@@ -6,11 +6,11 @@ pub enum Error {}
 pub trait Encode {
   fn encoded_len(&self) -> usize;
 
-  fn encode<B: BufMut>(&self, buf: &mut B) -> Result<usize, Error>;
+  fn encode<B: ChunkMut>(&self, buf: &mut B) -> Result<usize, Error>;
 }
 
 pub trait Decode {
-  fn decode<B: Buf>(buf: B) -> Result<(usize, Self), Error>
+  fn decode<B: Chunk>(buf: B) -> Result<(usize, Self), Error>
   where
     Self: Sized;
 }
@@ -26,7 +26,7 @@ impl Encode for Foo {
     4 + 4 + self.other.len() // 4 bytes for u32 + 4 bytes for length + length of the Vec<u8>
   }
 
-  fn encode<B: BufMut>(&self, buf: &mut B) -> Result<usize, Error> {
+  fn encode<B: ChunkMut>(&self, buf: &mut B) -> Result<usize, Error> {
     let mut offset = buf.write_u32_le(self.value);
     offset += buf.write_u32_le(self.other.len() as u32);
     offset += buf.write_slice(self.other.as_ref());
@@ -35,7 +35,7 @@ impl Encode for Foo {
 }
 
 impl Decode for Foo {
-  fn decode<B: Buf>(mut buf: B) -> Result<(usize, Self), Error> {
+  fn decode<B: Chunk>(mut buf: B) -> Result<(usize, Self), Error> {
     let value = buf.read_u32_le();
     let other_len = buf.read_u32_le() as usize;
     let other = buf.prefix(other_len).to_vec();
@@ -56,7 +56,7 @@ impl Encode for Bar {
     8 + self.foo.encoded_len() + 4 // 8 bytes for u64 + encoded length of Foo + 4 bytes for u32
   }
 
-  fn encode<B: BufMut>(&self, buf: &mut B) -> Result<usize, Error> {
+  fn encode<B: ChunkMut>(&self, buf: &mut B) -> Result<usize, Error> {
     let mut offset = buf.write_u64_le(self.id);
     offset += self.foo.encode(buf)?;
     offset += buf.write_u32_le(self.n);
@@ -65,7 +65,7 @@ impl Encode for Bar {
 }
 
 impl Decode for Bar {
-  fn decode<B: Buf>(mut buf: B) -> Result<(usize, Self), Error> {
+  fn decode<B: Chunk>(mut buf: B) -> Result<(usize, Self), Error> {
     let id = buf.read_u64_le();
     let (foo_len, foo) = Foo::decode(buf.buffer())?;
     buf.advance(foo_len);
