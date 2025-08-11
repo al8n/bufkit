@@ -2012,7 +2012,7 @@ pub trait ChunkMutExt: ChunkMut {
     match self.split_at_mut_checked(offset) {
       Some((_, suffix)) => match value.encode(suffix) {
         Ok(read) => Ok(read),
-        Err(e) => Err(EncodeVarintAtError::from_varint_error(e.into(), offset)),
+        Err(e) => Err(EncodeVarintAtError::from_varint_error(e, offset)),
       },
       None => Err(EncodeVarintAtError::out_of_bounds(
         offset,
