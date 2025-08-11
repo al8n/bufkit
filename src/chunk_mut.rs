@@ -1976,7 +1976,7 @@ pub trait ChunkMutExt: ChunkMut {
   where
     V: Varint,
   {
-    value.encode(self.buffer_mut()).map_err(Into::into)
+    value.encode(self.buffer_mut())
   }
 
   /// Puts type in LEB128 format to the buffer at the specified offset without advancing the internal cursor.
