@@ -134,7 +134,7 @@ mod bytes_buf_tests {
     assert_eq!(buf.peek_u32_le(), 0x78563412);
     assert_eq!(buf.peek_u32_be(), 0x12345678);
 
-    // Chunkfer unchanged
+    // Chunk unchanged
     assert_eq!(buf.remaining(), 8);
   }
 
