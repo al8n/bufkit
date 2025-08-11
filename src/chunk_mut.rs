@@ -4,7 +4,7 @@ use super::{
 };
 
 #[cfg(feature = "varing")]
-use super::error::{PutVarintAtError, PutVarintError, WriteVarintError};
+use super::error::{EncodeVarintAtError, EncodeVarintError};
 #[cfg(feature = "varing")]
 use varing::Varint;
 
@@ -1956,7 +1956,7 @@ pub trait ChunkMutExt: ChunkMut {
   /// Uses the LEB128 encoding format. The number of bytes written depends
   /// on the value being encoded.
   ///
-  /// Returns `Ok(bytes_written)` on success, or `Err(WriteVarintError)` if there's
+  /// Returns `Ok(bytes_written)` on success, or `Err(EncodeVarintError)` if there's
   /// insufficient space or an encoding error occurs.
   ///
   /// # Examples
@@ -1972,11 +1972,11 @@ pub trait ChunkMutExt: ChunkMut {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn put_varint<V>(&mut self, value: &V) -> Result<usize, PutVarintError>
+  fn put_varint<V>(&mut self, value: &V) -> Result<usize, EncodeVarintError>
   where
     V: Varint,
   {
-    value.encode(self.buffer_mut()).map_err(Into::into)
+    value.encode(self.buffer_mut())
   }
 
   /// Puts type in LEB128 format to the buffer at the specified offset without advancing the internal cursor.
@@ -1984,7 +1984,7 @@ pub trait ChunkMutExt: ChunkMut {
   /// Uses the LEB128 encoding format. The number of bytes written depends
   /// on the value being encoded.
   ///
-  /// Returns `Ok(bytes_written)` on success, or `Err(PutVarintAtError)` if the offset
+  /// Returns `Ok(bytes_written)` on success, or `Err(EncodeVarintAtError)` if the offset
   /// is out of bounds, there's insufficient space, or an encoding error occurs.
   ///
   /// # Examples
@@ -2005,16 +2005,16 @@ pub trait ChunkMutExt: ChunkMut {
   #[inline]
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-  fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, PutVarintAtError>
+  fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, EncodeVarintAtError>
   where
     V: Varint,
   {
     match self.split_at_mut_checked(offset) {
       Some((_, suffix)) => match value.encode(suffix) {
         Ok(read) => Ok(read),
-        Err(e) => Err(PutVarintAtError::from_put_varint_error(e.into(), offset)),
+        Err(e) => Err(EncodeVarintAtError::from_varint_error(e, offset)),
       },
-      None => Err(PutVarintAtError::out_of_bounds(
+      None => Err(EncodeVarintAtError::out_of_bounds(
         offset,
         self.remaining_mut(),
       )),
@@ -2026,7 +2026,7 @@ pub trait ChunkMutExt: ChunkMut {
   /// Uses the LEB128 encoding format. The number of bytes written depends
   /// on the value being encoded.
   ///
-  /// Returns `Ok(bytes_written)` on success, or `Err(WriteVarintError)` if there's
+  /// Returns `Ok(bytes_written)` on success, or `Err(EncodeVarintError)` if there's
   /// insufficient space or an encoding error occurs.
   ///
   /// # Examples
@@ -2044,7 +2044,7 @@ pub trait ChunkMutExt: ChunkMut {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn write_varint<V>(&mut self, value: &V) -> Result<usize, WriteVarintError>
+  fn write_varint<V>(&mut self, value: &V) -> Result<usize, EncodeVarintError>
   where
     V: Varint,
   {
