@@ -8,7 +8,7 @@ use core::ops::{Bound, RangeBounds};
 use varing::Varint;
 
 #[cfg(feature = "varing")]
-use super::error::ReadVarintError;
+use super::error::DecodeVarintError;
 
 use super::panic_advance;
 
@@ -2106,7 +2106,7 @@ pub trait ChunkExt: Chunk {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn peek_varint<V: Varint>(&self) -> Result<(usize, V), ReadVarintError> {
+  fn peek_varint<V: Varint>(&self) -> Result<(usize, V), DecodeVarintError> {
     V::decode(self.buffer())
   }
 
@@ -2116,7 +2116,7 @@ pub trait ChunkExt: Chunk {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn read_varint<V: Varint>(&mut self) -> Result<(usize, V), ReadVarintError> {
+  fn read_varint<V: Varint>(&mut self) -> Result<(usize, V), DecodeVarintError> {
     V::decode(self.buffer()).map(|(len, val)| {
       self.advance(len);
       (len, val)
