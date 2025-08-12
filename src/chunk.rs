@@ -2747,11 +2747,19 @@ fn try_read_array<B: Chunk + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8;
 
 #[inline]
 fn peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
+  if N == 0 {
+    return [0u8; N];
+  }
+
   <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
 }
 
 #[inline]
 fn peek_array_checked<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Option<[u8; N]> {
+  if N == 0 {
+    return Some([0u8; N]);
+  }
+
   if buf.remaining() < N {
     None
   } else {
@@ -2761,6 +2769,10 @@ fn peek_array_checked<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Option<[u8;
 
 #[inline]
 fn try_peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
+  if N == 0 {
+    return Ok([0u8; N]);
+  }
+
   if buf.remaining() < N {
     Err(TryPeekError::new(must_non_zero(N), buf.remaining()))
   } else {
@@ -2770,6 +2782,10 @@ fn try_peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N],
 
 #[inline]
 fn peek_array_at<B: Chunk + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
+  if N == 0 {
+    return [0u8; N];
+  }
+
   buf.buffer_from(offset)[..N].try_into().unwrap()
 }
 
@@ -2778,6 +2794,10 @@ fn peek_array_at_checked<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Option<[u8; N]> {
+  if N == 0 {
+    return Some([0u8; N]);
+  }
+
   match buf.buffer_from_checked(offset) {
     Some(slice) if slice.len() >= N => Some(slice[..N].try_into().unwrap()),
     _ => None,
