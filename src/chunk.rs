@@ -2147,6 +2147,7 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.remaining(), 2); // Cursor not advanced
   ///
   /// let buf = [0x7F]; // Varint encoding of 127
+  /// let mut chunk = &buf[..];
   /// assert_eq!(chunk.try_scan_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 1); // Cursor not advanced
   /// ```
@@ -2173,6 +2174,7 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.remaining(), 3); // Cursor not advanced
   ///
   /// let buf = [0, 0x7F]; // Varint encoding of 127
+  /// let mut chunk = &buf[..];
   /// assert_eq!(chunk.try_scan_varint_at(1).map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 2); // Cursor not advanced
   ///
@@ -2208,6 +2210,7 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   ///
   /// let buf = [0x7F]; // Varint encoding of 127
+  /// let mut chunk = &buf[..];
   /// assert_eq!(chunk.try_consume_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   /// ```

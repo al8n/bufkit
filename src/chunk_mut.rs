@@ -2058,7 +2058,7 @@ pub trait ChunkMutExt: ChunkMut {
   /// let written = slice.write_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   ///
-  /// assert_eq!(slice.remaining_mut(), 24 - written);
+  /// assert_eq!(slice.remaining_mut(), 24 - written.get());
   /// ```
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]

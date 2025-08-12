@@ -145,9 +145,8 @@ let mut writer = &mut small_buf[..];
 match writer.try_put_u64_le(0x123456789ABCDEF0) {
     Err(e) => {
         // Caller knows exactly how much space is needed
-        assert_eq!(e.requested(), 8);
+        assert_eq!(e.requested().get(), 8);
         assert_eq!(e.available(), 4);
-        println!(\"Need {} more bytes\", e.shortage());
     }
     _ => panic!(\"Expected error\"),
 }
@@ -182,9 +181,8 @@ let mut writer = &mut small_buf[..];
 match writer.try_write_u64_le(0x123456789ABCDEF0) {
     Err(e) => {
         // Caller knows exactly how much space is needed
-        assert_eq!(e.requested(), 8);
+        assert_eq!(e.requested().get(), 8);
         assert_eq!(e.available(), 4);
-        println!(\"Need {} more bytes\", e.shortage());
     }
     _ => panic!(\"Expected error\"),
 }
