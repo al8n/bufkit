@@ -1,14 +1,18 @@
+use crate::must_non_zero;
+
 use super::error::{
   OutOfBounds, TryAdvanceError, TryPeekAtError, TryPeekError, TryReadError, TrySegmentError,
 };
 
+#[cfg(feature = "varing")]
+use core::num::NonZeroUsize;
 use core::ops::{Bound, RangeBounds};
 
 #[cfg(feature = "varing")]
 use varing::Varint;
 
 #[cfg(feature = "varing")]
-use super::error::DecodeVarintError;
+use super::error::{DecodeVarintAtError, DecodeVarintError};
 
 use super::panic_advance;
 
@@ -1334,9 +1338,13 @@ pub trait Chunk {
   /// // err contains details about requested vs available
   /// ```
   fn try_advance(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
+    if cnt == 0 {
+      return Ok(());
+    }
+
     let remaining = self.remaining();
     if remaining < cnt {
-      return Err(TryAdvanceError::new(cnt, remaining));
+      return Err(TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
 
     self.advance(cnt);
@@ -1448,7 +1456,7 @@ pub trait Chunk {
       .buffer()
       .first()
       .copied()
-      .ok_or_else(|| TryPeekError::new(1, self.remaining()))
+      .ok_or_else(|| TryPeekError::new(super::NON_ZERO_1, self.remaining()))
   }
 
   /// Peeks a `u8` value from the buffer at the specified offset without advancing the cursor.
@@ -1668,7 +1676,7 @@ pub trait Chunk {
   fn try_read_u8(&mut self) -> Result<u8, TryReadError> {
     self
       .read_u8_checked()
-      .ok_or_else(|| TryReadError::new(1, self.remaining()))
+      .ok_or_else(|| TryReadError::new(super::NON_ZERO_1, self.remaining()))
   }
 
   /// Peeks an `i8` value from the buffer without advancing the internal cursor.
@@ -2106,7 +2114,7 @@ pub trait ChunkExt: Chunk {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn peek_varint<V: Varint>(&self) -> Result<(usize, V), DecodeVarintError> {
+  fn peek_varint<V: Varint>(&self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer())
   }
 
@@ -2116,9 +2124,9 @@ pub trait ChunkExt: Chunk {
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
-  fn read_varint<V: Varint>(&mut self) -> Result<(usize, V), DecodeVarintError> {
+  fn read_varint<V: Varint>(&mut self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer()).map(|(len, val)| {
-      self.advance(len);
+      self.advance(len.get());
       (len, val)
     })
   }
@@ -2136,17 +2144,52 @@ pub trait ChunkExt: Chunk {
   ///
   /// let buf = [0x96, 0x01]; // Varint encoding of 150
   /// let mut chunk = &buf[..];
-  /// assert_eq!(chunk.scan_varint(), Ok(2));
+  /// assert_eq!(chunk.try_scan_varint().map(|val| val.get()), Ok(2));
   /// assert_eq!(chunk.remaining(), 2); // Cursor not advanced
   ///
   /// let buf = [0x7F]; // Varint encoding of 127
-  /// assert_eq!(chunk.scan_varint(), Ok(1));
+  /// assert_eq!(chunk.try_scan_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 1); // Cursor not advanced
   /// ```
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-  fn scan_varint(&mut self) -> Result<usize, DecodeVarintError> {
-    varing::consume_varint(self.buffer())
+  fn try_scan_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
+    varing::try_consume_varint(self.buffer()).map_err(Into::into)
+  }
+
+  /// Skips a variable-length encoded type in the buffer at the specified offset without advancing the cursor.
+  ///
+  /// In varint encoding, each byte uses 7 bits for the value and the highest bit (MSB)
+  /// as a continuation flag. A set MSB (1) indicates more bytes follow, while an unset MSB (0)
+  /// marks the last byte of the varint.
+  ///
+  /// ## Examples
+  ///
+  /// ```rust
+  /// use bufkit::{ChunkExt, Chunk};
+  ///
+  /// let buf = [0, 0x96, 0x01]; // Varint encoding of 150
+  /// let mut chunk = &buf[..];
+  /// assert_eq!(chunk.try_scan_varint_at(1).map(|val| val.get()), Ok(2));
+  /// assert_eq!(chunk.remaining(), 3); // Cursor not advanced
+  ///
+  /// let buf = [0, 0x7F]; // Varint encoding of 127
+  /// assert_eq!(chunk.try_scan_varint_at(1).map(|val| val.get()), Ok(1));
+  /// assert_eq!(chunk.remaining(), 2); // Cursor not advanced
+  ///
+  /// // Out of bounds example
+  /// let err = chunk.try_scan_varint_at(10).unwrap_err();
+  /// ```
+  #[cfg(feature = "varing")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  fn try_scan_varint_at(&mut self, offset: usize) -> Result<NonZeroUsize, DecodeVarintAtError> {
+    self
+      .buffer_from_checked(offset)
+      .ok_or_else(|| DecodeVarintAtError::out_of_bounds(offset, self.remaining()))
+      .and_then(|buf| {
+        varing::try_consume_varint(buf)
+          .map_err(|e| DecodeVarintAtError::from_const_varint_error(e, offset))
+      })
   }
 
   /// Skips a variable-length encoded type in the buffer and advances the internal cursor.
@@ -2162,20 +2205,22 @@ pub trait ChunkExt: Chunk {
   ///
   /// let buf = [0x96, 0x01]; // Varint encoding of 150
   /// let mut chunk = &buf[..];
-  /// assert_eq!(chunk.consume_varint(), Ok(2));
+  /// assert_eq!(chunk.try_consume_varint().map(|val| val.get()), Ok(2));
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   ///
   /// let buf = [0x7F]; // Varint encoding of 127
-  /// assert_eq!(chunk.consume_varint(), Ok(1));
+  /// assert_eq!(chunk.try_consume_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   /// ```
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-  fn consume_varint(&mut self) -> Result<usize, DecodeVarintError> {
-    varing::consume_varint(self.buffer()).map(|len| {
-      self.advance(len);
-      len
-    })
+  fn try_consume_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
+    varing::try_consume_varint(self.buffer())
+      .map(|len| {
+        self.advance(len.get());
+        len
+      })
+      .map_err(Into::into)
   }
 }
 
@@ -2389,7 +2434,7 @@ impl Chunk for &[u8] {
   #[inline]
   fn advance(&mut self, cnt: usize) {
     if self.len() < cnt {
-      panic_advance(&TryAdvanceError::new(cnt, self.len()));
+      panic_advance(&TryAdvanceError::new(must_non_zero(cnt), self.len()));
     }
 
     *self = &self[cnt..];
@@ -2398,7 +2443,7 @@ impl Chunk for &[u8] {
   #[inline]
   fn try_advance(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
     if self.len() < cnt {
-      return Err(TryAdvanceError::new(cnt, self.len()));
+      return Err(TryAdvanceError::new(must_non_zero(cnt), self.len()));
     }
 
     *self = &self[cnt..];
@@ -2719,7 +2764,7 @@ fn peek_array_checked<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Option<[u8;
 #[inline]
 fn try_peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N], TryPeekError> {
   if buf.remaining() < N {
-    Err(TryPeekError::new(N, buf.remaining()))
+    Err(TryPeekError::new(must_non_zero(N), buf.remaining()))
   } else {
     Ok(<[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes"))
   }
@@ -2746,6 +2791,10 @@ fn try_peek_array_at<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Result<[u8; N], TryPeekAtError> {
+  if N == 0 {
+    return Ok([0u8; N]);
+  }
+
   let buffer = buf.buffer();
   let buf_len = buffer.len();
 
@@ -2757,7 +2806,8 @@ fn try_peek_array_at<B: Chunk + ?Sized, const N: usize>(
         .expect("Already checked there are enough bytes"),
     ),
     Some(remaining) => {
-      let err = TryPeekAtError::insufficient_data_with_requested(remaining, offset, N);
+      let n = must_non_zero(N);
+      let err = TryPeekAtError::insufficient_data_with_requested(remaining, offset, n);
       Err(err)
     }
   }
@@ -2800,7 +2850,7 @@ mod tests {
 
     fn advance(&mut self, cnt: usize) {
       if self.0.len() < cnt {
-        panic_advance(&TryAdvanceError::new(cnt, self.0.len()));
+        panic_advance(&TryAdvanceError::new(must_non_zero(cnt), self.0.len()));
       }
 
       self.0 = &self.0[cnt..];

@@ -20,6 +20,18 @@ pub use chunk_mut::*;
 /// Errors buffer I/O
 pub mod error;
 
+macro_rules! non_zero {
+  ($($size:literal),+$(,)?) => {
+    paste::paste! {
+      $(
+        const [<NON_ZERO_ $size>]: ::core::num::NonZeroUsize = core::num::NonZeroUsize::new($size).expect(concat!($size, "is non-zero"));
+      )*
+    }
+  };
+}
+
+non_zero!(1);
+
 mod chunk;
 mod chunk_mut;
 
@@ -32,3 +44,14 @@ fn panic_advance(error_info: &error::TryAdvanceError) -> ! {
     error_info.requested()
   );
 }
+
+/// # Panics
+/// This function panics if `size` is zero. Use only when you have already checked that `size` is non-zero.
+#[inline]
+const fn must_non_zero(size: usize) -> core::num::NonZeroUsize {
+  match core::num::NonZeroUsize::new(size) {
+    Some(nz) => nz,
+    None => panic!("Already checked value is non-zero"),
+  }
+}
+

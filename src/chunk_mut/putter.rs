@@ -2,7 +2,10 @@ use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
-use super::{ChunkMut, ChunkWriter};
+use super::{
+  super::{must_non_zero, panic_advance},
+  ChunkMut, ChunkWriter,
+};
 
 /// A putter for writing to a buffer without modifying the original buffer's cursor.
 ///
@@ -359,7 +362,7 @@ impl<B: ChunkMut + ?Sized> ChunkMut for Putter<B> {
   fn advance_mut(&mut self, cnt: usize) {
     let remaining = self.remaining_mut();
     if cnt > remaining {
-      super::panic_advance(&TryAdvanceError::new(cnt, remaining));
+      panic_advance(&TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
     self.cursor += cnt;
   }
@@ -368,7 +371,7 @@ impl<B: ChunkMut + ?Sized> ChunkMut for Putter<B> {
   fn try_advance_mut(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
     let remaining = self.remaining_mut();
     if cnt > remaining {
-      return Err(TryAdvanceError::new(cnt, remaining));
+      return Err(TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
     self.cursor += cnt;
     Ok(())
@@ -719,7 +722,7 @@ mod tests {
 
     // Test TryAdvanceError
     let advance_err = putter.try_advance_mut(5).unwrap_err();
-    assert_eq!(advance_err.requested(), 5);
+    assert_eq!(advance_err.requested().get(), 5);
     assert_eq!(advance_err.available(), 3);
   }
 
