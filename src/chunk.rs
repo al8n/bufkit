@@ -2122,6 +2122,61 @@ pub trait ChunkExt: Chunk {
       (len, val)
     })
   }
+
+  /// Skips a variable-length encoded type in the buffer without advancing the internal cursor.
+  ///
+  /// In varint encoding, each byte uses 7 bits for the value and the highest bit (MSB)
+  /// as a continuation flag. A set MSB (1) indicates more bytes follow, while an unset MSB (0)
+  /// marks the last byte of the varint.
+  ///
+  /// ## Examples
+  ///
+  /// ```rust
+  /// use bufkit::{ChunkExt, Chunk};
+  ///
+  /// let buf = [0x96, 0x01]; // Varint encoding of 150
+  /// let mut chunk = &buf[..];
+  /// assert_eq!(chunk.scan_varint(), Ok(2));
+  /// assert_eq!(chunk.remaining(), 2); // Cursor not advanced
+  ///
+  /// let buf = [0x7F]; // Varint encoding of 127
+  /// assert_eq!(chunk.scan_varint(), Ok(1));
+  /// assert_eq!(chunk.remaining(), 1); // Cursor not advanced
+  /// ```
+  #[cfg(feature = "varing")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  fn scan_varint(&mut self) -> Result<usize, DecodeVarintError> {
+    varing::consume_varint(self.buffer())
+  }
+
+  /// Skips a variable-length encoded type in the buffer and advances the internal cursor.
+  ///
+  /// In varint encoding, each byte uses 7 bits for the value and the highest bit (MSB)
+  /// as a continuation flag. A set MSB (1) indicates more bytes follow, while an unset MSB (0)
+  /// marks the last byte of the varint.
+  ///
+  /// ## Examples
+  ///
+  /// ```rust
+  /// use bufkit::{ChunkExt, Chunk};
+  ///
+  /// let buf = [0x96, 0x01]; // Varint encoding of 150
+  /// let mut chunk = &buf[..];
+  /// assert_eq!(chunk.consume_varint(), Ok(2));
+  /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
+  ///
+  /// let buf = [0x7F]; // Varint encoding of 127
+  /// assert_eq!(chunk.consume_varint(), Ok(1));
+  /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
+  /// ```
+  #[cfg(feature = "varing")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  fn consume_varint(&mut self) -> Result<usize, DecodeVarintError> {
+    varing::consume_varint(self.buffer()).map(|len| {
+      self.advance(len);
+      len
+    })
+  }
 }
 
 impl<T: Chunk> ChunkExt for T {}

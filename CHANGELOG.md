@@ -1,5 +1,9 @@
 # RELEASED
 
+## 0.4.2 (Aug 12nd, 2025)
+
+- Add `ChunkExt::consume_varint` and `ChunkExt::scan_varint`
+
 ## 0.4.0 (Aug 11st, 2025)
 
 - Rename `bufkit::{Buf, BufMut}` to `bufkit::{Chunk, ChunkMut}` to avoid collisions with `bytes::{Buf, BufMut}`.
