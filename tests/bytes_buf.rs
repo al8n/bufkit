@@ -56,7 +56,7 @@ mod bytes_buf_tests {
     assert_eq!(buf.remaining(), 2);
 
     let err = buf.try_advance(5).unwrap_err();
-    assert_eq!(err.requested(), 5);
+    assert_eq!(err.requested().get(), 5);
     assert_eq!(err.available(), 2);
   }
 
@@ -187,14 +187,14 @@ mod bytes_buf_tests {
     assert!(buf.try_peek_u16_le().is_ok());
 
     let err = buf.try_peek_u32_le().unwrap_err();
-    assert_eq!(err.requested(), 4);
+    assert_eq!(err.requested().get(), 4);
     assert_eq!(err.available(), 2);
 
     assert!(buf.try_read_u16_be().is_ok());
     assert_eq!(buf.remaining(), 0);
 
     let err = buf.try_read_u8().unwrap_err();
-    assert_eq!(err.requested(), 1);
+    assert_eq!(err.requested().get(), 1);
     assert_eq!(err.available(), 0);
   }
 
@@ -304,7 +304,7 @@ mod bytes_buf_tests {
     let (len, value) = buf.read_varint::<u32>().unwrap();
     assert_eq!(value, 42);
     assert_eq!(len, encoded_len);
-    assert_eq!(buf.remaining(), 10 - encoded_len);
+    assert_eq!(buf.remaining(), 10 - encoded_len.get());
   }
 
   #[test]

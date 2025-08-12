@@ -2125,9 +2125,8 @@ pub trait ChunkExt: Chunk {
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   #[inline]
   fn read_varint<V: Varint>(&mut self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
-    V::decode(self.buffer()).map(|(len, val)| {
+    V::decode(self.buffer()).inspect(|(len, _)| {
       self.advance(len.get());
-      (len, val)
     })
   }
 
@@ -2216,9 +2215,8 @@ pub trait ChunkExt: Chunk {
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
   fn try_consume_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
     varing::try_consume_varint(self.buffer())
-      .map(|len| {
+      .inspect(|len| {
         self.advance(len.get());
-        len
       })
       .map_err(Into::into)
   }

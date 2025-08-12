@@ -3,7 +3,7 @@ use core::num::NonZeroUsize;
 
 use super::{
   error::{TryAdvanceError, TryPutAtError, TryPutError, TryWriteError},
-  panic_advance, must_non_zero,
+  must_non_zero, panic_advance,
 };
 
 #[cfg(feature = "varing")]
@@ -2020,7 +2020,11 @@ pub trait ChunkMutExt: ChunkMut {
   #[inline]
   #[cfg(feature = "varing")]
   #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-  fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<NonZeroUsize, EncodeVarintAtError>
+  fn put_varint_at<V>(
+    &mut self,
+    value: &V,
+    offset: usize,
+  ) -> Result<NonZeroUsize, EncodeVarintAtError>
   where
     V: Varint,
   {
