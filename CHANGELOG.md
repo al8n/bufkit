@@ -1,8 +1,10 @@
 # RELEASED
 
-## 0.4.2 (Aug 12nd, 2025)
+## 0.5.0 (Aug 14th, 2025)
 
-- Add `ChunkExt::consume_varint` and `ChunkExt::scan_varint`
+- Add consume and scan varint related methods for `ChunkExt`
+- Change type of `requested` from `usize` to `NonZeroUsize`
+- Bumpup `varing` to `0.10`
 
 ## 0.4.0 (Aug 11st, 2025)
 
