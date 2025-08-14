@@ -19,8 +19,9 @@ categories = ["no-std", "no-std::no-alloc", "network-programming", "data-structu
 
 [features]
 default = ["std"]
-alloc = []
+alloc = ["varing?/alloc"]
 std = ["thiserror/default", "varing?/default", "bytes_1?/default"]
+varint = ["varing"]
 
 [dependencies]
 thiserror = { version = "2", default-features = false }
