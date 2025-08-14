@@ -282,7 +282,7 @@ mod bytes_buf_tests {
     assert_eq!(slice.buffer(), &[2, 3, 4]);
   }
 
-  #[cfg(feature = "varing")]
+  #[cfg(feature = "varint")]
   #[test]
   fn test_varint() {
     use varing::Varint as _;

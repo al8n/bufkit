@@ -1,4 +1,4 @@
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use core::num::NonZeroUsize;
 
 use super::{
@@ -6,9 +6,9 @@ use super::{
   must_non_zero, panic_advance,
 };
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use super::error::{EncodeVarintAtError, EncodeVarintError};
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use varing::Varint;
 
 pub use putter::Putter;
@@ -1984,8 +1984,8 @@ pub trait ChunkMutExt: ChunkMut {
   /// let written = slice.put_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn put_varint<V>(&mut self, value: &V) -> Result<NonZeroUsize, EncodeVarintError>
   where
@@ -2018,8 +2018,8 @@ pub trait ChunkMutExt: ChunkMut {
   /// let err = slice.put_varint_at(&8442u32, 23).unwrap_err();
   /// ```
   #[inline]
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn put_varint_at<V>(
     &mut self,
     value: &V,
@@ -2060,8 +2060,8 @@ pub trait ChunkMutExt: ChunkMut {
   ///
   /// assert_eq!(slice.remaining_mut(), 24 - written.get());
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn write_varint<V>(&mut self, value: &V) -> Result<NonZeroUsize, EncodeVarintError>
   where

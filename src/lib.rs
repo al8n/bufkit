@@ -10,8 +10,8 @@ extern crate alloc as std;
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(feature = "varing")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+#[cfg(feature = "varint")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub use varing::Varint;
 
 pub use chunk::*;

@@ -4,14 +4,14 @@ use super::error::{
   OutOfBounds, TryAdvanceError, TryPeekAtError, TryPeekError, TryReadError, TrySegmentError,
 };
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use core::num::NonZeroUsize;
 use core::ops::{Bound, RangeBounds};
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use varing::Varint;
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use super::error::{DecodeVarintAtError, DecodeVarintError};
 
 use super::panic_advance;
@@ -2111,8 +2111,8 @@ pub trait ChunkExt: Chunk {
   /// Peeks a variable-length encoded type from the buffer without advancing the internal cursor.
   ///
   /// Returns the length of the value and the value itself.
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn peek_varint<V: Varint>(&self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer())
@@ -2121,8 +2121,8 @@ pub trait ChunkExt: Chunk {
   /// Reads a variable-length encoded type from the buffer and advances the internal cursor.
   ///
   /// Returns the length of the value read and the value itself.
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn read_varint<V: Varint>(&mut self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer()).inspect(|(len, _)| {
@@ -2151,8 +2151,8 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.try_scan_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 1); // Cursor not advanced
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_scan_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
     varing::try_consume_varint(self.buffer()).map_err(Into::into)
   }
@@ -2181,8 +2181,8 @@ pub trait ChunkExt: Chunk {
   /// // Out of bounds example
   /// let err = chunk.try_scan_varint_at(10).unwrap_err();
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_scan_varint_at(&mut self, offset: usize) -> Result<NonZeroUsize, DecodeVarintAtError> {
     self
       .buffer_from_checked(offset)
@@ -2214,8 +2214,8 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.try_consume_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_consume_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
     varing::try_consume_varint(self.buffer())
       .inspect(|len| {
