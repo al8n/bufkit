@@ -3098,7 +3098,7 @@ mod tests {
     let slice = Wrapper(&buf[..]);
     let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(2);
     assert_eq!(arr, Ok([]));
-  
+
     let buf = [1, 2, 3, 4, 5];
     let slice = Wrapper(&buf[..]);
     let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(5);
