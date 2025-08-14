@@ -36,7 +36,7 @@ It’s Sans-I/O friendly — meaning it’s easy to integrate into network proto
 
 ```toml
 [dependencies]
-bufkit = "0.4"
+bufkit = "0.5"
 ```
 
 ### Feature Flags

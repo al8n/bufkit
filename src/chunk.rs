@@ -2785,10 +2785,6 @@ fn try_peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> Result<[u8; N],
 
 #[inline]
 fn peek_array_at<B: Chunk + ?Sized, const N: usize>(buf: &B, offset: usize) -> [u8; N] {
-  if N == 0 {
-    return [0u8; N];
-  }
-
   buf.buffer_from(offset)[..N].try_into().unwrap()
 }
 
@@ -2797,10 +2793,6 @@ fn peek_array_at_checked<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Option<[u8; N]> {
-  if N == 0 {
-    return Some([0u8; N]);
-  }
-
   match buf.buffer_from_checked(offset) {
     Some(slice) if slice.len() >= N => Some(slice[..N].try_into().unwrap()),
     _ => None,
@@ -2812,15 +2804,12 @@ fn try_peek_array_at<B: Chunk + ?Sized, const N: usize>(
   buf: &B,
   offset: usize,
 ) -> Result<[u8; N], TryPeekAtError> {
-  if N == 0 {
-    return Ok([0u8; N]);
-  }
-
   let buffer = buf.buffer();
   let buf_len = buffer.len();
 
   match buf_len.checked_sub(offset) {
     None => Err(TryPeekAtError::out_of_bounds(offset, buf_len)),
+    Some(_) if N == 0 => Ok([0u8; N]),
     Some(remaining) if remaining >= N => Ok(
       buffer[offset..offset + N]
         .try_into()
@@ -3031,6 +3020,99 @@ mod tests {
     let slice = Wrapper(&buf[..]);
     assert_eq!(slice.buffer_from_checked(2), Some(&[3, 4, 5][..]));
     assert_eq!(slice.buffer_from_checked(10), None);
+  }
+
+  #[test]
+  fn test_blanket_peek_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: [u8; 0] = slice.peek_array();
+    assert_eq!(arr, []);
+
+    let buf = [];
+    let slice = Wrapper(&buf[..]);
+    let arr: [u8; 0] = slice.peek_array();
+    assert_eq!(arr, []);
+  }
+
+  #[test]
+  fn test_blanket_peek_checked_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Option<[u8; 0]> = slice.peek_array_checked();
+    assert_eq!(arr, Some([]));
+  }
+
+  #[test]
+  fn test_blanket_try_peek_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Result<[u8; 0], TryPeekError> = slice.try_peek_array();
+    assert_eq!(arr, Ok([]));
+  }
+
+  #[test]
+  fn test_blanket_peek_at_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: [u8; 0] = slice.peek_array_at(2);
+    assert_eq!(arr, []);
+
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: [u8; 0] = slice.peek_array_at(5);
+    assert_eq!(arr, []);
+
+    let buf = [];
+    let slice = Wrapper(&buf[..]);
+    let arr: [u8; 0] = slice.peek_array_at(0);
+    assert_eq!(arr, []);
+  }
+
+  #[test]
+  fn test_blanket_peek_at_checked_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Option<[u8; 0]> = slice.peek_array_at_checked(2);
+    assert_eq!(arr, Some([]));
+
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Option<[u8; 0]> = slice.peek_array_at_checked(5);
+    assert_eq!(arr, Some([]));
+
+    let buf = [];
+    let slice = Wrapper(&buf[..]);
+    let arr: Option<[u8; 0]> = slice.peek_array_at_checked(0);
+    assert_eq!(arr, Some([]));
+
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Option<[u8; 0]> = slice.peek_array_at_checked(10);
+    assert_eq!(arr, None);
+  }
+
+  #[test]
+  fn test_blanket_try_peek_at_array_0() {
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(2);
+    assert_eq!(arr, Ok([]));
+  
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(5);
+    assert_eq!(arr, Ok([]));
+
+    let buf = [];
+    let slice = Wrapper(&buf[..]);
+    let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(0);
+    assert_eq!(arr, Ok([]));
+
+    let buf = [1, 2, 3, 4, 5];
+    let slice = Wrapper(&buf[..]);
+    let arr: Result<[u8; 0], TryPeekAtError> = slice.try_peek_array_at(10);
+    assert!(arr.is_err());
   }
 
   #[test]
