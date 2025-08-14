@@ -54,3 +54,9 @@ const fn must_non_zero(size: usize) -> core::num::NonZeroUsize {
     None => panic!("Already checked value is non-zero"),
   }
 }
+
+#[test]
+#[should_panic]
+fn test_must_non_zero_panic() {
+  must_non_zero(0);
+}

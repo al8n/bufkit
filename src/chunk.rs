@@ -2750,10 +2750,6 @@ fn try_read_array<B: Chunk + ?Sized, const N: usize>(buf: &mut B) -> Result<[u8;
 
 #[inline]
 fn peek_array<B: Chunk + ?Sized, const N: usize>(buf: &B) -> [u8; N] {
-  if N == 0 {
-    return [0u8; N];
-  }
-
   <[u8; N]>::try_from(&buf.buffer()[..N]).expect("Already checked there are enough bytes")
 }
 
