@@ -1,5 +1,12 @@
 # RELEASED
 
+## 0.5.0 (Aug 14th, 2025)
+
+- Add consume and scan varint related methods for `ChunkExt`
+- Change type of `requested` from `usize` to `NonZeroUsize`
+- Bumpup `varing` to `0.10`
+- Change feature `varing` to feature `varint`
+
 ## 0.4.0 (Aug 11st, 2025)
 
 - Rename `bufkit::{Buf, BufMut}` to `bufkit::{Chunk, ChunkMut}` to avoid collisions with `bytes::{Buf, BufMut}`.

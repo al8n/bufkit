@@ -2,7 +2,7 @@ use core::ops::{Bound, RangeBounds};
 
 use crate::error::TryAdvanceError;
 
-use super::{check_out_of_bounds, Chunk};
+use super::{check_out_of_bounds, must_non_zero, panic_advance, Chunk};
 
 /// A peeker for reading from a buffer without advancing the original buffer's cursor.
 ///
@@ -330,7 +330,7 @@ impl<B: Chunk> Chunk for Peeker<B> {
   fn advance(&mut self, cnt: usize) {
     let remaining = self.remaining();
     if cnt > remaining {
-      super::panic_advance(&TryAdvanceError::new(cnt, remaining));
+      panic_advance(&TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
     self.cursor += cnt;
   }
@@ -339,7 +339,7 @@ impl<B: Chunk> Chunk for Peeker<B> {
   fn try_advance(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
     let remaining = self.remaining();
     if cnt > remaining {
-      return Err(TryAdvanceError::new(cnt, remaining));
+      return Err(TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
     self.cursor += cnt;
     Ok(())

@@ -1,11 +1,14 @@
+#[cfg(feature = "varint")]
+use core::num::NonZeroUsize;
+
 use super::{
   error::{TryAdvanceError, TryPutAtError, TryPutError, TryWriteError},
-  panic_advance,
+  must_non_zero, panic_advance,
 };
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use super::error::{EncodeVarintAtError, EncodeVarintError};
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 use varing::Varint;
 
 pub use putter::Putter;
@@ -1069,7 +1072,7 @@ pub trait ChunkMut {
   fn try_advance_mut(&mut self, cnt: usize) -> Result<(), TryAdvanceError> {
     let remaining = self.remaining_mut();
     if remaining < cnt {
-      return Err(TryAdvanceError::new(cnt, remaining));
+      return Err(TryAdvanceError::new(must_non_zero(cnt), remaining));
     }
 
     self.advance_mut(cnt);
@@ -1317,13 +1320,17 @@ pub trait ChunkMut {
   /// ```
   fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
     let len = slice.len();
+    if len == 0 {
+      return Ok(0);
+    }
+
     let space = self.remaining_mut();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       self.advance_mut(len);
       Ok(len)
     } else {
-      Err(TryWriteError::new(slice.len(), space))
+      Err(TryWriteError::new(must_non_zero(len), space))
     }
   }
 
@@ -1552,12 +1559,16 @@ pub trait ChunkMut {
   /// ```
   fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryPutError> {
     let len = slice.len();
+    if len == 0 {
+      return Ok(0);
+    }
+
     let space = self.remaining_mut();
     if len <= space {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Ok(len)
     } else {
-      Err(TryPutError::new(slice.len(), space))
+      Err(TryPutError::new(must_non_zero(len), space))
     }
   }
 
@@ -1645,12 +1656,16 @@ pub trait ChunkMut {
       return Err(TryPutAtError::out_of_bounds(offset, space));
     }
 
+    if len == 0 {
+      return Ok(0);
+    }
+
     if len + offset <= space {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
       Err(TryPutAtError::insufficient_space(
-        len,
+        must_non_zero(len),
         space - offset,
         offset,
       ))
@@ -1969,10 +1984,10 @@ pub trait ChunkMutExt: ChunkMut {
   /// let written = slice.put_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
-  fn put_varint<V>(&mut self, value: &V) -> Result<usize, EncodeVarintError>
+  fn put_varint<V>(&mut self, value: &V) -> Result<NonZeroUsize, EncodeVarintError>
   where
     V: Varint,
   {
@@ -2003,9 +2018,13 @@ pub trait ChunkMutExt: ChunkMut {
   /// let err = slice.put_varint_at(&8442u32, 23).unwrap_err();
   /// ```
   #[inline]
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
-  fn put_varint_at<V>(&mut self, value: &V, offset: usize) -> Result<usize, EncodeVarintAtError>
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
+  fn put_varint_at<V>(
+    &mut self,
+    value: &V,
+    offset: usize,
+  ) -> Result<NonZeroUsize, EncodeVarintAtError>
   where
     V: Varint,
   {
@@ -2039,17 +2058,17 @@ pub trait ChunkMutExt: ChunkMut {
   /// let written = slice.write_varint(&42u32).unwrap();
   /// // written will be 1 for small values like 42
   ///
-  /// assert_eq!(slice.remaining_mut(), 24 - written);
+  /// assert_eq!(slice.remaining_mut(), 24 - written.get());
   /// ```
-  #[cfg(feature = "varing")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+  #[cfg(feature = "varint")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
-  fn write_varint<V>(&mut self, value: &V) -> Result<usize, EncodeVarintError>
+  fn write_varint<V>(&mut self, value: &V) -> Result<NonZeroUsize, EncodeVarintError>
   where
     V: Varint,
   {
     value.encode(self.buffer_mut()).inspect(|bytes_written| {
-      self.advance_mut(*bytes_written);
+      self.advance_mut(bytes_written.get());
     })
   }
 }
@@ -2287,7 +2306,7 @@ impl ChunkMut for &mut [u8] {
   #[inline]
   fn advance_mut(&mut self, cnt: usize) {
     if self.len() < cnt {
-      panic_advance(&TryAdvanceError::new(cnt, self.len()));
+      panic_advance(&TryAdvanceError::new(must_non_zero(cnt), self.len()));
     }
 
     // Lifetime dance taken from `impl Write for &mut [u8]`.
@@ -2693,7 +2712,7 @@ mod tests {
     assert_eq!(slice.try_put_slice(&[1, 2, 3]), Ok(3));
     assert_eq!(
       slice.try_put_slice(&[1, 2, 3, 4, 5, 6]),
-      Err(TryPutError::new(6, 5))
+      Err(TryPutError::new(must_non_zero(6), 5))
     ); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
   }
@@ -2725,7 +2744,7 @@ mod tests {
     assert_eq!(slice.try_put_slice_at(&[1, 2, 3], 2), Ok(3));
     assert_eq!(
       slice.try_put_slice_at(&[1, 2, 3], 8),
-      Err(TryPutAtError::insufficient_space(3, 2, 8))
+      Err(TryPutAtError::insufficient_space(must_non_zero(3), 2, 8))
     );
     assert_eq!(slice.buffer_mut(), &[0, 0, 1, 2, 3, 0, 0, 0, 0, 0]);
     assert_eq!(slice.remaining_mut(), 10);
@@ -2764,7 +2783,7 @@ mod tests {
             assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
 
             let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-            assert_eq!(empty.[< try_put_ $ty >](42), Err(TryPutError::new(1, 0)));
+            assert_eq!(empty.[< try_put_ $ty >](42), Err(TryPutError::new(crate::NON_ZERO_1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
 
@@ -2837,7 +2856,7 @@ mod tests {
           assert_eq!(slice.[< try_put_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-          assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(TryPutError::new(size_of::<$ty>(), 0)));
+          assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(TryPutError::new(must_non_zero(size_of::<$ty>()), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
 
@@ -2922,7 +2941,7 @@ mod tests {
 
     let err = slice.try_write_slice(&[1, 2, 3, 4, 5, 6]);
     assert!(err.is_err()); // Should fail since we can't write beyond available space
-    assert_eq!(err.unwrap_err(), TryWriteError::new(6, 2));
+    assert_eq!(err.unwrap_err(), TryWriteError::new(must_non_zero(6), 2));
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
@@ -2963,7 +2982,7 @@ mod tests {
             assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
 
             let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-            assert_eq!(empty.[< try_write_ $ty >](42), Err(TryWriteError::new(1, 0)));
+            assert_eq!(empty.[< try_write_ $ty >](42), Err(TryWriteError::new(crate::NON_ZERO_1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
         )*
@@ -3013,7 +3032,7 @@ mod tests {
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-          assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(size_of::<$ty>(), 0)));
+          assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(must_non_zero(size_of::<$ty>()), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
       }

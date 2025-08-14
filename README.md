@@ -36,7 +36,7 @@ It’s Sans-I/O friendly — meaning it’s easy to integrate into network proto
 
 ```toml
 [dependencies]
-bufkit = "0.4"
+bufkit = "0.5"
 ```
 
 ### Feature Flags
@@ -45,7 +45,7 @@ bufkit = "0.4"
 | --------- | -------- | ------------------------------------------- |
 | `std`     | Yes      | Enables `std` integration                   |
 | `alloc`   | No       | Enables heap-allocated buffer support       |
-| `varing`  | No       | LEB128 encoding & decoding                  |
+| `varint`  | No       | LEB128 encoding & decoding                  |
 | `bytes_1` | No       | Enable integration with `bytes` 1.x         |
 
 ## Alternatives

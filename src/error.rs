@@ -1,9 +1,12 @@
-#[cfg(feature = "varing")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+#[cfg(feature = "varint")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub use varing::InsufficientSpace;
 
-#[cfg(feature = "varing")]
-pub use varing::{DecodeError as DecodeVarintError, EncodeError as EncodeVarintError};
+#[cfg(feature = "varint")]
+pub use varing::{
+  ConstDecodeError as ConstDecodeVarintError, ConstEncodeError as ConstEncodeVarintError,
+  DecodeError as DecodeVarintError, EncodeError as EncodeVarintError,
+};
 
 use core::num::NonZeroUsize;
 
@@ -27,16 +30,14 @@ macro_rules! try_op_error {
         ///
         /// # Panics
         ///
-        /// - In debug builds, panics if `requested <= available` (this would not be an error condition).
+        /// - If `requested <= available` (this would not be an error condition).
         /// - The `requested` value must be a non-zero.
         #[inline]
-        pub const fn new(requested: usize, available: usize) -> Self {
-          debug_assert!(requested > available, concat!(stringify!([< Try $op:camel Error >]), ": requested must be greater than available"));
+        pub const fn new(requested: NonZeroUsize, available: usize) -> Self {
+          assert!(requested.get() > available, concat!(stringify!([< Try $op:camel Error >]), ": requested must be greater than available"));
 
           Self {
-            requested: NonZeroUsize::new(requested).expect(
-              concat!(stringify!([< Try $op:camel Error >]), ": requested must be non-zero")
-            ),
+            requested,
             available,
           }
         }
@@ -45,8 +46,8 @@ macro_rules! try_op_error {
         ///
         /// This is the minimum number of bytes needed for the operation to succeed.
         #[inline]
-        pub const fn requested(&self) -> usize {
-          self.requested.get()
+        pub const fn requested(&self) -> NonZeroUsize {
+          self.requested
         }
 
         /// Returns the number of bytes available in the buffer.
@@ -55,14 +56,6 @@ macro_rules! try_op_error {
         #[inline]
         pub const fn available(&self) -> usize {
           self.available
-        }
-
-        /// Returns the number of additional bytes needed for the operation to succeed.
-        ///
-        /// This is equivalent to `requested() - available()`.
-        #[inline]
-        pub const fn shortage(&self) -> usize {
-          self.requested() - self.available()
         }
       }
     }
@@ -152,9 +145,8 @@ let mut writer = &mut small_buf[..];
 match writer.try_put_u64_le(0x123456789ABCDEF0) {
     Err(e) => {
         // Caller knows exactly how much space is needed
-        assert_eq!(e.requested(), 8);
+        assert_eq!(e.requested().get(), 8);
         assert_eq!(e.available(), 4);
-        println!(\"Need {} more bytes\", e.shortage());
     }
     _ => panic!(\"Expected error\"),
 }
@@ -189,9 +181,8 @@ let mut writer = &mut small_buf[..];
 match writer.try_write_u64_le(0x123456789ABCDEF0) {
     Err(e) => {
         // Caller knows exactly how much space is needed
-        assert_eq!(e.requested(), 8);
+        assert_eq!(e.requested().get(), 8);
         assert_eq!(e.available(), 4);
-        println!(\"Need {} more bytes\", e.shortage());
     }
     _ => panic!(\"Expected error\"),
 }
@@ -401,18 +392,17 @@ impl InsufficientSpaceAt {
   ///
   /// # Panics
   ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
+  /// - If `requested <= available` (would not be an error).
   /// - The `requested` value must be a non-zero.
   #[inline]
-  pub const fn new(requested: usize, available: usize, offset: usize) -> Self {
-    debug_assert!(
-      requested > available,
+  pub const fn new(requested: NonZeroUsize, available: usize, offset: usize) -> Self {
+    assert!(
+      requested.get() > available,
       "InsufficientSpaceAt: requested must be greater than available"
     );
 
     Self {
-      requested: NonZeroUsize::new(requested)
-        .expect("InsufficientSpaceAt: requested must be non-zero"),
+      requested,
       available,
       offset,
     }
@@ -420,8 +410,8 @@ impl InsufficientSpaceAt {
 
   /// Returns the number of bytes requested to write.
   #[inline]
-  pub const fn requested(&self) -> usize {
-    self.requested.get()
+  pub const fn requested(&self) -> NonZeroUsize {
+    self.requested
   }
 
   /// Returns the number of bytes available from the offset.
@@ -434,14 +424,6 @@ impl InsufficientSpaceAt {
   #[inline]
   pub const fn offset(&self) -> usize {
     self.offset
-  }
-
-  /// Returns the number of additional bytes needed for the operation to succeed.
-  ///
-  /// This is equivalent to `requested() - available()`.
-  #[inline]
-  pub const fn shortage(&self) -> usize {
-    self.requested() - self.available()
   }
 }
 
@@ -503,19 +485,16 @@ impl InsufficientDataAt {
   ///
   /// # Panics
   ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
-  /// - The `requested` value must be a non-zero.
+  /// - If `requested <= available` (would not be an error).
   #[inline]
-  pub const fn with_requested(available: usize, offset: usize, requested: usize) -> Self {
-    debug_assert!(
-      requested > available,
+  pub const fn with_requested(available: usize, offset: usize, requested: NonZeroUsize) -> Self {
+    assert!(
+      requested.get() > available,
       "InsufficientDataAt: requested must be greater than available"
     );
 
     Self {
-      requested: Some(
-        NonZeroUsize::new(requested).expect("InsufficientDataAt: requested must be non-zero"),
-      ),
+      requested: Some(requested),
       available,
       offset,
     }
@@ -523,11 +502,8 @@ impl InsufficientDataAt {
 
   /// Returns the number of bytes requested to read.
   #[inline]
-  pub const fn requested(&self) -> Option<usize> {
-    match self.requested {
-      Some(requested) => Some(requested.get()),
-      None => None,
-    }
+  pub const fn requested(&self) -> Option<NonZeroUsize> {
+    self.requested
   }
 
   /// Returns the number of bytes available from the offset.
@@ -592,7 +568,7 @@ impl TryPeekAtError {
   pub const fn insufficient_data_with_requested(
     available: usize,
     offset: usize,
-    requested: usize,
+    requested: NonZeroUsize,
   ) -> Self {
     Self::InsufficientData(InsufficientDataAt::with_requested(
       available, offset, requested,
@@ -635,7 +611,11 @@ impl TryPutAtError {
   /// - In debug builds, panics if `requested <= available` (would not be an error).
   /// - The `requested` value must be a non-zero.
   #[inline]
-  pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
+  pub const fn insufficient_space(
+    requested: NonZeroUsize,
+    available: usize,
+    offset: usize,
+  ) -> Self {
     Self::InsufficientSpace(InsufficientSpaceAt::new(requested, available, offset))
   }
 }
@@ -659,8 +639,8 @@ impl From<TryPutAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varing")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+#[cfg(feature = "varint")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum EncodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -679,7 +659,7 @@ pub enum EncodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 impl EncodeVarintAtError {
   /// Creates a new `EncodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -691,10 +671,13 @@ impl EncodeVarintAtError {
   ///
   /// # Panics
   ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
-  /// - The `requested` value must be a non-zero.
+  /// - If `requested <= available` (would not be an error).
   #[inline]
-  pub const fn insufficient_space(requested: usize, available: usize, offset: usize) -> Self {
+  pub const fn insufficient_space(
+    requested: NonZeroUsize,
+    available: usize,
+    offset: usize,
+  ) -> Self {
     Self::InsufficientSpace(InsufficientSpaceAt::new(requested, available, offset))
   }
 
@@ -707,6 +690,24 @@ impl EncodeVarintAtError {
       }
       EncodeVarintError::Other(msg) => Self::Other(msg),
       _ => Self::other("unknown error"),
+    }
+  }
+
+  /// Creates a new `EncodeVarintAtError` error from `ConstEncodeVarintError`.
+  #[inline]
+  pub const fn from_const_varint_error(err: ConstEncodeVarintError, offset: usize) -> Self {
+    match err {
+      ConstEncodeVarintError::InsufficientSpace(e) => {
+        Self::insufficient_space(e.requested(), e.available(), offset)
+      }
+      #[cfg(not(any(feature = "std", feature = "alloc")))]
+      ConstEncodeVarintError::Other(msg) => Self::Other(msg),
+      #[cfg(any(feature = "std", feature = "alloc"))]
+      ConstEncodeVarintError::Other(msg) => Self::Other(std::borrow::Cow::Borrowed(msg)),
+      #[cfg(not(any(feature = "std", feature = "alloc")))]
+      _ => Self::other("unknown error"),
+      #[cfg(any(feature = "std", feature = "alloc"))]
+      _ => Self::Other(std::borrow::Cow::Borrowed("unknown error")),
     }
   }
 
@@ -725,7 +726,7 @@ impl EncodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varing", feature = "std"))]
+#[cfg(all(feature = "varint", feature = "std"))]
 impl From<EncodeVarintAtError> for std::io::Error {
   fn from(e: EncodeVarintAtError) -> Self {
     match e {
@@ -747,8 +748,8 @@ impl From<EncodeVarintAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varing")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varing")))]
+#[cfg(feature = "varint")]
+#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum DecodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -767,7 +768,7 @@ pub enum DecodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varing")]
+#[cfg(feature = "varint")]
 impl DecodeVarintAtError {
   /// Creates a new `DecodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -798,6 +799,24 @@ impl DecodeVarintAtError {
     }
   }
 
+  /// Creates a new `DecodeVarintAtError::Other` error from `ConstDecodeVarintError`.
+  #[inline]
+  pub const fn from_const_varint_error(err: ConstDecodeVarintError, offset: usize) -> Self {
+    match err {
+      ConstDecodeVarintError::InsufficientData { available } => {
+        Self::insufficient_data(available, offset)
+      }
+      #[cfg(not(any(feature = "std", feature = "alloc")))]
+      ConstDecodeVarintError::Other(msg) => Self::Other(msg),
+      #[cfg(any(feature = "std", feature = "alloc"))]
+      ConstDecodeVarintError::Other(msg) => Self::Other(std::borrow::Cow::Borrowed(msg)),
+      #[cfg(not(any(feature = "std", feature = "alloc")))]
+      _ => Self::other("unknown error"),
+      #[cfg(any(feature = "std", feature = "alloc"))]
+      _ => Self::Other(std::borrow::Cow::Borrowed("unknown error")),
+    }
+  }
+
   /// Creates a new `DecodeVarintAtError::Other` error.
   #[cfg(not(any(feature = "std", feature = "alloc")))]
   #[inline]
@@ -813,7 +832,7 @@ impl DecodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varing", feature = "std"))]
+#[cfg(all(feature = "varint", feature = "std"))]
 impl From<DecodeVarintAtError> for std::io::Error {
   fn from(e: DecodeVarintAtError) -> Self {
     match e {
@@ -829,13 +848,19 @@ const _: () = {
 
   impl From<TryGetError> for TryAdvanceError {
     fn from(e: TryGetError) -> Self {
-      TryAdvanceError::new(e.requested, e.available)
+      TryAdvanceError::new(
+        NonZeroUsize::new(e.requested).expect("requested must be non-zero"),
+        e.available,
+      )
     }
   }
 
   impl From<TryGetError> for TryReadError {
     fn from(e: TryGetError) -> Self {
-      TryReadError::new(e.requested, e.available)
+      TryReadError::new(
+        NonZeroUsize::new(e.requested).expect("requested must be non-zero"),
+        e.available,
+      )
     }
   }
 };
