@@ -50,7 +50,7 @@ bufkit = "0.5"
 
 ## Alternatives
 
-- [`bytes::{Buf, BufMut}`]: Chunkfer traits for the bytes may or may not be stored in contiguous memory.
+- [`bytes::{Buf, BufMut}`]: Buffer traits for the bytes may or may not be stored in contiguous memory.
 - [`buffer-trait`](https://crates.io/crates/buffer-trait): A `Buffer` trait for reading into uninitialized buffers.
 
 #### License

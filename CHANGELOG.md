@@ -1,5 +1,9 @@
 # RELEASED
 
+## 0.5.1 (Aug 21st, 2025)
+
+- Fix typo in README
+
 ## 0.5.0 (Aug 14th, 2025)
 
 - Add consume and scan varint related methods for `ChunkExt`
