@@ -2913,7 +2913,6 @@ mod tests {
     assert_eq!(written, 3);
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
-    drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
   }
 
@@ -2927,7 +2926,6 @@ mod tests {
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
-    drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
   }
 
@@ -2945,7 +2943,6 @@ mod tests {
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
-    drop(slice);
     assert_eq!(buf, [1, 2, 3, 0, 0]);
   }
 
@@ -3003,7 +3000,6 @@ mod tests {
           assert_eq!(written, size_of::<$ty>());
           assert_eq!(slice.buffer_mut(), &[]);
 
-          drop(slice);
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
         }
 
@@ -3014,7 +3010,6 @@ mod tests {
           assert_eq!(slice.[< write_ $ty _ $endian _checked >](42 as $ty), Some(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), &[]);
 
-          drop(slice);
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
@@ -3028,7 +3023,6 @@ mod tests {
           let mut slice = ChunkWriter::from(&mut buf[..]);
           assert_eq!(slice.[< try_write_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), &[]);
-          drop(slice);
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);

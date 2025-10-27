@@ -407,6 +407,7 @@ impl<'a, B: 'a + Chunk + ?Sized> Chunk for RefPeeker<'a, B> {
 }
 
 #[cfg(test)]
+#[allow(clippy::reversed_empty_ranges, clippy::clone_on_copy)]
 mod tests {
   use super::*;
 

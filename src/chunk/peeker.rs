@@ -434,6 +434,7 @@ impl<B: Chunk> Chunk for Peeker<B> {
   }
 }
 
+#[allow(clippy::reversed_empty_ranges, clippy::clone_on_copy)]
 #[cfg(test)]
 mod tests {
   use super::*;

@@ -545,9 +545,6 @@ mod tests {
     let mut putter = Putter::new(buf);
     assert_eq!(putter.remaining_mut(), 7);
     putter.put_u8(0x42);
-
-    drop(putter);
-
     // Should write to the correct position
     assert_eq!(data[3], 0x42); // Position 3 in original array
   }
@@ -611,8 +608,6 @@ mod tests {
 
     assert_eq!(putter.write_u8(0x33), 1);
     assert_eq!(putter.remaining_mut(), 0);
-
-    drop(putter);
 
     // Verify data
     assert_eq!(data, [0x11, 0x22, 0x33]);
@@ -743,6 +738,7 @@ mod tests {
     assert_eq!(putter.position(), 100);
 
     // Verify data
+    #[allow(clippy::needless_range_loop)]
     for i in 0..100 {
       assert_eq!(large_data[i], i as u8);
     }
@@ -821,7 +817,6 @@ mod tests {
     putter.write_u8(0x42);
     assert_eq!(putter.position(), 1);
 
-    drop(putter);
     assert_eq!(data[0], 0x42);
   }
 
@@ -835,7 +830,6 @@ mod tests {
     putter.write_u8(0x42);
     assert_eq!(putter.position(), 1);
     putter.reset();
-    drop(putter);
     assert_eq!(data[2], 0);
 
     let mut putter = Putter::with_range(&mut data[..], ..7);
@@ -843,7 +837,6 @@ mod tests {
     putter.write_u8(0x99);
     assert_eq!(putter.position(), 1);
     putter.reset();
-    drop(putter);
     assert_eq!(data[0], 0);
 
     let mut putter = Putter::with_range(&mut data[..], (Bound::Excluded(1), Bound::Unbounded));
@@ -851,7 +844,6 @@ mod tests {
     putter.write_u8(0x77);
     assert_eq!(putter.position(), 1);
     putter.reset();
-    drop(putter);
     assert_eq!(data[2], 0);
   }
 }

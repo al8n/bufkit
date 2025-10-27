@@ -89,6 +89,7 @@ mod bytes_buf_tests {
     assert_eq!(buf.remaining(), 13);
   }
 
+  #[allow(clippy::reversed_empty_ranges)]
   #[test]
   fn test_try_segment() {
     let data = vec![1, 2, 3, 4, 5];
