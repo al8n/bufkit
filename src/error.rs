@@ -124,78 +124,6 @@ impl From<TryPeekError> for TryReadError {
   }
 }
 
-try_op_error!(
-  #[doc = "An error that occurs when trying to write data to a buffer with insufficient space.
-  
-This error indicates that a write operation failed because the buffer does not have
-enough remaining capacity to hold the data.
-
-This error is particularly useful for Sans-I/O designs as it provides exact information
-about space requirements, allowing the caller to allocate a larger buffer and retry:
-
-```rust
-# use bufkit::ChunkMut;
-let mut small_buf = [0u8; 4];
-let mut writer = &mut small_buf[..];
-
-match writer.try_put_u64_le(0x123456789ABCDEF0) {
-    Err(e) => {
-        // Caller knows exactly how much space is needed
-        assert_eq!(e.requested().get(), 8);
-        assert_eq!(e.available(), 4);
-    }
-    _ => panic!(\"Expected error\"),
-}
-```"]
-  #[error(
-    "not enough space available to put value (requested {requested} but only {available} available)"
-  )]
-  put
-);
-
-#[cfg(feature = "std")]
-impl From<TryPutError> for std::io::Error {
-  fn from(e: TryPutError) -> Self {
-    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
-  }
-}
-
-try_op_error!(
-  #[doc = "An error that occurs when trying to write data to a buffer with insufficient space.
-  
-This error indicates that a write operation failed because the buffer does not have
-enough remaining capacity to hold the data.
-
-This error is particularly useful for Sans-I/O designs as it provides exact information
-about space requirements, allowing the caller to allocate a larger buffer and retry:
-
-```rust
-# use bufkit::ChunkMut;
-let mut small_buf = [0u8; 4];
-let mut writer = &mut small_buf[..];
-
-match writer.try_write_u64_le(0x123456789ABCDEF0) {
-    Err(e) => {
-        // Caller knows exactly how much space is needed
-        assert_eq!(e.requested().get(), 8);
-        assert_eq!(e.available(), 4);
-    }
-    _ => panic!(\"Expected error\"),
-}
-```"]
-  #[error(
-    "not enough space available to write value (requested {requested} but only {available} available)"
-  )]
-  write
-);
-
-#[cfg(feature = "std")]
-impl From<TryWriteError> for std::io::Error {
-  fn from(e: TryWriteError) -> Self {
-    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
-  }
-}
-
 /// An error that occurs when trying to create a segment with an invalid range.
 ///
 /// This error indicates that the requested range extends beyond the buffer's boundaries
@@ -456,17 +384,10 @@ impl core::error::Error for InsufficientDataAt {}
 impl InsufficientDataAt {
   /// Creates a new `InsufficientDataAt` error.
   ///
-  /// # Panics
-  ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
-  /// - The `requested` value must be a non-zero.
+  /// - `available`: the number of bytes available from the offset.
+  /// - `offset`: the offset at which the read was attempted.
   #[inline]
   pub const fn new(available: usize, offset: usize) -> Self {
-    debug_assert!(
-      offset >= available,
-      "InsufficientDataAt: offset must be greater than or equal to available"
-    );
-
     Self {
       info: InsufficientData::new(available),
       offset,

@@ -1,12 +1,11 @@
 use core::num::NonZeroUsize;
 
 use super::{
-  error::{TryAdvanceError, TryPutAtError, TryPutError, TryWriteError},
+  error::{InsufficientSpace, TryAdvanceError, TryPutAtError},
   must_non_zero, panic_advance,
 };
 
 use super::error::{EncodeVarintAtError, EncodeVarintError};
-
 use varing::Varint;
 
 pub use putter::Putter;
@@ -291,7 +290,7 @@ macro_rules! put_fixed {
         ///
         #[doc = "This is the non-panicking version of [`put_" $ty "_le`](ChunkMut::put_" $ty "_le)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -310,7 +309,7 @@ macro_rules! put_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_put_slice(&value.to_le_bytes())
         }
 
@@ -370,7 +369,7 @@ macro_rules! put_fixed {
         ///
         #[doc = "This is the non-panicking version of [`put_" $ty "_be`](ChunkMut::put_" $ty "_be)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -389,7 +388,7 @@ macro_rules! put_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_put_slice(&value.to_be_bytes())
         }
 
@@ -454,7 +453,7 @@ macro_rules! put_fixed {
         /// The byte order depends on the target platform's endianness.
         #[doc = "This is the non-panicking version of [`put_" $ty "_ne`](ChunkMut::put_" $ty "_ne)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -473,7 +472,7 @@ macro_rules! put_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_put_slice(&value.to_ne_bytes())
         }
       )*
@@ -538,7 +537,7 @@ macro_rules! put_fixed {
         }
 
         #[inline]
-        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _le>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_put_ $ty _le>](value)
         }
 
@@ -553,7 +552,7 @@ macro_rules! put_fixed {
         }
 
         #[inline]
-        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _be>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_put_ $ty _be>](value)
         }
 
@@ -568,7 +567,7 @@ macro_rules! put_fixed {
         }
 
         #[inline]
-        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryPutError> {
+        fn [< try_put_ $ty _ne>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_put_ $ty _ne>](value)
         }
       )*
@@ -635,7 +634,7 @@ macro_rules! write_fixed {
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_le`](ChunkMut::write_" $ty "_le)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -654,7 +653,7 @@ macro_rules! write_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_write_slice(&value.to_le_bytes())
         }
 
@@ -713,7 +712,7 @@ macro_rules! write_fixed {
         ///
         #[doc = "This is the non-panicking version of [`write_" $ty "_be`](ChunkMut::write_" $ty "_be)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -732,7 +731,7 @@ macro_rules! write_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_write_slice(&value.to_be_bytes())
         }
 
@@ -796,7 +795,7 @@ macro_rules! write_fixed {
         /// The byte order depends on the target platform's endianness.
         #[doc = "This is the non-panicking version of [`write_" $ty "_ne`](ChunkMut::write_" $ty "_ne)."]
         ///
-        /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with detailed
+        /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with detailed
         /// error information if there's insufficient space.
         ///
         /// # Examples
@@ -815,7 +814,7 @@ macro_rules! write_fixed {
         /// // err contains information about required vs available space
         /// ```
         #[inline]
-        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           self.try_write_slice(&value.to_ne_bytes())
         }
       )*
@@ -835,7 +834,7 @@ macro_rules! write_fixed {
         }
 
         #[inline]
-        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _le>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_write_ $ty _le>](value)
         }
 
@@ -850,7 +849,7 @@ macro_rules! write_fixed {
         }
 
         #[inline]
-        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _be>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_write_ $ty _be>](value)
         }
 
@@ -865,7 +864,7 @@ macro_rules! write_fixed {
         }
 
         #[inline]
-        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, TryWriteError> {
+        fn [< try_write_ $ty _ne>](&mut self, value: $ty) -> Result<usize, InsufficientSpace> {
           (**self).[< try_write_ $ty _ne>](value)
         }
       )*
@@ -885,8 +884,8 @@ macro_rules! write_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Chunkfer inspection**: `remaining_mut()`, `has_remaining_mut()`, `buffer()`, `buffer_mut()`
-/// - **Chunkfer manipulation**: `resize()`, `truncate_mut()`, `fill()`
+/// - **Buffer inspection**: `remaining_mut()`, `has_remaining_mut()`, `buffer()`, `buffer_mut()`
+/// - **Buffer manipulation**: `resize()`, `truncate_mut()`, `fill()`
 /// - **Slice operations**: `prefix_mut()`, `suffix_mut()`, `split_at_mut()`
 /// - **Writing data**: `put_slice()`, `put_u8()`, `put_u16_le()`, etc.
 /// - **Writing at offset**: `put_slice_at()`, `put_u8_at()`, `put_u16_le_at()`, etc.
@@ -1300,7 +1299,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with details about
   /// the attempted write size and available space.
   ///
   /// # Examples
@@ -1316,7 +1315,7 @@ pub trait ChunkMut {
   /// let err = slice.try_put_slice(&[1, 2, 3, 4, 5, 6]).unwrap_err();
   /// // err contains details about requested vs available space
   /// ```
-  fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
+  fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, InsufficientSpace> {
     let len = slice.len();
     if len == 0 {
       return Ok(0);
@@ -1328,7 +1327,7 @@ pub trait ChunkMut {
       self.advance_mut(len);
       Ok(len)
     } else {
-      Err(TryWriteError::new(must_non_zero(len), space))
+      Err(InsufficientSpace::new(must_non_zero(len), space))
     }
   }
 
@@ -1433,7 +1432,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`write_u8`](ChunkMut::write_u8) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(1)` on success, or `Err(InsufficientSpace)` with details about
   /// the available space if the buffer is full.
   ///
   /// # Examples
@@ -1451,7 +1450,7 @@ pub trait ChunkMut {
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_write_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
+  fn try_write_u8(&mut self, value: u8) -> Result<usize, InsufficientSpace> {
     self.try_write_slice(&[value])
   }
 
@@ -1459,7 +1458,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`write_i8`](ChunkMut::write_i8) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(1)` on success, or `Err(InsufficientSpace)` with details about
   /// the available space if the buffer is full.
   ///
   /// # Examples
@@ -1477,7 +1476,7 @@ pub trait ChunkMut {
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_write_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
+  fn try_write_i8(&mut self, value: i8) -> Result<usize, InsufficientSpace> {
     self.try_write_slice(&[value as u8])
   }
 
@@ -1539,7 +1538,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`put_slice`](ChunkMut::put_slice) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(bytes_written)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(bytes_written)` on success, or `Err(InsufficientSpace)` with details about
   /// the attempted write size and available space.
   ///
   /// # Examples
@@ -1555,7 +1554,7 @@ pub trait ChunkMut {
   /// let err = slice.try_put_slice(&[1, 2, 3, 4, 5, 6]).unwrap_err();
   /// // err contains details about requested vs available space
   /// ```
-  fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryPutError> {
+  fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, InsufficientSpace> {
     let len = slice.len();
     if len == 0 {
       return Ok(0);
@@ -1566,7 +1565,7 @@ pub trait ChunkMut {
       self.buffer_mut()[..len].copy_from_slice(slice);
       Ok(len)
     } else {
-      Err(TryPutError::new(must_non_zero(len), space))
+      Err(InsufficientSpace::new(must_non_zero(len), space))
     }
   }
 
@@ -1618,7 +1617,8 @@ pub trait ChunkMut {
   /// ```
   fn put_slice_at_checked(&mut self, slice: &[u8], offset: usize) -> Option<usize> {
     let len = slice.len();
-    if len + offset <= self.remaining_mut() {
+    let space = self.remaining_mut();
+    if offset <= space && len <= space - offset {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Some(len)
     } else {
@@ -1658,7 +1658,7 @@ pub trait ChunkMut {
       return Ok(0);
     }
 
-    if len + offset <= space {
+    if len <= space - offset {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
@@ -1863,7 +1863,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`put_u8`](ChunkMut::put_u8) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(1)` on success, or `Err(InsufficientSpace)` with details about
   /// the available space if the buffer is full.
   ///
   /// # Examples
@@ -1881,7 +1881,7 @@ pub trait ChunkMut {
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_put_u8(&mut self, value: u8) -> Result<usize, TryPutError> {
+  fn try_put_u8(&mut self, value: u8) -> Result<usize, InsufficientSpace> {
     self.try_put_slice(&[value])
   }
 
@@ -1889,7 +1889,7 @@ pub trait ChunkMut {
   ///
   /// This is the non-panicking version of [`put_i8`](ChunkMut::put_i8) that
   /// returns detailed error information on failure.
-  /// Returns `Ok(1)` on success, or `Err(TryWriteError)` with details about
+  /// Returns `Ok(1)` on success, or `Err(InsufficientSpace)` with details about
   /// the available space if the buffer is full.
   ///
   /// # Examples
@@ -1907,7 +1907,7 @@ pub trait ChunkMut {
   /// // err contains details about requested vs available space
   /// ```
   #[inline]
-  fn try_put_i8(&mut self, value: i8) -> Result<usize, TryPutError> {
+  fn try_put_i8(&mut self, value: i8) -> Result<usize, InsufficientSpace> {
     self.try_put_slice(&[value as u8])
   }
 
@@ -2145,7 +2145,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, TryPutError> {
+    fn try_put_slice(&mut self, slice: &[u8]) -> Result<usize, InsufficientSpace> {
       (**self).try_put_slice(slice)
     }
 
@@ -2175,7 +2175,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_put_u8(&mut self, value: u8) -> Result<usize, TryPutError> {
+    fn try_put_u8(&mut self, value: u8) -> Result<usize, InsufficientSpace> {
       (**self).try_put_u8(value)
     }
 
@@ -2190,7 +2190,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_put_i8(&mut self, value: i8) -> Result<usize, TryPutError> {
+    fn try_put_i8(&mut self, value: i8) -> Result<usize, InsufficientSpace> {
       (**self).try_put_i8(value)
     }
 
@@ -2242,7 +2242,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, TryWriteError> {
+    fn try_write_slice(&mut self, slice: &[u8]) -> Result<usize, InsufficientSpace> {
       (**self).try_write_slice(slice)
     }
 
@@ -2257,7 +2257,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_write_u8(&mut self, value: u8) -> Result<usize, TryWriteError> {
+    fn try_write_u8(&mut self, value: u8) -> Result<usize, InsufficientSpace> {
       (**self).try_write_u8(value)
     }
 
@@ -2272,7 +2272,7 @@ macro_rules! deref_forward_buf_mut {
     }
 
     #[inline]
-    fn try_write_i8(&mut self, value: i8) -> Result<usize, TryWriteError> {
+    fn try_write_i8(&mut self, value: i8) -> Result<usize, InsufficientSpace> {
       (**self).try_write_i8(value)
     }
 
@@ -2704,7 +2704,7 @@ mod tests {
     assert_eq!(slice.try_put_slice(&[1, 2, 3]), Ok(3));
     assert_eq!(
       slice.try_put_slice(&[1, 2, 3, 4, 5, 6]),
-      Err(TryPutError::new(must_non_zero(6), 5))
+      Err(InsufficientSpace::new(must_non_zero(6), 5))
     ); // Out of bounds
     assert_eq!(slice.buffer_mut(), &[1, 2, 3, 0, 0]);
   }
@@ -2775,7 +2775,7 @@ mod tests {
             assert_eq!(slice.buffer_mut(), &[42, 0, 0, 0, 0]);
 
             let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-            assert_eq!(empty.[< try_put_ $ty >](42), Err(TryPutError::new(crate::NON_ZERO_1, 0)));
+            assert_eq!(empty.[< try_put_ $ty >](42), Err(InsufficientSpace::new(crate::NON_ZERO_1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
 
@@ -2848,7 +2848,7 @@ mod tests {
           assert_eq!(slice.[< try_put_ $ty _ $endian >](42 as $ty), Ok(size_of::<$ty>()));
           assert_eq!(slice.buffer_mut(), (42 as $ty).[< to_ $endian _bytes >]().as_slice());
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-          assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(TryPutError::new(must_non_zero(size_of::<$ty>()), 0)));
+          assert_eq!(empty.[< try_put_ $ty _ $endian >](42 as $ty), Err(InsufficientSpace::new(must_non_zero(size_of::<$ty>()), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
 
@@ -2931,7 +2931,10 @@ mod tests {
 
     let err = slice.try_write_slice(&[1, 2, 3, 4, 5, 6]);
     assert!(err.is_err()); // Should fail since we can't write beyond available space
-    assert_eq!(err.unwrap_err(), TryWriteError::new(must_non_zero(6), 2));
+    assert_eq!(
+      err.unwrap_err(),
+      InsufficientSpace::new(must_non_zero(6), 2)
+    );
     assert_eq!(slice.buffer_mut(), &[0, 0]);
     assert_eq!(slice.remaining_mut(), 2); // Remaining space after writing
 
@@ -2971,7 +2974,7 @@ mod tests {
             assert_eq!(slice.buffer_mut(), &[0, 0, 0, 0]);
 
             let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-            assert_eq!(empty.[< try_write_ $ty >](42), Err(TryWriteError::new(crate::NON_ZERO_1, 0)));
+            assert_eq!(empty.[< try_write_ $ty >](42), Err(InsufficientSpace::new(crate::NON_ZERO_1, 0)));
             assert_eq!(empty.buffer_mut(), &[]);
           }
         )*
@@ -3018,7 +3021,7 @@ mod tests {
           assert_eq!(buf, (42 as $ty).[< to_ $endian _bytes >]().as_slice());
 
           let mut empty: ChunkWriter<&mut [u8]> = ChunkWriter::from(&mut [][..]);
-          assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(TryWriteError::new(must_non_zero(size_of::<$ty>()), 0)));
+          assert_eq!(empty.[< try_write_ $ty _ $endian >](42 as $ty), Err(InsufficientSpace::new(must_non_zero(size_of::<$ty>()), 0)));
           assert_eq!(empty.buffer_mut(), &[]);
         }
       }

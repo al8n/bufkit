@@ -256,7 +256,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_le_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _le_at>](&self, offset: usize) -> $ty {
@@ -323,7 +323,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_be_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _be_at>](&self, offset: usize) -> $ty {
@@ -391,7 +391,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_ne_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _ne_at>](&self, offset: usize) -> $ty {
@@ -836,9 +836,9 @@ macro_rules! read_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Chunkfer inspection**: `remaining()`, `has_remaining()`, `buffer()`
+/// - **Buffer inspection**: `remaining()`, `has_remaining()`, `buffer()`
 /// - **Navigation**: `advance()`, `try_advance()`
-/// - **Chunkfer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
+/// - **Buffer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
 pub trait Chunk {
@@ -1888,7 +1888,7 @@ pub trait ChunkExt: Chunk {
   ///
   /// let first_three: [u8; 3] = buf.peek_array();
   /// assert_eq!(first_three, [1, 2, 3]);
-  /// // Chunkfer unchanged
+  /// // Buffer unchanged
   /// assert_eq!(buf.remaining(), 5);
   /// ```
   #[inline]
@@ -1963,7 +1963,7 @@ pub trait ChunkExt: Chunk {
   ///
   /// let array_at_2: [u8; 3] = buf.peek_array_at(2);
   /// assert_eq!(array_at_2, [3, 4, 5]);
-  /// // Chunkfer unchanged
+  /// // Buffer unchanged
   /// assert_eq!(buf.remaining(), 8);
   /// ```
   #[inline]

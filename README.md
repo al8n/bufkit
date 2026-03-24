@@ -29,7 +29,9 @@ It’s Sans-I/O friendly — meaning it’s easy to integrate into network proto
 - **Explicit error handling** – choose panicking, `Option`, or detailed `Result` with requested vs. available byte counts.
 - **Segmented views** – create independent `Chunk`/`ChunkMut` views into the same buffer.
 - **Offset reads/writes** – operate at arbitrary positions without unsafe pointer math.
-- **Embedded friendly** - **`no_std` & `no_alloc` ready** – works in embedded and constrained environments.
+- **Non-destructive cursors** – `Peeker`, `RefPeeker`, and `Putter` maintain independent positions for look-ahead parsing and transactional writes.
+- **LEB128 varint support** – built-in variable-length integer encoding/decoding via [`varing`](https://crates.io/crates/varing).
+- **Embedded friendly** – `no_std` & `no_alloc` ready, works in embedded and constrained environments.
 - **Retry-friendly** – `try_*` methods enable robust partial read/write handling.
 
 ## Installation
