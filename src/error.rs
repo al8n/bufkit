@@ -1,6 +1,6 @@
 #[cfg(feature = "varint")]
 #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
-pub use varing::InsufficientSpace;
+pub use varing::{InsufficientSpace, InsufficientData};
 
 #[cfg(feature = "varint")]
 pub use varing::{
@@ -376,13 +376,11 @@ impl From<OutOfBounds> for std::io::Error {
 /// operation fails due to insufficient remaining capacity from a given offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 #[error(
-  "not enough bytes available at {offset} (requested {requested} but only {available} available)"
+  "not enough bytes available at {offset} (requested {} but only {} available)",
+  self.info.requested(), self.info.available()
 )]
 pub struct InsufficientSpaceAt {
-  /// The number of bytes requested to write.
-  requested: NonZeroUsize,
-  /// The number of bytes available from the offset to the end of buffer.
-  available: usize,
+  info: InsufficientSpace,
   /// The offset at which the write was attempted.
   offset: usize,
 }
@@ -402,8 +400,7 @@ impl InsufficientSpaceAt {
     );
 
     Self {
-      requested,
-      available,
+      info: InsufficientSpace::new(requested, available),
       offset,
     }
   }
@@ -411,13 +408,13 @@ impl InsufficientSpaceAt {
   /// Returns the number of bytes requested to write.
   #[inline]
   pub const fn requested(&self) -> NonZeroUsize {
-    self.requested
+    self.info.requested()
   }
 
   /// Returns the number of bytes available from the offset.
   #[inline]
   pub const fn available(&self) -> usize {
-    self.available
+    self.info.available()
   }
 
   /// Returns the offset at which the write was attempted.
@@ -433,26 +430,26 @@ impl InsufficientSpaceAt {
 /// operation fails due to insufficient remaining capacity from a given offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct InsufficientDataAt {
-  /// The number of bytes requested to read.
-  requested: Option<NonZeroUsize>,
-  /// The number of bytes available from the offset to the end of buffer.
-  available: usize,
+  info: InsufficientData,
   /// The offset at which the read was attempted.
   offset: usize,
 }
 
 impl core::fmt::Display for InsufficientDataAt {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    match self.requested {
+    match self.requested() {
       Some(requested) => write!(
         f,
         "not enough bytes available at {}: available {}, requested {}",
-        self.offset, self.available, requested
+        self.offset,
+        self.info.available(),
+        requested
       ),
       None => write!(
         f,
         "not enough bytes available at {}: available {}",
-        self.offset, self.available
+        self.offset,
+        self.info.available()
       ),
     }
   }
@@ -475,8 +472,7 @@ impl InsufficientDataAt {
     );
 
     Self {
-      requested: None,
-      available,
+      info: InsufficientData::new(available),
       offset,
     }
   }
@@ -494,8 +490,7 @@ impl InsufficientDataAt {
     );
 
     Self {
-      requested: Some(requested),
-      available,
+      info: InsufficientData::with_required(requested, available),
       offset,
     }
   }
@@ -503,13 +498,13 @@ impl InsufficientDataAt {
   /// Returns the number of bytes requested to read.
   #[inline]
   pub const fn requested(&self) -> Option<NonZeroUsize> {
-    self.requested
+    self.info.required()
   }
 
   /// Returns the number of bytes available from the offset.
   #[inline]
   pub const fn available(&self) -> usize {
-    self.available
+    self.info.available()
   }
 
   /// Returns the offset at which the read was attempted.
@@ -791,9 +786,7 @@ impl DecodeVarintAtError {
   #[inline]
   pub fn from_varint_error(err: DecodeVarintError, offset: usize) -> Self {
     match err {
-      DecodeVarintError::InsufficientData { available } => {
-        Self::insufficient_data(available, offset)
-      }
+      DecodeVarintError::InsufficientData(e) => Self::insufficient_data(e.available(), offset),
       DecodeVarintError::Other(msg) => Self::other(msg),
       _ => Self::other("unknown error"),
     }
@@ -803,9 +796,7 @@ impl DecodeVarintAtError {
   #[inline]
   pub const fn from_const_varint_error(err: ConstDecodeVarintError, offset: usize) -> Self {
     match err {
-      ConstDecodeVarintError::InsufficientData { available } => {
-        Self::insufficient_data(available, offset)
-      }
+      ConstDecodeVarintError::InsufficientData(e) => Self::insufficient_data(e.available(), offset),
       #[cfg(not(any(feature = "std", feature = "alloc")))]
       ConstDecodeVarintError::Other(msg) => Self::Other(msg),
       #[cfg(any(feature = "std", feature = "alloc"))]
