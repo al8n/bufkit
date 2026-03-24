@@ -1658,7 +1658,7 @@ pub trait ChunkMut {
       return Ok(0);
     }
 
-    if len <= space - offset {
+    if len + offset <= space {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
