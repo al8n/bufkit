@@ -1,11 +1,7 @@
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
-pub use varing::InsufficientSpace;
-
-#[cfg(feature = "varint")]
 pub use varing::{
   ConstDecodeError as ConstDecodeVarintError, ConstEncodeError as ConstEncodeVarintError,
-  DecodeError as DecodeVarintError, EncodeError as EncodeVarintError,
+  DecodeError as DecodeVarintError, EncodeError as EncodeVarintError, InsufficientData,
+  InsufficientSpace,
 };
 
 use core::num::NonZeroUsize;
@@ -125,78 +121,6 @@ impl From<TryPeekError> for TryReadError {
       requested: e.requested,
       available: e.available,
     }
-  }
-}
-
-try_op_error!(
-  #[doc = "An error that occurs when trying to write data to a buffer with insufficient space.
-  
-This error indicates that a write operation failed because the buffer does not have
-enough remaining capacity to hold the data.
-
-This error is particularly useful for Sans-I/O designs as it provides exact information
-about space requirements, allowing the caller to allocate a larger buffer and retry:
-
-```rust
-# use bufkit::ChunkMut;
-let mut small_buf = [0u8; 4];
-let mut writer = &mut small_buf[..];
-
-match writer.try_put_u64_le(0x123456789ABCDEF0) {
-    Err(e) => {
-        // Caller knows exactly how much space is needed
-        assert_eq!(e.requested().get(), 8);
-        assert_eq!(e.available(), 4);
-    }
-    _ => panic!(\"Expected error\"),
-}
-```"]
-  #[error(
-    "not enough space available to put value (requested {requested} but only {available} available)"
-  )]
-  put
-);
-
-#[cfg(feature = "std")]
-impl From<TryPutError> for std::io::Error {
-  fn from(e: TryPutError) -> Self {
-    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
-  }
-}
-
-try_op_error!(
-  #[doc = "An error that occurs when trying to write data to a buffer with insufficient space.
-  
-This error indicates that a write operation failed because the buffer does not have
-enough remaining capacity to hold the data.
-
-This error is particularly useful for Sans-I/O designs as it provides exact information
-about space requirements, allowing the caller to allocate a larger buffer and retry:
-
-```rust
-# use bufkit::ChunkMut;
-let mut small_buf = [0u8; 4];
-let mut writer = &mut small_buf[..];
-
-match writer.try_write_u64_le(0x123456789ABCDEF0) {
-    Err(e) => {
-        // Caller knows exactly how much space is needed
-        assert_eq!(e.requested().get(), 8);
-        assert_eq!(e.available(), 4);
-    }
-    _ => panic!(\"Expected error\"),
-}
-```"]
-  #[error(
-    "not enough space available to write value (requested {requested} but only {available} available)"
-  )]
-  write
-);
-
-#[cfg(feature = "std")]
-impl From<TryWriteError> for std::io::Error {
-  fn from(e: TryWriteError) -> Self {
-    std::io::Error::new(std::io::ErrorKind::WriteZero, e)
   }
 }
 
@@ -376,13 +300,11 @@ impl From<OutOfBounds> for std::io::Error {
 /// operation fails due to insufficient remaining capacity from a given offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 #[error(
-  "not enough bytes available at {offset} (requested {requested} but only {available} available)"
+  "not enough bytes available at {offset} (requested {} but only {} available)",
+  self.info.requested(), self.info.available()
 )]
 pub struct InsufficientSpaceAt {
-  /// The number of bytes requested to write.
-  requested: NonZeroUsize,
-  /// The number of bytes available from the offset to the end of buffer.
-  available: usize,
+  info: InsufficientSpace,
   /// The offset at which the write was attempted.
   offset: usize,
 }
@@ -402,8 +324,7 @@ impl InsufficientSpaceAt {
     );
 
     Self {
-      requested,
-      available,
+      info: InsufficientSpace::new(requested, available),
       offset,
     }
   }
@@ -411,13 +332,13 @@ impl InsufficientSpaceAt {
   /// Returns the number of bytes requested to write.
   #[inline]
   pub const fn requested(&self) -> NonZeroUsize {
-    self.requested
+    self.info.requested()
   }
 
   /// Returns the number of bytes available from the offset.
   #[inline]
   pub const fn available(&self) -> usize {
-    self.available
+    self.info.available()
   }
 
   /// Returns the offset at which the write was attempted.
@@ -433,26 +354,26 @@ impl InsufficientSpaceAt {
 /// operation fails due to insufficient remaining capacity from a given offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct InsufficientDataAt {
-  /// The number of bytes requested to read.
-  requested: Option<NonZeroUsize>,
-  /// The number of bytes available from the offset to the end of buffer.
-  available: usize,
+  info: InsufficientData,
   /// The offset at which the read was attempted.
   offset: usize,
 }
 
 impl core::fmt::Display for InsufficientDataAt {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    match self.requested {
+    match self.requested() {
       Some(requested) => write!(
         f,
         "not enough bytes available at {}: available {}, requested {}",
-        self.offset, self.available, requested
+        self.offset,
+        self.info.available(),
+        requested
       ),
       None => write!(
         f,
         "not enough bytes available at {}: available {}",
-        self.offset, self.available
+        self.offset,
+        self.info.available()
       ),
     }
   }
@@ -463,20 +384,12 @@ impl core::error::Error for InsufficientDataAt {}
 impl InsufficientDataAt {
   /// Creates a new `InsufficientDataAt` error.
   ///
-  /// # Panics
-  ///
-  /// - In debug builds, panics if `requested <= available` (would not be an error).
-  /// - The `requested` value must be a non-zero.
+  /// - `available`: the number of bytes available from the offset.
+  /// - `offset`: the offset at which the read was attempted.
   #[inline]
   pub const fn new(available: usize, offset: usize) -> Self {
-    debug_assert!(
-      offset >= available,
-      "InsufficientDataAt: offset must be greater than or equal to available"
-    );
-
     Self {
-      requested: None,
-      available,
+      info: InsufficientData::new(available),
       offset,
     }
   }
@@ -494,8 +407,7 @@ impl InsufficientDataAt {
     );
 
     Self {
-      requested: Some(requested),
-      available,
+      info: InsufficientData::with_required(requested, available),
       offset,
     }
   }
@@ -503,13 +415,13 @@ impl InsufficientDataAt {
   /// Returns the number of bytes requested to read.
   #[inline]
   pub const fn requested(&self) -> Option<NonZeroUsize> {
-    self.requested
+    self.info.required()
   }
 
   /// Returns the number of bytes available from the offset.
   #[inline]
   pub const fn available(&self) -> usize {
-    self.available
+    self.info.available()
   }
 
   /// Returns the offset at which the read was attempted.
@@ -639,8 +551,6 @@ impl From<TryPutAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum EncodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -659,7 +569,6 @@ pub enum EncodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varint")]
 impl EncodeVarintAtError {
   /// Creates a new `EncodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -726,7 +635,7 @@ impl EncodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varint", feature = "std"))]
+#[cfg(feature = "std")]
 impl From<EncodeVarintAtError> for std::io::Error {
   fn from(e: EncodeVarintAtError) -> Self {
     match e {
@@ -748,8 +657,6 @@ impl From<EncodeVarintAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum DecodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -768,7 +675,6 @@ pub enum DecodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varint")]
 impl DecodeVarintAtError {
   /// Creates a new `DecodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -791,9 +697,7 @@ impl DecodeVarintAtError {
   #[inline]
   pub fn from_varint_error(err: DecodeVarintError, offset: usize) -> Self {
     match err {
-      DecodeVarintError::InsufficientData { available } => {
-        Self::insufficient_data(available, offset)
-      }
+      DecodeVarintError::InsufficientData(e) => Self::insufficient_data(e.available(), offset),
       DecodeVarintError::Other(msg) => Self::other(msg),
       _ => Self::other("unknown error"),
     }
@@ -803,9 +707,7 @@ impl DecodeVarintAtError {
   #[inline]
   pub const fn from_const_varint_error(err: ConstDecodeVarintError, offset: usize) -> Self {
     match err {
-      ConstDecodeVarintError::InsufficientData { available } => {
-        Self::insufficient_data(available, offset)
-      }
+      ConstDecodeVarintError::InsufficientData(e) => Self::insufficient_data(e.available(), offset),
       #[cfg(not(any(feature = "std", feature = "alloc")))]
       ConstDecodeVarintError::Other(msg) => Self::Other(msg),
       #[cfg(any(feature = "std", feature = "alloc"))]
@@ -832,7 +734,7 @@ impl DecodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varint", feature = "std"))]
+#[cfg(feature = "std")]
 impl From<DecodeVarintAtError> for std::io::Error {
   fn from(e: DecodeVarintAtError) -> Self {
     match e {

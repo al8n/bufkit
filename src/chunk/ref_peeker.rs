@@ -377,11 +377,13 @@ impl<'a, B: 'a + Chunk + ?Sized> Chunk for RefPeeker<'a, B> {
     let new_cursor = self.cursor + at;
     let old_limit = self.limit;
 
-    // Truncate self to [0, at)
-    self.limit = Bound::Excluded(self.cursor + at);
+    // Truncate self to [0, at) and update end so reset() stays bounded
+    let self_end = Bound::Excluded(new_cursor);
+    self.limit = self_end;
+    self.end = self_end;
 
-    let start = Bound::Included(self.cursor);
-    // Return the right part [at, end)
+    // Return the right part [at, end) with start at the split point
+    let start = Bound::Included(new_cursor);
     Self::with_cursor_and_bounds_inner(self.buf, new_cursor, start, old_limit)
   }
 
@@ -396,8 +398,10 @@ impl<'a, B: 'a + Chunk + ?Sized> Chunk for RefPeeker<'a, B> {
     let old_cursor = self.cursor;
     let new_end = self.cursor + at;
 
-    // Advance self to [at, end)
+    // Advance self to [at, end) and update start/end so reset() stays bounded
     self.cursor += at;
+    self.start = Bound::Included(self.cursor);
+    self.end = self.limit;
 
     let start = Bound::Included(old_cursor);
     let end = Bound::Excluded(new_end);
@@ -547,9 +551,36 @@ mod tests {
     // Right part should have remaining bytes
     assert_eq!(right_peeker.remaining(), 3);
     let mut right = right_peeker;
+    assert_eq!(right.position(), 0);
     assert_eq!(right.read_u8(), 3);
     assert_eq!(right.read_u8(), 4);
     assert_eq!(right.read_u8(), 5);
+  }
+
+  #[test]
+  fn test_peeker_split_off_reset() {
+    let data = [1u8, 2, 3, 4, 5];
+    let buf = &data[..];
+    let mut peeker = RefPeeker::new(&buf);
+
+    let mut right = peeker.split_off(2);
+
+    // Right part: read some then reset
+    assert_eq!(right.position(), 0);
+    assert_eq!(right.read_u8(), 3);
+    assert_eq!(right.position(), 1);
+    right.reset();
+    assert_eq!(right.position(), 0);
+    assert_eq!(right.remaining(), 3);
+    assert_eq!(right.read_u8(), 3); // reads from split point, not original start
+
+    // Left part: read some then reset
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.read_u8(), 1);
+    peeker.reset();
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.remaining(), 2); // bounded to [0, 2), not full buffer
+    assert_eq!(peeker.read_u8(), 1);
   }
 
   #[test]
@@ -579,9 +610,35 @@ mod tests {
 
     // Remaining peeker should have rest
     assert_eq!(peeker.remaining(), 3);
+    assert_eq!(peeker.position(), 0);
     assert_eq!(peeker.read_u8(), 3);
     assert_eq!(peeker.read_u8(), 4);
     assert_eq!(peeker.read_u8(), 5);
+  }
+
+  #[test]
+  fn test_peeker_split_to_reset() {
+    let data = [1u8, 2, 3, 4, 5];
+    let buf = &data[..];
+    let mut peeker = RefPeeker::new(&buf);
+
+    let mut left = peeker.split_to(2);
+
+    // Left part: read some then reset
+    assert_eq!(left.read_u8(), 1);
+    left.reset();
+    assert_eq!(left.position(), 0);
+    assert_eq!(left.remaining(), 2);
+    assert_eq!(left.read_u8(), 1);
+
+    // Remaining part: read some then reset
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.read_u8(), 3);
+    assert_eq!(peeker.position(), 1);
+    peeker.reset();
+    assert_eq!(peeker.position(), 0);
+    assert_eq!(peeker.remaining(), 3); // bounded to [2, 5), not full buffer
+    assert_eq!(peeker.read_u8(), 3); // reads from split point, not original start
   }
 
   #[test]

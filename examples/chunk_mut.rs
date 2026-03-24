@@ -67,21 +67,28 @@ impl Encode for Bar {
 impl Decode for Bar {
   fn decode<B: Chunk>(mut buf: B) -> Result<(usize, Self), Error> {
     let id = buf.read_u64_le();
-    let (foo_len, foo) = Foo::decode(buf.buffer())?;
+    let (foo_len, decoded) = Foo::decode(buf.buffer())?;
     buf.advance(foo_len);
     let n = buf.read_u32_le();
-    Ok((12 + foo_len, Bar { id, foo, n }))
+    Ok((
+      12 + foo_len,
+      Bar {
+        id,
+        foo: decoded,
+        n,
+      },
+    ))
   }
 }
 
 fn main() {
   let mut buffer = [0u8; 100]; // Example buffer
-  let foo = Foo {
+  let val = Foo {
     value: 42,
     other: b"Hello".to_vec(),
   };
 
-  let encoded = match foo.encode(&mut &mut buffer[..]) {
+  let encoded = match val.encode(&mut &mut buffer[..]) {
     Ok(len) => len,
     Err(_) => panic!("Failed to encode Foo"),
   };
@@ -92,7 +99,7 @@ fn main() {
 
   let bar = Bar {
     id: 123456789,
-    foo,
+    foo: decoded,
     n: 7,
   };
 

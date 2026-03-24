@@ -4,14 +4,11 @@ use super::error::{
   OutOfBounds, TryAdvanceError, TryPeekAtError, TryPeekError, TryReadError, TrySegmentError,
 };
 
-#[cfg(feature = "varint")]
 use core::num::NonZeroUsize;
 use core::ops::{Bound, RangeBounds};
 
-#[cfg(feature = "varint")]
 use varing::Varint;
 
-#[cfg(feature = "varint")]
 use super::error::{DecodeVarintAtError, DecodeVarintError};
 
 use super::panic_advance;
@@ -259,7 +256,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_le_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _le_at>](&self, offset: usize) -> $ty {
@@ -326,7 +323,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_be_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _be_at>](&self, offset: usize) -> $ty {
@@ -394,7 +391,7 @@ macro_rules! peek_fixed {
         /// let data = [147, 23, 89, 201, 156, 74, 33, 198, 67, 142, 91, 205, 38, 177, 124, 59, 183, 96, 241, 167, 82, 135, 49, 213];
         /// let buf = &data[..];
         #[doc = "let value = buf.peek_" $ty "_ne_at(2); // Peek at offset 2"]
-        /// assert_eq!(buf.remaining(), data.len()); // Chunkfer unchanged
+        /// assert_eq!(buf.remaining(), data.len()); // Buffer unchanged
         /// ```
         #[inline]
         fn [<peek_ $ty _ne_at>](&self, offset: usize) -> $ty {
@@ -839,9 +836,9 @@ macro_rules! read_fixed {
 ///
 /// # Method Categories
 ///
-/// - **Chunkfer inspection**: `remaining()`, `has_remaining()`, `buffer()`
+/// - **Buffer inspection**: `remaining()`, `has_remaining()`, `buffer()`
 /// - **Navigation**: `advance()`, `try_advance()`
-/// - **Chunkfer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
+/// - **Buffer manipulation**: `truncate()`, `split_to()`, `split_off()`, `segment()`
 /// - **Peeking data**: `peek_u8()`, `peek_u16_le()`, etc. (read without advancing)
 /// - **Reading data**: `read_u8()`, `read_u16_le()`, etc. (read and advance cursor)
 pub trait Chunk {
@@ -1891,7 +1888,7 @@ pub trait ChunkExt: Chunk {
   ///
   /// let first_three: [u8; 3] = buf.peek_array();
   /// assert_eq!(first_three, [1, 2, 3]);
-  /// // Chunkfer unchanged
+  /// // Buffer unchanged
   /// assert_eq!(buf.remaining(), 5);
   /// ```
   #[inline]
@@ -1966,7 +1963,7 @@ pub trait ChunkExt: Chunk {
   ///
   /// let array_at_2: [u8; 3] = buf.peek_array_at(2);
   /// assert_eq!(array_at_2, [3, 4, 5]);
-  /// // Chunkfer unchanged
+  /// // Buffer unchanged
   /// assert_eq!(buf.remaining(), 8);
   /// ```
   #[inline]
@@ -2111,8 +2108,6 @@ pub trait ChunkExt: Chunk {
   /// Peeks a variable-length encoded type from the buffer without advancing the internal cursor.
   ///
   /// Returns the length of the value and the value itself.
-  #[cfg(feature = "varint")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn peek_varint<V: Varint>(&self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer())
@@ -2121,8 +2116,6 @@ pub trait ChunkExt: Chunk {
   /// Reads a variable-length encoded type from the buffer and advances the internal cursor.
   ///
   /// Returns the length of the value read and the value itself.
-  #[cfg(feature = "varint")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   #[inline]
   fn read_varint<V: Varint>(&mut self) -> Result<(NonZeroUsize, V), DecodeVarintError> {
     V::decode(self.buffer()).inspect(|(len, _)| {
@@ -2151,8 +2144,6 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.try_scan_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 1); // Cursor not advanced
   /// ```
-  #[cfg(feature = "varint")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_scan_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
     varing::try_consume_varint(self.buffer()).map_err(Into::into)
   }
@@ -2181,8 +2172,6 @@ pub trait ChunkExt: Chunk {
   /// // Out of bounds example
   /// let err = chunk.try_scan_varint_at(10).unwrap_err();
   /// ```
-  #[cfg(feature = "varint")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_scan_varint_at(&mut self, offset: usize) -> Result<NonZeroUsize, DecodeVarintAtError> {
     self
       .buffer_from_checked(offset)
@@ -2214,8 +2203,6 @@ pub trait ChunkExt: Chunk {
   /// assert_eq!(chunk.try_consume_varint().map(|val| val.get()), Ok(1));
   /// assert_eq!(chunk.remaining(), 0); // Cursor advanced
   /// ```
-  #[cfg(feature = "varint")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
   fn try_consume_varint(&mut self) -> Result<NonZeroUsize, DecodeVarintError> {
     varing::try_consume_varint(self.buffer())
       .inspect(|len| {
