@@ -1649,16 +1649,16 @@ pub trait ChunkMut {
   /// ```
   fn try_put_slice_at(&mut self, slice: &[u8], offset: usize) -> Result<usize, TryPutAtError> {
     let len = slice.len();
+    if len == 0 {
+      return Ok(0);
+    }
+
     let space = self.remaining_mut();
     if offset >= space {
       return Err(TryPutAtError::out_of_bounds(offset, space));
     }
 
-    if len == 0 {
-      return Ok(0);
-    }
-
-    if len + offset <= space {
+    if len <= space - offset {
       self.buffer_mut()[offset..offset + len].copy_from_slice(slice);
       Ok(len)
     } else {
