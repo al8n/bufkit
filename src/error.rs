@@ -1,11 +1,7 @@
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
-pub use varing::{InsufficientSpace, InsufficientData};
-
-#[cfg(feature = "varint")]
 pub use varing::{
   ConstDecodeError as ConstDecodeVarintError, ConstEncodeError as ConstEncodeVarintError,
-  DecodeError as DecodeVarintError, EncodeError as EncodeVarintError,
+  DecodeError as DecodeVarintError, EncodeError as EncodeVarintError, InsufficientData,
+  InsufficientSpace,
 };
 
 use core::num::NonZeroUsize;
@@ -634,8 +630,6 @@ impl From<TryPutAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum EncodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -654,7 +648,6 @@ pub enum EncodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varint")]
 impl EncodeVarintAtError {
   /// Creates a new `EncodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -721,7 +714,7 @@ impl EncodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varint", feature = "std"))]
+#[cfg(feature = "std")]
 impl From<EncodeVarintAtError> for std::io::Error {
   fn from(e: EncodeVarintAtError) -> Self {
     match e {
@@ -743,8 +736,6 @@ impl From<EncodeVarintAtError> for std::io::Error {
 /// An error that occurs when trying to put type in LEB128 format at a specific offset in the buffer.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
-#[cfg(feature = "varint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "varint")))]
 pub enum DecodeVarintAtError {
   /// The offset is out of bounds for the buffer length.
   #[error(transparent)]
@@ -763,7 +754,6 @@ pub enum DecodeVarintAtError {
   Other(std::borrow::Cow<'static, str>),
 }
 
-#[cfg(feature = "varint")]
 impl DecodeVarintAtError {
   /// Creates a new `DecodeVarintAtError::OutOfBounds` error.
   #[inline]
@@ -823,7 +813,7 @@ impl DecodeVarintAtError {
   }
 }
 
-#[cfg(all(feature = "varint", feature = "std"))]
+#[cfg(feature = "std")]
 impl From<DecodeVarintAtError> for std::io::Error {
   fn from(e: DecodeVarintAtError) -> Self {
     match e {

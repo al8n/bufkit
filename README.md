@@ -45,7 +45,6 @@ bufkit = "0.6"
 | --------- | -------- | ------------------------------------------- |
 | `std`     | Yes      | Enables `std` integration                   |
 | `alloc`   | No       | Enables heap-allocated buffer support       |
-| `varint`  | No       | LEB128 encoding & decoding                  |
 | `bytes_1` | No       | Enable integration with `bytes` 1.x         |
 
 ## Alternatives
