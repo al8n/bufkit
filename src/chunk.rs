@@ -2460,7 +2460,13 @@ impl Chunk for &[u8] {
     let end = match range.end_bound() {
       Bound::Included(&n) => n.checked_add(1).expect("out of range"),
       Bound::Excluded(&n) => n,
-      Bound::Unbounded => len,
+      Bound::Unbounded => {
+        if begin == 0 {
+          return self;
+        } else {
+          len
+        }
+      }
     };
 
     &self[begin..end]
