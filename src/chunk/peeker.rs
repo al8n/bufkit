@@ -1,6 +1,6 @@
 use core::ops::{Bound, RangeBounds};
 
-use crate::error::TryAdvanceError;
+use crate::{error::TryAdvanceError, EmptyChunk};
 
 use super::{check_out_of_bounds, must_non_zero, panic_advance, Chunk};
 
@@ -309,6 +309,23 @@ impl<B> Peeker<B> {
       Bound::Excluded(n) => n,
       Bound::Unbounded => self.buf.remaining(),
     }
+  }
+}
+
+impl<B: EmptyChunk> EmptyChunk for Peeker<B> {
+  /// ```rust
+  /// use bufkit::{Chunk, EmptyChunk, Peeker};
+  ///
+  /// let empty_peeker = Peeker::<&[u8]>::empty();
+  /// assert_eq!(empty_peeker.remaining(), 0);
+  /// assert!(!empty_peeker.has_remaining());
+  /// ```
+  #[inline]
+  fn empty() -> Self
+  where
+    Self: Sized,
+  {
+    Self::new(B::empty())
   }
 }
 

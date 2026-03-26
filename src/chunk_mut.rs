@@ -1,5 +1,7 @@
 use core::num::NonZeroUsize;
 
+use crate::EmptyChunk;
+
 use super::{
   error::{InsufficientSpace, TryAdvanceError, TryPutAtError},
   must_non_zero, panic_advance,
@@ -2295,8 +2297,44 @@ impl<T: ChunkMut + ?Sized> ChunkMut for &mut T {
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-impl<T: ChunkMut + ?Sized> ChunkMut for std::boxed::Box<T> {
-  deref_forward_buf_mut!();
+const _: () = {
+  impl<T: ChunkMut + ?Sized> ChunkMut for std::boxed::Box<T> {
+    deref_forward_buf_mut!();
+  }
+
+  impl<T: EmptyChunk> EmptyChunk for std::boxed::Box<T> {
+    /// ```rust
+    /// use bufkit::{EmptyChunk, ChunkMut};
+    ///
+    /// let mut slice = <Box<&mut [u8]>>::empty();
+    /// assert_eq!(slice.remaining_mut(), 0);
+    /// assert!(!slice.has_remaining_mut());
+    /// ```
+    #[inline]
+    fn empty() -> Self
+    where
+      Self: Sized,
+    {
+      std::boxed::Box::new(T::empty())
+    }
+  }
+};
+
+impl EmptyChunk for &mut [u8] {
+  /// ```rust
+  /// use bufkit::{EmptyChunk, ChunkMut};
+  ///
+  /// let mut slice = <&mut [u8]>::empty();
+  /// assert_eq!(slice.remaining_mut(), 0);
+  /// assert!(!slice.has_remaining_mut());
+  /// ```
+  #[inline]
+  fn empty() -> Self
+  where
+    Self: Sized,
+  {
+    &mut []
+  }
 }
 
 impl ChunkMut for &mut [u8] {
@@ -2425,6 +2463,23 @@ impl<B: ?Sized> core::ops::DerefMut for ChunkWriter<B> {
   #[inline]
   fn deref_mut(&mut self) -> &mut Self::Target {
     &mut self.0
+  }
+}
+
+impl<B: EmptyChunk> EmptyChunk for ChunkWriter<B> {
+  /// ```rust
+  /// use bufkit::{EmptyChunk, ChunkMut, ChunkWriter};
+  ///
+  /// let mut slice = <ChunkWriter<&mut [u8]>>::empty();
+  /// assert_eq!(slice.remaining_mut(), 0);
+  /// assert!(!slice.has_remaining_mut());
+  /// ```
+  #[inline]
+  fn empty() -> Self
+  where
+    Self: Sized,
+  {
+    ChunkWriter(B::empty())
   }
 }
 

@@ -1,6 +1,6 @@
 use core::ops::{Bound, RangeBounds};
 
-use crate::error::TryAdvanceError;
+use crate::{error::TryAdvanceError, EmptyChunk};
 
 use super::{
   super::{must_non_zero, panic_advance},
@@ -56,6 +56,20 @@ impl<B: ChunkMut> From<B> for Putter<B> {
   }
 }
 
+impl<B: EmptyChunk> EmptyChunk for Putter<B> {
+  /// ```rust
+  /// use bufkit::{EmptyChunk, ChunkMut, Putter};
+  ///
+  /// let mut slice = <Putter<&mut [u8]>>::empty();
+  /// assert_eq!(slice.remaining_mut(), 0);
+  /// assert!(!slice.has_remaining_mut());
+  /// ```
+  #[inline]
+  fn empty() -> Self {
+    Self::new(B::empty())
+  }
+}
+
 impl<B> Putter<B> {
   /// Creates a new `Putter` instance with the given buffer.
   ///
@@ -72,10 +86,7 @@ impl<B> Putter<B> {
   /// assert_eq!(putter.remaining_mut(), 10);
   /// ```
   #[inline]
-  pub fn new(buf: impl Into<ChunkWriter<B>>) -> Self
-  where
-    B: ChunkMut,
-  {
+  pub fn new(buf: impl Into<ChunkWriter<B>>) -> Self {
     Self::with_cursor_and_bounds_inner(buf.into(), 0, Bound::Included(0), Bound::Unbounded)
   }
 

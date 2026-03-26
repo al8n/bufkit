@@ -826,6 +826,33 @@ macro_rules! read_fixed {
   };
 }
 
+/// A trait for chunk-like buffer types (such as [`Chunk`] and `ChunkMut`) that can be
+/// instantiated directly as empty.
+pub trait EmptyChunk {
+  /// Creates an empty buffer instance.
+  ///
+  /// The returned value must represent an empty view of the underlying data.
+  /// For types implementing [`Chunk`], this implies `remaining() == 0` and
+  /// `buffer().is_empty()`. For mutable chunk-like types (such as `ChunkMut`),
+  /// this implies there are no readable or writable bytes available according
+  /// to that type's API.
+  ///
+  /// This is a convenience method for creating an empty buffer of the implementing type.
+  ///
+  /// # Examples
+  ///
+  /// ```rust
+  /// use bufkit::{Chunk, EmptyChunk};
+  ///
+  /// let empty_buf = <&[u8]>::empty();
+  /// assert_eq!(empty_buf.remaining(), 0);
+  /// assert!(empty_buf.buffer().is_empty());
+  /// ```
+  fn empty() -> Self
+  where
+    Self: Sized;
+}
+
 /// A trait for implementing custom buffers that can read and navigate through byte sequences.
 ///
 /// This trait provides a comprehensive set of methods for reading data from buffers with different
@@ -2408,6 +2435,16 @@ macro_rules! deref_forward_buf {
   }
 }
 
+impl EmptyChunk for &[u8] {
+  #[inline]
+  fn empty() -> Self
+  where
+    Self: Sized,
+  {
+    &[]
+  }
+}
+
 impl Chunk for &[u8] {
   #[inline]
   fn remaining(&self) -> usize {
@@ -2589,6 +2626,28 @@ const _: () = {
         )*
       }
     };
+  }
+
+  #[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "bytes_1", any(feature = "std", feature = "alloc"))))
+  )]
+  impl EmptyChunk for Bytes {
+    /// ```rust
+    /// use bufkit::{EmptyChunk, Chunk};
+    /// use bytes_1::Bytes;
+    ///
+    /// let empty = Bytes::empty();
+    /// assert_eq!(empty.remaining(), 0);
+    /// assert!(!empty.has_remaining());
+    /// ```
+    #[inline]
+    fn empty() -> Self
+    where
+      Self: Sized,
+    {
+      Bytes::new()
+    }
   }
 
   #[cfg_attr(
